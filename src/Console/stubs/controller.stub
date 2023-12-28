@@ -1,0 +1,78 @@
+<?php
+
+namespace {{ namespace }};
+
+use App\Lib\Base\BaseController;
+use App\Request\{{ table }}Request;
+use App\Repository\{{ table }}Repository;
+use App\Services\{{ table }}Service;
+
+use Hyperf\Di\Annotation\Inject;
+use Hyperf\HttpServer\Annotation\Controller;
+use Hyperf\HttpServer\Annotation\RequestMapping;
+use Hyperf\Validation\Annotation\Scene;
+
+#[Controller]
+class {{ class }} extends BaseController
+{
+    #[Inject]
+    private ?{{ table }}Service $service;
+    #[Inject]
+    private ?{{ table }}Repository $repository;
+
+    #[RequestMapping(path: 'save{{ table }}Data', methods: 'Post')]
+    #[Scene(scene: 'save')]
+    public function save{{ table }}Data({{ table }}Request $request): string|\Psr\Http\Message\ResponseInterface
+    {
+        $validata = $request->validated();
+
+        if (!isset($validata[{{ primaryKey }}])) {
+            [$status, $object] = $this->repository->saveData($validata);
+        } else {
+            if (is_array($validata[{{ primaryKey }}])) {
+                $object = $this->repository->whereIn({{ primaryKey }}, $validata[{{ primaryKey }}])->get();
+                unset($validata[{{ primaryKey }}]);
+                [$status, $object] = $this->repository->updateAllData($object, $validata);
+            } else {
+                $object = $this->repository->getDataFindBy({{ primaryKey }}, $validata[{{ primaryKey }}]);
+                [$status, $object] = $this->repository->updateData($object, $validata);
+            }
+        }
+
+        if (!$status) {
+            return $this->JsonCallBack->JsonMain(200004, $object);
+        }
+
+        return $this->JsonCallBack->JsonMain(200000, '操作成功');
+    }
+
+    #[RequestMapping(path: 'del{{ table }}Data', methods: 'put')]
+    #[Scene(scene: 'del')]
+    public function del{{ table }}Data({{ table }}Request $request): string|\Psr\Http\Message\ResponseInterface
+    {
+        $data = $request->validated();
+
+        [$status, $object] = $this->repository->deleteData($data);
+
+        if (!$status) {
+            return $this->JsonCallBack->JsonMain(200004, $object);
+        }
+
+        return $this->JsonCallBack->JsonMain(200000, '移除成功');
+    }
+
+    #[RequestMapping(path: 'get{{ table }}Data', methods: 'GET')]
+    #[Scene(scene: 'get')]
+    public function get{{ table }}Data({{ table }}Request $request): string|\Psr\Http\Message\ResponseInterface
+    {
+        $data = $request->validated();
+
+        $sql = $this->repository->skip($data);
+
+        $count = $sql->count();
+
+        $list = $sql->get();
+
+        return $this->JsonCallBack->JsonMain(200000, '获取成功', $list, $count);
+    }
+}

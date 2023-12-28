@@ -1,0 +1,138 @@
+<?php
+
+namespace {{ namespace }};
+
+use App\Lib\Base\BaseController;
+use App\Request\{{ table }}Request;
+use App\Repository\{{ table }}Repository;
+use App\Services\{{ table }}Service;
+
+use Hyperf\Di\Annotation\Inject;
+use Hyperf\HttpServer\Annotation\Controller;
+use Hyperf\HttpServer\Annotation\RequestMapping;
+use Hyperf\Validation\Annotation\Scene;
+use Hyperf\Swagger\Annotation as SA;
+
+#[SA\HyperfServer(name: 'sw')]
+#[Controller]
+class {{ class }} extends BaseController
+{
+    #[Inject]
+    private ?{{ table }}Service $service;
+    #[Inject]
+    private ?{{ table }}Repository $repository;
+
+    #[SA\Post(path: {{ saveApi }}, summary: '保存{{ comment }}', tags: [{{ saveTags }}])]
+    #[SA\QueryParameter(name: 'token', description: '鉴权 token',rules: 'required|string')]
+    #[SA\RequestBody(
+        description: '请求参数',
+        content: [
+            new SA\MediaType(
+                mediaType: 'application/x-www-form-urlencoded',
+                schema: new SA\Schema(
+                    required: [],//根据业务逻辑自己设置
+                    properties: [
+                        {{ saveProperties }}
+                    ]
+                ),
+            ),
+        ],
+    )]
+    #[SA\Response(response: 200000, description: '数据操作成功')]
+    #[RequestMapping(path: 'save{{ table }}Data', methods: 'Post')]
+    #[Scene(scene: 'save')]
+    public function save{{ table }}Data({{ table }}Request $request): string|\Psr\Http\Message\ResponseInterface
+    {
+        $validata = $request->validated();
+
+        if (!isset($validata[{{ primaryKey }}])) {
+            [$status, $object] = $this->repository->saveData($validata);
+        } else {
+            if (is_array($validata[{{ primaryKey }}])) {
+                $object = $this->repository->whereIn({{ primaryKey }}, $validata[{{ primaryKey }}])->get();
+                unset($validata[{{ primaryKey }}]);
+                [$status, $object] = $this->repository->updateAllData($object, $validata);
+            } else {
+                $object = $this->repository->getDataFindBy({{ primaryKey }}, $validata[{{ primaryKey }}]);
+                [$status, $object] = $this->repository->updateData($object, $validata);
+            }
+        }
+
+        if (!$status) {
+            return $this->JsonCallBack->JsonMain(200004, $object);
+        }
+
+        return $this->JsonCallBack->JsonMain(200000, '操作成功');
+    }
+
+    #[SA\Put(path: {{ delApi }}, summary: '删除{{ comment }}', tags: [{{ delTags }}])]
+    #[SA\QueryParameter(name: 'token', description: '鉴权 token',rules: 'required|string')]
+    #[SA\RequestBody(
+        description: '请求参数',
+        content: [
+            new SA\MediaType(
+                mediaType: 'application/x-www-form-urlencoded',
+                schema: new SA\Schema(
+                    required: [],//根据业务逻辑自己设置
+                    properties: [
+                        {{ delProperties }}
+                    ]
+                ),
+            ),
+        ],
+    )]
+    #[SA\Response(response: 200000, description: '数据操作成功')]
+    #[RequestMapping(path: 'del{{ table }}Data', methods: 'put')]
+    #[Scene(scene: 'del')]
+    public function del{{ table }}Data({{ table }}Request $request): string|\Psr\Http\Message\ResponseInterface
+    {
+        $data = $request->validated();
+
+        [$status, $object] = $this->repository->deleteData($data);
+
+        if (!$status) {
+            return $this->JsonCallBack->JsonMain(200004, $object);
+        }
+
+        return $this->JsonCallBack->JsonMain(200000, '移除成功');
+    }
+
+
+    #[SA\Get(path: {{ getApi }}, summary: '获取{{ comment }}', tags: [{{ getTags }}])]
+    #[SA\QueryParameter(name: 'token', description: '鉴权 token',rules: 'required|string')]
+    #[SA\RequestBody(
+        description: '请求参数',
+        content: [
+            new SA\MediaType(
+                mediaType: 'application/x-www-form-urlencoded',
+                schema: new SA\Schema(
+                    required: [],//根据业务逻辑自己设置
+                    properties: [
+                        {{ getProperties }}
+                    ]
+                ),
+            ),
+        ],
+    )]
+    #[SA\Response(
+        response: 200000,
+        description: '返回值的描述',
+        content: new SA\JsonContent(
+            example: '{"status": "success","code":200000,"message": "请求成功:数据获取成功","data":[ {{ response }},"count": 0]}'
+        ),
+    )]
+    #[RequestMapping(path: 'get{{ table }}Data', methods: 'GET')]
+    #[Scene(scene: 'get')]
+    public function get{{ table }}Data({{ table }}Request $request): string|\Psr\Http\Message\ResponseInterface
+    {
+        $data = $request->validated();
+
+        $sql = $this->repository->skip($data);
+
+        $count = $sql->count();
+
+        $list = $sql->get();
+
+        return $this->JsonCallBack->JsonMain(200000, '获取成功', $list, $count);
+    }
+}

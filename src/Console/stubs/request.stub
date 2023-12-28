@@ -1,0 +1,55 @@
+<?php
+
+namespace {{ namespace }};
+
+use Hyperf\Validation\Request\FormRequest;
+
+class {{ class }}Request extends FormRequest
+{
+     protected array $scenes = [
+         'save' => [{{ saveRules }}],
+         'del' => [{{ delRules }}],
+         'get' => [{{ getRules }}],
+     ];
+
+     /**
+      * Determine if the user is authorized to make this request.
+      */
+     public function authorize(): bool
+     {
+         return true;
+     }
+
+     /**
+      * Get the validation rules that apply to the request.
+      */
+     public function rules(): array
+     {
+         return [
+            {{ allRules }}
+         ];
+     }
+
+     /**
+      * 获取已定义验证规则的错误消息
+      */
+     public function messages(): array
+     {
+         return [
+             {{ messages }}
+         ];
+     }
+
+     private function getKeyRule()
+     {
+         if ($this->is({{ saveApi }})) {
+             return '{{ priType }}|exists:{{ table }}';
+         } elseif ($this->is({{ delApi }})) {
+             return 'required|exists:{{ table }}';
+         }elseif ($this->is({{ getApi }})) {
+             return 'exists:{{ table }}';
+         }
+         // 默认验证规则
+         return {{ priTypeDefault }};
+     }
+}

@@ -1,0 +1,21 @@
+{
+    "name": "japool/generate-code-hyperf",
+    "description": "generate code to hyperf",
+    "type": "library",
+    "require": {
+        "php": ">=8.0",
+        "ext-pdo_mysql": "*"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Japool\\Genconsole\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "authors": [
+        {
+            "name": "japool"
+        }
+    ]
+}

@@ -10,12 +10,12 @@ abstract class BaseRepository
 {
     use RepositoryFunction,RepositoryHelp;
 
-    protected Object $model;
+    public $model;
 
     #[value('repository')]
     protected $config;
 
-    public function model()
+    public function model(): string
     {
         return $this->config['model'].'\\'.str_replace('Repository', '', class_basename(get_class($this)).'Model');
     }

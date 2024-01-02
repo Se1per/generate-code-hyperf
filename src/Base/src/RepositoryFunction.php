@@ -4,20 +4,25 @@ namespace App\Lib\Base\src;
 
 trait RepositoryFunction
 {
-
-    public function with($with)
+    public function with($with): static
     {
-        return $this->model->with($with);
+        $this->model->with($with);
+        return $this;
     }
 
     public function whereIn($columns, $value = null)
     {
-        return $this->model->whereIn($columns, $value);
+        $this->model->whereIn($columns, $value);
+        return $this;
     }
 
     public function where($columns, $value = null)
     {
-        return $this->model->where($columns, $value);
+        if(is_array($columns)){
+            $this->model->where($columns);
+        }
+        $this->model->where($columns, $value);
+        return $this;
     }
 
     /**
@@ -33,8 +38,7 @@ trait RepositoryFunction
 
         $data['page'] = ($data['page'] - 1) * $data['limit'];
 
-        $this->model = $this->model->skip($data['page'])->take($data['limit']);
-
+        $this->model->skip($data['page'])->take($data['limit']);
         return $this;
     }
 
@@ -48,24 +52,24 @@ trait RepositoryFunction
     }
 
     /**
-     * 获取一行的值
-     * @return mixed
-     */
-    public function first()
-    {
-        return $this->model->first();
-    }
-
-    /**
      * 数据最后一个
      * @param string $latest
      * @return $this
      */
     public function latest(string $latest = 'created_at')
     {
-        $this->model = $this->model->latest($latest);
+        $this->model->latest($latest);
 
         return $this;
+    }
+
+    /**
+     * 获取一行的值
+     * @return mixed
+     */
+    public function first()
+    {
+        return $this->model->first();
     }
 
     /**

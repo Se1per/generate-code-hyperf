@@ -48,14 +48,7 @@ class {{ class }} extends BaseController
         if (!isset($validata[{{ primaryKey }}])) {
             [$status, $object] = $this->repository->saveData($validata);
         } else {
-            if (is_array($validata[{{ primaryKey }}])) {
-                $object = $this->repository->whereIn({{ primaryKey }}, $validata[{{ primaryKey }}])->get();
-                unset($validata[{{ primaryKey }}]);
-                [$status, $object] = $this->repository->updateAllData($object, $validata);
-            } else {
-                $object = $this->repository->getDataFindBy({{ primaryKey }}, $validata[{{ primaryKey }}]);
-                [$status, $object] = $this->repository->updateData($object, $validata);
-            }
+            [$status, $object] = $this->repository->updateData($validata);
         }
 
         if (!$status) {
@@ -127,12 +120,20 @@ class {{ class }} extends BaseController
     {
         $data = $request->validated();
 
-        $sql = $this->repository->skip($data);
+        $getSql = $this->service->selectArray(
+            $data
+        );
 
-        $count = $sql->count();
+        try {
 
-        $list = $sql->get();
+            $list = $this->repository->getData($getSql);
 
-        return $this->JsonCallBack->JsonMain(200000, '获取成功', $list, $count);
+            $count = $this->repository->getCount($getSql);
+
+        } catch (\Exception $e) {
+            return $this->JsonCallBack->JsonMain(200002, '数据获取失败'.$e->getMessage());
+        }
+
+        return $this->JsonCallBack->JsonMain(200000, '数据获取成功', $list, $count);
     }
 }

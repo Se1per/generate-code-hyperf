@@ -45,39 +45,55 @@ trait RepositoryHelp
         return [true, '批量新增成功'];
     }
 
-    public function updateData($object, $data): array
+    public function updateData($data,string $key = 'id'): array
     {
-        go(function () use ($data, $object) {
-            try {
-                $object = $object->fill($data);
-                $object->save();
-            } catch (\Exception $e) {
-                return [false, $e->getMessage()];
-            }
-            return true;
-        });
+        if(is_array($data[$key])){
 
-        return [true, $object];
+            $concurrent = new Concurrent(10);
+
+            $object = $this->getDataInBy($key, $data[$key]);
+
+            foreach ($object as $value){
+                $concurrent->create(function () use ($value,$data,&$num) {
+                    try {
+                        $value = $value->fill($data);
+                        $value->save();
+                    } catch (\Exception $e) {
+                        return [false, $e->getMessage()];
+                    }
+                    return true;
+                });
+            }
+            return [true, '更新成功'];
+        }else{
+            $object = $this->getDataFindBy($key, $data[$key]);
+            go(function () use ($data, $object) {
+                try {
+                    $object = $object->fill($data);
+                    $object->save();
+                } catch (\Exception $e) {
+                    return [false, $e->getMessage()];
+                }
+                return true;
+            });
+            return [true, $object];
+        }
     }
 
     public function updateAllData($object, $data): array
     {
         $concurrent = new Concurrent(10);
-        Db::beginTransaction();
         foreach ($object as $value){
             $concurrent->create(function () use ($value,$data,&$num) {
                 try {
                     $value = $value->fill($data);
                     $value->save();
                 } catch (\Exception $e) {
-                    Db::rollBack();
                     return [false, $e->getMessage()];
                 }
                 return true;
             });
         }
-
-//        Db::commit();
 
         return [true, '批量更新成功'];
     }
@@ -86,7 +102,7 @@ trait RepositoryHelp
     {
         try {
 
-            $this->model->destroy($data);
+           $this->model->destroy($data);
 
         } catch (\Exception $e) {
 
@@ -123,6 +139,18 @@ trait RepositoryHelp
     }
 
     /**
+     * 获取数据集
+     * @param $attribute
+     * @param array $value
+     * @param array $columns
+     * @return mixed
+     */
+    public function getDataInBy($attribute,array $value,array $columns = array('*')): mixed
+    {
+        return $this->model->whereIn($attribute,$value)->get($columns);
+    }
+
+    /**
      * 执行数据层构造
      * @param array $data
      * @return mixed
@@ -132,7 +160,6 @@ trait RepositoryHelp
     {
         return $this->runningSql($data, false, 'count');
     }
-
 
     /**
      * 执行数据层构造
@@ -144,26 +171,43 @@ trait RepositoryHelp
      */
     public function getData(array $data = [], string $get = 'get', bool $needToArray = false): mixed
     {
-        return $this->runningSql($data, $needToArray, $get);
+        return $this->runningSql($data,$needToArray,$get);
     }
 
-    public function runningSql($data, bool $needToArray = false, string $get = 'get', &$dataCallBack = null)
+    /**
+     * 执行构造数据层
+     * @param $data
+     * @param bool $needToArray
+     * @param string $get
+     * @param $dataCallBack
+     * @return mixed
+     * @throws \ErrorException
+     */
+    public function runningSql($data,bool $needToArray = false, string $get = 'get'): mixed
     {
+        $object = $this->model;
+
         foreach ($data as $k => $val) {
             if ($get == 'count' && $k == 'skip') continue;
-            if (method_exists($this, $k)) {
-                $this->model->$k($val);
-            } else {
-                throw new \ErrorException("Class Repository object does not have a function Name: " . $k);
+            if($k == 'with'){
+                $object = $object->$k($val);
+                continue;
+            }
+            if($k == 'skip'){
+                $val['page'] = $val['page'] ?? 1;
+                $val['limit'] = $val['limit'] ?? 10;
+                $val['page'] = ($val['page'] - 1) * $val['limit'];
+                $object = $object->skip($val['page'])->take($val['limit']);
+                continue;
+            }
+            if(is_array($val)){
+                $object = $object->$k(...$val);
+            }else{
+                $object = $object->$k($val);
             }
         }
 
-        if ($get == 'chunk') {
-            $this->$get($dataCallBack);
-            return $this;
-        }
-
-        $list = $this->model->$get();
+        $list = $object->$get();
 
         switch ($get) {
             case 'find':
@@ -171,9 +215,10 @@ trait RepositoryHelp
                 break;
             case 'get':
                 if ($needToArray) $list = $list->toArray();
-                break;
+            break;
         }
 
         return $list;
     }
+
 }

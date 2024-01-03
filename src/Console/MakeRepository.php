@@ -7,7 +7,6 @@ use Hyperf\Command\Annotation\Command;
 use Hyperf\Config\Annotation\Value;
 use Hyperf\Devtool\Generator\GeneratorCommand;
 
-
 #[Command]
 class MakeRepository extends GeneratorCommand
 {

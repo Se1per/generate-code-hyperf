@@ -12,7 +12,7 @@ use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\RequestMapping;
 use Hyperf\Validation\Annotation\Scene;
 
-#[Controller]
+#[Controller(prefix: '/api/{{ prefix }}')]
 class {{ class }} extends BaseController
 {
     #[Inject]

@@ -5,7 +5,7 @@ namespace App\Lib\Console;
 use App\Lib\Console\src\AutoCodeHelp;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Config\Annotation\Value;
-use Hyperf\DbConnection\Db;
+
 use Hyperf\Devtool\Generator\GeneratorCommand;
 
 
@@ -75,8 +75,8 @@ class MakeController extends GeneratorCommand
     {
         $tableName = $this->input->getArguments();
         $tableName['name'] = $this->unCamelCase($tableName['name']);
-
-        $result = $this->getTableColumnsComment($tableName['name']);
+        $dbPrefix = env('DB_PREFIX');
+        $result = $this->getTableColumnsComment($dbPrefix.$tableName['name']);
 
         $key = null;
 
@@ -138,7 +138,7 @@ class MakeController extends GeneratorCommand
                     $delProperties .= "new SA\Property(property: '".$column->Field."', description: '".$column_default."', type: '".$pri."'),\r";
                 }
 
-                $getProperties .= "new SA\Property(property: '".$column->Field."', description: '".$column_default."', type: '".$pri."'),\r";
+                $getProperties .= "#[SA\QueryParameter(name: '".$column->Field."', description: '".$column_default."', schema: new SA\Schema(type: '".$pri."'))]\r";
 
                 $saveProperties .= "new SA\Property(property: '".$column->Field."', description: '".$column_default."', type: '".$pri."'),\r";
 
@@ -148,17 +148,22 @@ class MakeController extends GeneratorCommand
 
             $stub = str_replace('{{ saveProperties }}', $saveProperties, $stub);
             $stub = str_replace('{{ delProperties }}', $delProperties, $stub);
+
+            $getProperties .= "#[SA\QueryParameter(name: '".'limit'."', description: '".'分页参数'."',required: true,schema: new SA\Schema(type: '".'integer'."'))]\r";
+            $getProperties .= "#[SA\QueryParameter(name: '".'page'."', description: '".'分页参数'."',required: true,schema: new SA\Schema(type: '".'integer'."'))]\r";
+
             $stub = str_replace('{{ getProperties }}', $getProperties, $stub);
             $stub = str_replace('{{ response }}', $getResponse, $stub);
 
         }
-
 
         $stub = str_replace('{{ primaryKey }}', $key, $stub);
 
         $stub = str_replace('{{ class }}', $this->camelCase($tableName['name']).'Controller', $stub);
 
         $stub = str_replace('{{ table }}', $this->camelCase($tableName['name']), $stub);
+
+        $stub = str_replace('{{ prefix }}', $this->lcfirst($tableName['name']), $stub);
 
         $stub = str_replace('{{ namespace }}', $this->config['controller'], $stub);
 

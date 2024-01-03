@@ -66,9 +66,6 @@ class MakeRequest extends GeneratorCommand
     {
         $tableName = $this->input->getArguments();
         $tableName['name'] = $this->unCamelCase($tableName['name']);
-        $dbPrefix = env('DB_PREFIX');
-        $sql = 'SHOW COLUMNS FROM `'.$dbPrefix.$tableName['name'].'`;';
-        $result = DB::select($sql);
         $saveRules = '';
         $getRules = '';
         $delRules = '';
@@ -81,6 +78,8 @@ class MakeRequest extends GeneratorCommand
 
         $priType = null;
         $priTypeDefault = null;
+        $dbPrefix = env('DB_PREFIX');
+        $result = $this->getTableColumnsComment($dbPrefix.$tableName['name']);
 
         foreach ($result as $column) {
             if ($column->Key == 'PRI') {
@@ -93,11 +92,12 @@ class MakeRequest extends GeneratorCommand
                     $priTypeDefault = '\'string\'';
                 }
             }
+
             $this->makeRulesArray($column,$tableName['name'],$rules,$messages);
             $this->makeScenesRules($column,$saveRules,$getRules,$delRules);
         }
 
-        $this->makeGetArrayPaginate($rules,$messages);
+        $this->makeGetArrayPaginate($rules,$messages,$getRules);
 
         $stub = str_replace('{{ saveRules }}', $saveRules, $stub);
         $stub = str_replace('{{ delRules }}', $delRules, $stub);

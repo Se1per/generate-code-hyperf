@@ -74,8 +74,16 @@ class MakeModel extends GeneratorCommand
         $primaryKey = '';
         $fillAble = '';
 
+        $softDeletes = false;
+
         foreach ($result as $column) {
-            $this->makeModelData($column,$primaryKey,$fillAble);
+            $this->makeModelData($column,$primaryKey,$fillAble,$softDeletes);
+        }
+
+        if($softDeletes){
+            $stub = str_replace('{{ SoftDeletes }}', 'use SoftDeletes;', $stub);
+        }else{
+            $stub = str_replace('{{ SoftDeletes }}','', $stub);
         }
 
         $stub = str_replace('{{ tableName }}', $tableName['name'], $stub);

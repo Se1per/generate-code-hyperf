@@ -3,12 +3,11 @@
 namespace App\Lib\Console;
 
 use App\Lib\Console\src\AutoCodeHelp;
-use Hyperf\Command\Command as HyperfCommand;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Config\Annotation\Value;
 use Hyperf\DbConnection\Db;
 use Psr\Container\ContainerInterface;
-
+use Hyperf\Command\Command as HyperfCommand;
 
 #[Command]
 class MakeCrudCodeClass extends HyperfCommand
@@ -36,7 +35,8 @@ class MakeCrudCodeClass extends HyperfCommand
     public function handle()
     {
         $tables = DB::select('SHOW TABLES');
-        foreach ($tables as $key => $val) {
+
+        foreach ($tables as $val) {
             $val = array_values(json_decode(json_encode($val), true));
             $tableName = array_shift($val);
             $tableName = str_replace(env('DB_PREFIX'), '', $tableName);

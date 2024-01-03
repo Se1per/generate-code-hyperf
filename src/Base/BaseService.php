@@ -6,6 +6,40 @@ use Carbon\Carbon;
 
 abstract class BaseService
 {
+    public function selectArray($makeData): array
+    {
+        $sql = [];
+        foreach ($makeData as $k => $val) {
+            if (isset($val)) {
+                if ($k == 'page' && count($sql) <= 2){
+                    $data['page'] = $val;
+                    $data['limit'] = $makeData['limit'] ?? 10;
+                    $data['page'] = ($data['page'] - 1) * $data['limit'];
+                    $sql['skip']['page'] = $data['page'];
+                    $sql['skip']['limit'] = $data['limit'];
+                }
+                switch ($k) {
+                    case 'id':
+                        if (!is_array($val)) {
+                            $sql['where'][] = $this->convertToWhereQuery($k, '=', $val);
+                        } else {
+                            $sql['whereIn'] = $this->convertToWhereQuery($k, 'in', $val);
+                        }
+                    break;
+                    case 'created_at':
+                    case 'updated_at':
+                        if (is_array($val)) {
+                            $sql['whereBetween'] = $this->convertToWhereQuery($k, 'in', $val);
+                        } else {
+                            $sql['whereDate'] = $this->convertToWhereQuery($k, '=', $val);
+                        }
+                    break;
+                }
+            }
+        }
+        return $sql;
+    }
+
     /**
      * 构造查询条件
      * @param $column string 字段

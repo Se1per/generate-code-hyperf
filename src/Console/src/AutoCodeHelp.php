@@ -2,6 +2,7 @@
 
 namespace App\Lib\Console\src;
 
+use Hyperf\Context\ApplicationContext;
 use Hyperf\DbConnection\Db;
 use Hyperf\Swagger\Request\SwaggerRequest;
 
@@ -189,14 +190,18 @@ trait AutoCodeHelp
             $getRules .= '\'' . $column_name . '\'' . ','. "\r";
         }
 
-        $getRules .= '\'' . 'page' . '\'' . ','. "\r";
-        $getRules .= '\'' . 'limit' . '\'' . ','. "\r";
+//        $getRules .= '\'' . 'page' . '\'' . ','. "\r";
+//        $getRules .= '\'' . 'limit' . '\'' . ','. "\r";
 
         return true;
     }
 
-    public function makeModelData($column, &$primaryKey, &$fillAble)
+    public function makeModelData($column, &$primaryKey, &$fillAble,&$softDeletes)
     {
+        if($column->Field == 'deleted_at'){
+            $softDeletes = true;
+        }
+
         if ($column->Field == 'deleted_at' || $column->Field == 'created_at' || $column->Field == 'updated_at') {
             return true;
         }
@@ -220,14 +225,15 @@ trait AutoCodeHelp
      * @param $msg
      * @return true
      */
-    public function makeGetArrayPaginate(&$store, &$msg)
+    public function makeGetArrayPaginate(&$store, &$msg,&$getRules)
     {
         $store .= '\'' . 'page' . '\'' . '=>' . '\'' . 'integer' . '\'' . ','. "\r";
         $msg .= '\'' . 'page' . '.integer' . '\'' . '=>' . '\'' . '分页参数必须是数字' . '\'' . ','. "\r";
 
         $store .= '\'' . 'limit' . '\'' . '=>' . '\'' . 'integer' . '\'' . ','. "\r";
         $msg .= '\'' . 'limit' . '.integer' . '\'' . '=>' . '\'' . '分页参数必须是数字' . '\'' . ','. "\r";
-
+        $getRules .= '\'' . 'page' . '\'' . ','. "\r";
+        $getRules .= '\'' . 'limit' . '\'' . ','. "\r";
         return true;
     }
 
@@ -312,8 +318,38 @@ trait AutoCodeHelp
      */
     public function getTableColumnsComment($tableName)
     {
-        $dbPrefix = env('DB_PREFIX');
-        $tableDetails = 'SHOW FULL COLUMNS FROM ' . $dbPrefix . $tableName;
+        $tableDetails = 'SHOW FULL COLUMNS FROM ' . $tableName;
         return DB::select($tableDetails);
+    }
+
+
+    /**
+     * 移除生成
+     * @return void
+     */
+    public function delCurlFileList(): void
+    {
+        $list = ['controller','repository','services','request','model'];
+
+        foreach ($list as $item)
+        {
+            $filePath = $this->config[$item];
+
+            if((is_dir($filePath)))
+            {
+                $handle = opendir($filePath);
+
+                if ($handle) {
+                    while (($entry = readdir($handle)) !== FALSE) {
+                        if(is_file($filePath.'/'.$entry)){
+                            unlink($filePath.'/'.$entry);
+                        }
+                    }
+                }
+                $this->info('The '.$item.' folder has been deleted');
+            }else{
+                $this->error($filePath.'not defined');
+            }
+        }
     }
 }

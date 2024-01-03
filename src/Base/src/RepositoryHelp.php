@@ -194,9 +194,9 @@ trait RepositoryHelp
                 continue;
             }
             if($k == 'skip'){
-                $val['page'] = $val['page'] ?? 1;
-                $val['limit'] = $val['limit'] ?? 10;
-                $val['page'] = ($val['page'] - 1) * $val['limit'];
+//                $val['page'] = $val['page'] ?? 1;
+//                $val['limit'] = $val['limit'] ?? 10;
+//                $val['page'] = ($val['page'] - 1) * $val['limit'];
                 $object = $object->skip($val['page'])->take($val['limit']);
                 continue;
             }

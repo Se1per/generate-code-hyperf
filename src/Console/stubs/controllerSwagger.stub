@@ -14,7 +14,7 @@ use Hyperf\Validation\Annotation\Scene;
 use Hyperf\Swagger\Annotation as SA;
 
 #[SA\HyperfServer(name: 'sw')]
-#[Controller]
+#[Controller(prefix: '/api/{{ prefix }}')]
 class {{ class }} extends BaseController
 {
     #[Inject]
@@ -93,20 +93,7 @@ class {{ class }} extends BaseController
 
     #[SA\Get(path: {{ getApi }}, summary: '获取{{ comment }}', tags: [{{ getTags }}])]
     #[SA\QueryParameter(name: 'token', description: '鉴权 token',rules: 'required|string')]
-    #[SA\RequestBody(
-        description: '请求参数',
-        content: [
-            new SA\MediaType(
-                mediaType: 'application/x-www-form-urlencoded',
-                schema: new SA\Schema(
-                    required: [],//根据业务逻辑自己设置
-                    properties: [
-                        {{ getProperties }}
-                    ]
-                ),
-            ),
-        ],
-    )]
+    {{ getProperties }}
     #[SA\Response(
         response: 200000,
         description: '返回值的描述',

@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace {{ namespace }};
 
 use App\Lib\Base\BaseModel;
+use Hyperf\Database\Model\SoftDeletes;
 
 class {{ class }} extends BaseModel
 {
+    {{ SoftDeletes }}
     /**
      * The table associated with the model.
      *

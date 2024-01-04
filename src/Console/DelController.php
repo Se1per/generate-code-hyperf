@@ -120,6 +120,7 @@ class MakeController extends GeneratorCommand
             $saveProperties = '';
             $delProperties = '';
             $getProperties = '';
+            $column_default = '';
             foreach ($result as $column) {
                 if ($column->Field == 'deleted_at' || $column->Field == 'created_at' || $column->Field == 'updated_at') {
                     continue;
@@ -137,7 +138,7 @@ class MakeController extends GeneratorCommand
                     $delProperties .= "new SA\Property(property: '".$column->Field."', description: '".$column_default."', type: '".$pri."'),\r";
                 }
 
-                $getProperties .= "#[SA\QueryParameter(name: '".$column->Field."', description: '".$column_default."', schema: new SA\Schema(type: '".$pri."'))]\r";
+                $getProperties .= "new SA\Property(property: '".$column->Field."', description: '".$column_default."', type: '".$pri."'),\r";
 
                 $saveProperties .= "new SA\Property(property: '".$column->Field."', description: '".$column_default."', type: '".$pri."'),\r";
 
@@ -147,10 +148,6 @@ class MakeController extends GeneratorCommand
 
             $stub = str_replace('{{ saveProperties }}', $saveProperties, $stub);
             $stub = str_replace('{{ delProperties }}', $delProperties, $stub);
-
-            $getProperties .= "#[SA\QueryParameter(name: '".'limit'."', description: '".'分页参数'."',required: true,schema: new SA\Schema(type: '".'integer'."'))]\r";
-            $getProperties .= "#[SA\QueryParameter(name: '".'page'."', description: '".'分页参数'."',required: true,schema: new SA\Schema(type: '".'integer'."'))]\r";
-
             $stub = str_replace('{{ getProperties }}', $getProperties, $stub);
             $stub = str_replace('{{ response }}', $getResponse, $stub);
 

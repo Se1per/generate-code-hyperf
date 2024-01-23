@@ -66,7 +66,23 @@ class MakeRepository extends GeneratorCommand
     {
         $tableName = $this->input->getArguments();
 
+        $table = $this->unCamelCase($tableName['name']);
+        $dbPrefix = env('DB_PREFIX');
+        $result = $this->getTableColumnsComment($dbPrefix.$table);
+
+        $key = null;
+
+        foreach ($result as $column) {
+            if($column->Key == 'PRI' && !$key){
+                $key = '\''.$column->Field.'\'';
+            }
+        }
+
+        $stub = str_replace('{{ primaryKey }}', $key, $stub);
+
         $stub = str_replace('{{ class }}', $this->camelCase($tableName['name']).'Repository', $stub);
+
+        $stub = str_replace('{{ table }}', $this->camelCase($tableName['name']),$stub);
 
         $stub = str_replace('{{ namespace }}', $this->config['repository'], $stub);
 

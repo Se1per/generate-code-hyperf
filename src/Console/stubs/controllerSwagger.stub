@@ -13,7 +13,7 @@ use Hyperf\HttpServer\Annotation\RequestMapping;
 use Hyperf\Validation\Annotation\Scene;
 use Hyperf\Swagger\Annotation as SA;
 
-#[SA\HyperfServer(name: 'sw')]
+#[SA\HyperfServer(name: 'http')]
 #[Controller(prefix: '/api/{{ prefix }}')]
 class {{ class }} extends BaseController
 {
@@ -45,11 +45,7 @@ class {{ class }} extends BaseController
     {
         $validata = $request->validated();
 
-        if (!isset($validata[{{ primaryKey }}])) {
-            [$status, $object] = $this->repository->saveData($validata);
-        } else {
-            [$status, $object] = $this->repository->updateData($validata);
-        }
+        [$status, $object] = $this->repository->save{{ table }}Data($validata);
 
         if (!$status) {
             return $this->JsonCallBack->JsonMain(200004, $object);

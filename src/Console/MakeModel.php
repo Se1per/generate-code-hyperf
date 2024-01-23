@@ -75,9 +75,17 @@ class MakeModel extends GeneratorCommand
         $fillAble = '';
 
         $softDeletes = false;
-
+        $keyGet = false;
         foreach ($result as $column) {
-            $this->makeModelData($column,$primaryKey,$fillAble,$softDeletes);
+            $this->makeModelData($column,$primaryKey,$fillAble,$softDeletes,$keyGet);
+        }
+
+        if($this->isSnowflakeExtensionInstalled()){
+            $stub = str_replace('{{ useSnowflake }}', 'use Hyperf\Snowflake\Concern\Snowflake;', $stub);
+            $stub = str_replace('{{ Snowflake }}', 'use Snowflake;', $stub);
+        }else{
+            $stub = str_replace('{{ useSnowflake }}', '', $stub);
+            $stub = str_replace('{{ Snowflake }}','', $stub);
         }
 
         if($softDeletes){

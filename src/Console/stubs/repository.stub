@@ -6,5 +6,18 @@ use App\Lib\Base\BaseRepository;
 
 class {{ class }} extends BaseRepository
 {
+   public function save{{ table }}Data($data = [])
+    {
+        if (!isset($data[{{ primaryKey }}])) {
+            [$status, $object] = $this->saveData($data);
+        } else {
+            [$status, $object] = $this->updateData($data);
+        }
 
+        if (!$status) {
+            return [false,$object];
+        }
+
+        return [true,$object];
+    }
 }

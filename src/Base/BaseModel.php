@@ -9,13 +9,18 @@ declare(strict_types=1);
  * @contact  group@hyperf.io
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
+
 namespace App\Lib\Base;
 
+use App\Models\DbLogModel;
 use Hyperf\DbConnection\Model\Model;
-use Hyperf\ModelCache\Cacheable;
-use Hyperf\ModelCache\CacheableInterface;
 
-abstract class BaseModel extends Model implements CacheableInterface
+//use Hyperf\ModelCache\Cacheable;
+//use Hyperf\ModelCache\CacheableInterface;
+
+class BaseModel extends Model
 {
-    use Cacheable;
+//    use Cacheable;
+
+
 }

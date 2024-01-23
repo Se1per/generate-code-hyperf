@@ -9,16 +9,14 @@ trait RepositoryHelp
 {
     public function saveData($data): array
     {
-        $createData = '';
+        try {
 
-        go(function () use ($data, &$createData) {
-            try {
-                $createData = $this->model->create($data);
-            } catch (\Exception $e) {
-                return [false, $e->getMessage()];
-            }
-            return true;
-        });
+            $createData = $this->model->create($data);
+
+        } catch (\Exception $e) {
+
+            return [false, $e->getMessage()];
+        }
 
         return [true, $createData];
     }
@@ -29,7 +27,7 @@ trait RepositoryHelp
 
         Db::beginTransaction();
 
-        foreach ($data as $value){
+        foreach ($data as $value) {
             $concurrent->create(function () use ($value) {
                 try {
                     $createData = $this->model->create($value);
@@ -45,16 +43,16 @@ trait RepositoryHelp
         return [true, '批量新增成功'];
     }
 
-    public function updateData($data,string $key = 'id'): array
+    public function updateData($data, string $key = 'id'): array
     {
-        if(is_array($data[$key])){
+        if (is_array($data[$key])) {
 
             $concurrent = new Concurrent(10);
 
             $object = $this->getDataInBy($key, $data[$key]);
 
-            foreach ($object as $value){
-                $concurrent->create(function () use ($value,$data,&$num) {
+            foreach ($object as $value) {
+                $concurrent->create(function () use ($value, $data, &$num) {
                     try {
                         $value = $value->fill($data);
                         $value->save();
@@ -64,18 +62,19 @@ trait RepositoryHelp
                     return true;
                 });
             }
+
             return [true, '更新成功'];
-        }else{
+
+        } else {
             $object = $this->getDataFindBy($key, $data[$key]);
-            go(function () use ($data, $object) {
-                try {
-                    $object = $object->fill($data);
-                    $object->save();
-                } catch (\Exception $e) {
-                    return [false, $e->getMessage()];
-                }
-                return true;
-            });
+
+            try {
+                $object = $object->fill($data);
+                $object->save();
+            } catch (\Exception $e) {
+                return [false, $e->getMessage()];
+            }
+
             return [true, $object];
         }
     }
@@ -83,8 +82,8 @@ trait RepositoryHelp
     public function updateAllData($object, $data): array
     {
         $concurrent = new Concurrent(10);
-        foreach ($object as $value){
-            $concurrent->create(function () use ($value,$data,&$num) {
+        foreach ($object as $value) {
+            $concurrent->create(function () use ($value, $data, &$num) {
                 try {
                     $value = $value->fill($data);
                     $value->save();
@@ -102,7 +101,7 @@ trait RepositoryHelp
     {
         try {
 
-           $this->model->destroy($data);
+            $this->model->destroy($data);
 
         } catch (\Exception $e) {
 
@@ -145,9 +144,9 @@ trait RepositoryHelp
      * @param array $columns
      * @return mixed
      */
-    public function getDataInBy($attribute,array $value,array $columns = array('*')): mixed
+    public function getDataInBy($attribute, array $value, array $columns = array('*')): mixed
     {
-        return $this->model->whereIn($attribute,$value)->get($columns);
+        return $this->model->whereIn($attribute, $value)->get($columns);
     }
 
     /**
@@ -171,7 +170,7 @@ trait RepositoryHelp
      */
     public function getData(array $data = [], string $get = 'get', bool $needToArray = false): mixed
     {
-        return $this->runningSql($data,$needToArray,$get);
+        return $this->runningSql($data, $needToArray, $get);
     }
 
     /**
@@ -183,26 +182,26 @@ trait RepositoryHelp
      * @return mixed
      * @throws \ErrorException
      */
-    public function runningSql($data,bool $needToArray = false, string $get = 'get'): mixed
+    public function runningSql($data, bool $needToArray = false, string $get = 'get'): mixed
     {
         $object = $this->model;
 
         foreach ($data as $k => $val) {
             if ($get == 'count' && $k == 'skip') continue;
-            if($k == 'with'){
+            if ($k == 'with') {
                 $object = $object->$k($val);
                 continue;
             }
-            if($k == 'skip'){
+            if ($k == 'skip') {
 //                $val['page'] = $val['page'] ?? 1;
 //                $val['limit'] = $val['limit'] ?? 10;
 //                $val['page'] = ($val['page'] - 1) * $val['limit'];
                 $object = $object->skip($val['page'])->take($val['limit']);
                 continue;
             }
-            if(is_array($val)){
+            if (is_array($val)) {
                 $object = $object->$k(...$val);
-            }else{
+            } else {
                 $object = $object->$k($val);
             }
         }
@@ -215,7 +214,7 @@ trait RepositoryHelp
                 break;
             case 'get':
                 if ($needToArray) $list = $list->toArray();
-            break;
+                break;
         }
 
         return $list;

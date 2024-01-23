@@ -3,6 +3,7 @@
 namespace {{ namespace }};
 
 use Hyperf\Validation\Request\FormRequest;
+use Hyperf\Validation\Rule;
 
 class {{ class }}Request extends FormRequest
 {
@@ -42,14 +43,22 @@ class {{ class }}Request extends FormRequest
 
      private function getKeyRule()
      {
-         if ($this->is({{ saveApi }})) {
-             return '{{ priType }}|exists:{{ table }}';
-         } elseif ($this->is({{ delApi }})) {
-             return 'required|exists:{{ table }}';
-         }elseif ($this->is({{ getApi }})) {
-             return 'exists:{{ table }}';
-         }
-         // 默认验证规则
-         return {{ priTypeDefault }};
+        if ($this->is({{ saveApi }})){
+            $input = $this->all();
+             if(isset($input['id'])){
+                 return [
+                     'required',
+                     '{{ priType }}',
+                     Rule::exists('{{ table }}'),
+                 ];
+             }
+        }else if($this->is({{ delApi }})){
+             return [
+                 'required',
+                 '{{ priType }}',
+                 Rule::exists('{{ table }}'),
+             ];
+        }
+        return '{{ priType }}';
      }
 }

@@ -35,41 +35,37 @@ class DelCrudCodeClass extends HyperfCommand
     public function handle()
     {
         $this->delCurlFileList();
-    }
-}
-
-
-        foreach ($tables as $val) {
-            $val = array_values(json_decode(json_encode($val), true));
-            $tableName = array_shift($val);
-            $tableName = str_replace(env('DB_PREFIX'), '', $tableName);
-            $tableName = $this->camelCase($tableName);
-            if ($this->keyWordsBlackList($tableName)) continue;
-            # controller
-            if (!$this->fileExistsIn($this->config['controller'] . '\\' . $tableName . 'Controller')) {
-                $this->makeControllerFunc($tableName);
-            }
-
-            # model
-            if (!$this->fileExistsIn($this->config['model'] . '\\' . $tableName . 'Model')) {
-                $this->makeModelFunc($tableName);
-            }
-
-            # request
-            if (!$this->fileExistsIn($this->config['request'] . '\\' . $tableName . 'Request')) {
-                $this->makeRequestFunc($tableName);
-            }
-
-            # service
-            if (!$this->fileExistsIn($this->config['service'] . '\\' . $tableName . 'Service')) {
-                $this->makeServiceFunc($tableName);
-            }
-
-            # repository
-            if (!$this->fileExistsIn($this->config['repository'] . '\\' . $tableName . 'Repository')) {
-                $this->makeRepositoryFunc($tableName);
-            }
-        }
+//        foreach ($tables as $val) {
+//            $val = array_values(json_decode(json_encode($val), true));
+//            $tableName = array_shift($val);
+//            $tableName = str_replace(env('DB_PREFIX'), '', $tableName);
+//            $tableName = $this->camelCase($tableName);
+//            if ($this->keyWordsBlackList($tableName)) continue;
+//            # controller
+//            if (!$this->fileExistsIn($this->config['controller'] . '\\' . $tableName . 'Controller')) {
+//                $this->makeControllerFunc($tableName);
+//            }
+//
+//            # model
+//            if (!$this->fileExistsIn($this->config['model'] . '\\' . $tableName . 'Model')) {
+//                $this->makeModelFunc($tableName);
+//            }
+//
+//            # request
+//            if (!$this->fileExistsIn($this->config['request'] . '\\' . $tableName . 'Request')) {
+//                $this->makeRequestFunc($tableName);
+//            }
+//
+//            # service
+//            if (!$this->fileExistsIn($this->config['service'] . '\\' . $tableName . 'Service')) {
+//                $this->makeServiceFunc($tableName);
+//            }
+//
+//            # repository
+//            if (!$this->fileExistsIn($this->config['repository'] . '\\' . $tableName . 'Repository')) {
+//                $this->makeRepositoryFunc($tableName);
+//            }
+//        }
     }
 
     public function makeControllerFunc($tableName)

@@ -80,10 +80,15 @@ class MakeRequest extends GeneratorCommand
         $priTypeDefault = null;
         $dbPrefix = env('DB_PREFIX');
         $result = $this->getTableColumnsComment($dbPrefix.$tableName['name']);
-
+        $key = null;
+        $keyCount = 0;
         foreach ($result as $column) {
             if ($column->Key == 'PRI') {
                 $pri = $this->convertDbTypeToPhpType($column->Type);
+                if(!$key) {
+                    $key = $column->Field;
+                }
+
                 if($pri == 'integer'){
                     $priType = 'integer';
                     $priTypeDefault = '\'integer\'';
@@ -91,10 +96,11 @@ class MakeRequest extends GeneratorCommand
                     $priType = 'string';
                     $priTypeDefault = '\'string\'';
                 }
+                $keyCount++;
             }
 
-            $this->makeRulesArray($column,$tableName['name'],$rules,$messages);
-            $this->makeScenesRules($column,$saveRules,$getRules,$delRules);
+            $this->makeRulesArray($column,$tableName['name'],$rules,$messages,$keyCount);
+            $this->makeScenesRules($column,$saveRules,$getRules,$delRules,$keyCount);
         }
 
         $this->makeGetArrayPaginate($rules,$messages,$getRules);
@@ -108,6 +114,7 @@ class MakeRequest extends GeneratorCommand
         $stub = str_replace('{{ getApi }}', $getApi, $stub);
         $stub = str_replace('{{ table }}', $tableName['name'], $stub);
         $stub = str_replace('{{ priType }}', $priType, $stub);
+        $stub = str_replace('{{ key }}', $key, $stub);
         $stub = str_replace('{{ priTypeDefault }}', $priTypeDefault, $stub);
 
         $stub = str_replace('{{ allRules }}', $rules, $stub);

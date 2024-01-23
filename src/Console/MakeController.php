@@ -81,7 +81,7 @@ class MakeController extends GeneratorCommand
         $key = null;
 
         foreach ($result as $column) {
-            if($column->Key == 'PRI'){
+            if($column->Key == 'PRI' && !$key){
                 $key = '\''.$column->Field.'\'';
             }
         }
@@ -141,7 +141,7 @@ class MakeController extends GeneratorCommand
 
                 $saveProperties .= "new SA\Property(property: '".$column->Field."', description: '".$column_default."', type: '".$pri."'),\r";
 
-                $getResponse .= '"'.$column->Field.'"'.':'.'"'.$column_default.'"'.",\r";
+                $getResponse .= '"'.$column->Field.'"'.':'.'"'.$column_default.'"'.",";
 
             }
 

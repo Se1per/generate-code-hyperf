@@ -2,10 +2,15 @@
 
 namespace App\Lib\Base;
 
+use App\Lib\Base\Interface\JsonCallBackInterface;
 use Carbon\Carbon;
+use Hyperf\Di\Annotation\Inject;
 
 abstract class BaseService
 {
+    #[Inject]
+    protected JsonCallBackInterface $JsonCallBack;
+
     public function selectArray($makeData): array
     {
         $sql = [];
@@ -21,7 +26,7 @@ abstract class BaseService
                 switch ($k) {
                     case 'id':
                         if (!is_array($val)) {
-                            $sql['where'][] = $this->convertToWhereQuery($k, '=', $val);
+                            $sql['where'] = $this->convertToWhereQuery($k, '=', $val);
                         } else {
                             $sql['whereIn'] = $this->convertToWhereQuery($k, 'in', $val);
                         }

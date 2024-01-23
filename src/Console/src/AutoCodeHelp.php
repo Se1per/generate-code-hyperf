@@ -2,9 +2,7 @@
 
 namespace App\Lib\Console\src;
 
-use Hyperf\Context\ApplicationContext;
 use Hyperf\DbConnection\Db;
-use Hyperf\Swagger\Request\SwaggerRequest;
 
 trait AutoCodeHelp
 {
@@ -27,6 +25,15 @@ trait AutoCodeHelp
     }
 
     /**
+     * 检测是否安装了 Snowflake 扩展
+     * @return bool
+     */
+    function isSnowflakeExtensionInstalled(): bool
+    {
+        $composerLock = file_get_contents(BASE_PATH . '/composer.lock');
+        return preg_match('/"name":\s+"hyperf\/snowflake"/', $composerLock) === 1;
+    }
+    /**
      * 小驼峰命名转换
      * @param string $str
      * @return string
@@ -41,10 +48,15 @@ trait AutoCodeHelp
         return ucfirst($str);
     }
 
+    /**
+     * 大驼峰命名转换
+     * @param string $str
+     * @return string
+     */
     public function lcfirst(string $str): string
     {
         $str = ucwords(str_replace(['-', '_'], ' ', $str));
-        // 去除空格，并将第一个字母改为小写
+        // 去除空格，并将第一个字母改为大写
         $str = str_replace(' ', '', $str);
         return lcfirst($str);
     }
@@ -70,7 +82,7 @@ trait AutoCodeHelp
      * @param $messages
      * @return true
      */
-    public function makeRulesArray($column, $tableName, &$store, &$messages)
+    public function makeRulesArray($column, $tableName, &$store, &$messages,$keyCount)
     {
         if ($column->Field == 'deleted_at' || $column->Field == 'created_at' || $column->Field == 'updated_at') {
             return true;
@@ -85,10 +97,10 @@ trait AutoCodeHelp
             $column_default = $column_name;
         }
 
-        if ($column->Key == 'PRI') {
+        if ($column->Key == 'PRI' && $keyCount == 1) {
             $store .= '\'' . $column->Field . '\'' . '=>' . '$this->getKeyRule(),'. "\r";
             $messages .= '\'' . $column->Field . '.required' . '\'' . '=>' . '\'' . $column_default . '不能为空' . '\'' . ',' . "\r";
-            $messages .= '\'' . $column->Field . '.integer' . '\'' . '=>' . '\'' . $column_default . '必须是数字' . '\'' . ','. "\r";
+
             $messages .= '\'' . $column->Field . '.exists' . '\'' . '=>' . '\'' . $column_default . '必须存在' . '\'' . ','. "\r";
             return true;
         }
@@ -142,16 +154,20 @@ trait AutoCodeHelp
             // 你的逻辑代码
             return true;
         } elseif (strpos($column_type, 'date') !== false) {
-            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'date_format:Y-m-d' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.date_format' . '\'' . '=>' . '\'' . $column_default . '必须是日期格式' . '\'' . ','. "\r";
+            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'date' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.date' . '\'' . '=>' . '\'' . $column_default . '必须是日期格式' . '\'' . ','. "\r";
             return true;
         } elseif (strpos($column_type, 'datetime') !== false) {
-            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'date_format:Y-m-d H:i:s' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.date_format' . '\'' . '=>' . '\'' . $column_default . '必须是日期格式' . '\'' . ','. "\r";
+            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'date' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.date' . '\'' . '=>' . '\'' . $column_default . '必须是日期格式' . '\'' . ','. "\r";
             return true;
         } elseif (strpos($column_type, 'timestamp') !== false) {
-            // 时间戳类型
-            // 你的逻辑代码
+            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'date' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.date' . '\'' . '=>' . '\'' . $column_default . '必须是日期格式' . '\'' . ','. "\r";
+            return true;
+        }elseif (strpos($column_type, 'json') !== false) {
+            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string|nullable ' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是字符串' . '\'' . ','. "\r";
             return true;
         } elseif (strpos($column_type, 'enum') !== false) {
             // 枚举类型
@@ -174,7 +190,7 @@ trait AutoCodeHelp
      * @param $delRules
      * @return true
      */
-    public function makeScenesRules($column, &$saveRules, &$getRules, &$delRules)
+    public function makeScenesRules($column, &$saveRules, &$getRules, &$delRules,$keyCount)
     {
         if ($column->Field == 'deleted_at' || $column->Field == 'created_at' || $column->Field == 'updated_at') {
             return true;
@@ -184,7 +200,9 @@ trait AutoCodeHelp
         if ($column->Key == 'PRI') {
             $saveRules .= '\'' . $column_name . '\'' . ','. "\r";
             $getRules .= '\'' . $column_name . '\'' . ','. "\r";
-            $delRules .= '\'' . $column_name . '\'' . ','. "\r";
+            if($keyCount == 1){
+                $delRules .= '\'' . $column_name . '\'' . ','. "\r";
+            }
         } else {
             $saveRules .= '\'' . $column_name . '\'' . ','. "\r";
             $getRules .= '\'' . $column_name . '\'' . ','. "\r";
@@ -196,7 +214,7 @@ trait AutoCodeHelp
         return true;
     }
 
-    public function makeModelData($column, &$primaryKey, &$fillAble,&$softDeletes)
+    public function makeModelData($column, &$primaryKey, &$fillAble,&$softDeletes,&$keyGet)
     {
         if($column->Field == 'deleted_at'){
             $softDeletes = true;
@@ -209,6 +227,7 @@ trait AutoCodeHelp
         $column_name = $column->Field;
 
         if ($column->Key == 'PRI') {
+            $keyGet = true;
             $primaryKey .= '\'' . $column_name . '\'';
             return true;
         }
@@ -249,6 +268,12 @@ trait AutoCodeHelp
         $type = strtolower($dbType);
 
         if (strpos($type, 'int') !== false) {
+            return 'integer';
+        }
+        if (strpos($type, 'bigint') !== false) {
+            return 'integer';
+        }
+        if (strpos($type, 'smallint') !== false) {
             return 'integer';
         }
 
@@ -321,7 +346,6 @@ trait AutoCodeHelp
         $tableDetails = 'SHOW FULL COLUMNS FROM ' . $tableName;
         return DB::select($tableDetails);
     }
-
 
     /**
      * 移除生成

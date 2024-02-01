@@ -3,12 +3,15 @@
 declare(strict_types=1);
 
 return [
-    'controller' => 'App\\Controller\\Api',
-    'request' => 'App\\Request',
-    'repository' => 'App\\Repository',
-    'service' => 'App\\Services',
-    'model' => 'App\\Models',
-    'intermediate_table'=>['commons'],
+    'general'=> [
+        'app'=>'Mid',
+        'controller' => 'App\\Controller',
+        'request' => 'App\\Request',
+        'repository' => 'App\\Repository',
+        'service' => 'App\\Services',
+        'model' => 'App\\Models',
+        'intermediate_table'=>['commons'],
+    ],
 
     'code' => [
         200000 => '请求成功',

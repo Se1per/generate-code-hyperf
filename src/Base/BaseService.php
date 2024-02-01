@@ -5,18 +5,21 @@ namespace App\Lib\Base;
 use App\Lib\Base\Interface\JsonCallBackInterface;
 use Carbon\Carbon;
 use Hyperf\Di\Annotation\Inject;
+use Hyperf\HttpServer\Contract\RequestInterface;
 
 abstract class BaseService
 {
     #[Inject]
     protected JsonCallBackInterface $JsonCallBack;
+    #[Inject]
+    protected RequestInterface $request;
 
     public function selectArray($makeData): array
     {
         $sql = [];
         foreach ($makeData as $k => $val) {
             if (isset($val)) {
-                if ($k == 'page' && count($sql) <= 2){
+                if ($k == 'page' && count($sql) <= 2) {
                     $data['page'] = $val;
                     $data['limit'] = $makeData['limit'] ?? 10;
                     $data['page'] = ($data['page'] - 1) * $data['limit'];
@@ -30,7 +33,7 @@ abstract class BaseService
                         } else {
                             $sql['whereIn'] = $this->convertToWhereQuery($k, 'in', $val);
                         }
-                    break;
+                        break;
                     case 'created_at':
                     case 'updated_at':
                         if (is_array($val)) {
@@ -38,7 +41,7 @@ abstract class BaseService
                         } else {
                             $sql['whereDate'] = $this->convertToWhereQuery($k, '=', $val);
                         }
-                    break;
+                        break;
                 }
             }
         }
@@ -57,7 +60,7 @@ abstract class BaseService
      */
     public function convertToWhereQuery(string $column, string $operator, array|string $val, string $operatorName = null): array
     {
-        if(is_string($val)){
+        if (is_string($val)) {
             switch ($val) {
                 case 'today':
                     $val = Carbon::today();
@@ -84,7 +87,7 @@ abstract class BaseService
             case '<':
             case '<=':
             case '>=':
-                if($operatorName) return [$column, $operator, $val,$operatorName];
+                if ($operatorName) return [$column, $operator, $val, $operatorName];
                 return [$column, $operator, $val];
             case 'exists':
             case 'func':
@@ -97,4 +100,33 @@ abstract class BaseService
         }
     }
 
+    /**
+     * 返回json
+     * @param $status
+     * @param $object
+     * @return mixed
+     */
+    public function toJson($status,$object): mixed
+    {
+        if (!$status) {
+            return $this->JsonCallBack->JsonMain(200004, $object);
+        }
+
+        return $this->JsonCallBack->JsonMain(200000, '操作成功');
+    }
+
+    /**
+     * 获取ip
+     * @return false|string
+     */
+    public function getForwardedIp(): false|string
+    {
+        $getServer = $this->request->getHeaders();
+
+        if (isset($getServer['x-forwarded-for'][0])) {
+            return $getServer['x-forwarded-for'][0];
+        }
+
+        return false;
+    }
 }

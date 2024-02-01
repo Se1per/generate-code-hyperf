@@ -35,7 +35,7 @@ class MakeModel extends GeneratorCommand
 
     protected function getDefaultNamespace(): string
     {
-        return $this->config['model'];
+        return $this->config['general']['model'].'\\'.$this->config['general']['app'];
     }
 
     protected function qualifyClass(string $name): string
@@ -71,7 +71,7 @@ class MakeModel extends GeneratorCommand
         $dbPrefix = env('DB_PREFIX');
         $sql = 'SHOW COLUMNS FROM `'.$dbPrefix.$tableName['name'].'`;';
         $result = DB::select($sql);
-        $primaryKey = '';
+        $primaryKey = null;
         $fillAble = '';
 
         $softDeletes = false;
@@ -99,7 +99,7 @@ class MakeModel extends GeneratorCommand
         $stub = str_replace('{{ fillAble }}', $fillAble, $stub);
 
         $stub = str_replace('{{ class }}', $this->camelCase($tableName['name']).'Model', $stub);
-        $stub = str_replace('{{ namespace }}', $this->config['model'], $stub);
+        $stub = str_replace('{{ namespace }}', $this->config['general']['model'].'\\'.$this->config['general']['app'], $stub);
 
         return $stub;
     }

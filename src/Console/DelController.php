@@ -10,7 +10,7 @@ use Hyperf\Devtool\Generator\GeneratorCommand;
 
 
 #[Command]
-class MakeController extends GeneratorCommand
+class DelController extends GeneratorCommand
 {
     #[value('repository')]
     protected $config;

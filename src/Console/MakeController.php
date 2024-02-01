@@ -42,7 +42,7 @@ class MakeController extends GeneratorCommand
 
     protected function getDefaultNamespace(): string
     {
-        return $this->config['controller'];
+        return $this->config['general']['controller'].'\\'.$this->config['general']['app'];
     }
 
     protected function qualifyClass(string $name): string
@@ -52,6 +52,7 @@ class MakeController extends GeneratorCommand
         $name = $name['name'].'Controller';
 
         $namespace = $this->input->getOption('namespace');
+
         if (empty($namespace)) {
             $namespace = $this->getDefaultNamespace();
         }
@@ -158,13 +159,19 @@ class MakeController extends GeneratorCommand
 
         $stub = str_replace('{{ primaryKey }}', $key, $stub);
 
+        $stub = str_replace('{{ request }}',$this->config['general']['request'] , $stub);
+        $stub = str_replace('{{ service }}',$this->config['general']['service'] , $stub);
+        $stub = str_replace('{{ app }}',$this->config['general']['app'] , $stub);
+
+        $stub = str_replace('{{ server }}',$this->lcfirst($this->config['general']['app']) , $stub);
+
         $stub = str_replace('{{ class }}', $this->camelCase($tableName['name']).'Controller', $stub);
 
         $stub = str_replace('{{ table }}', $this->camelCase($tableName['name']), $stub);
 
         $stub = str_replace('{{ prefix }}', $this->lcfirst($tableName['name']), $stub);
 
-        $stub = str_replace('{{ namespace }}', $this->config['controller'], $stub);
+        $stub = str_replace('{{ namespace }}', $this->config['general']['controller'].'\\'.$this->config['general']['app'], $stub);
 
         return $stub;
     }

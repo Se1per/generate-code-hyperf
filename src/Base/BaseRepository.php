@@ -17,7 +17,7 @@ abstract class BaseRepository
 
     public function model(): string
     {
-        return $this->config['model'].'\\'.str_replace('Repository', '', class_basename(get_class($this)).'Model');
+        return $this->config['general']['model'].'\\'.$this->config['general']['app'].'\\'.str_replace('Repository', '', class_basename(get_class($this)).'Model');
     }
 
     public function __construct()

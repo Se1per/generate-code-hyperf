@@ -33,6 +33,7 @@ trait AutoCodeHelp
         $composerLock = file_get_contents(BASE_PATH . '/composer.lock');
         return preg_match('/"name":\s+"hyperf\/snowflake"/', $composerLock) === 1;
     }
+
     /**
      * 小驼峰命名转换
      * @param string $str
@@ -43,7 +44,7 @@ trait AutoCodeHelp
     public function camelCase(string $str): string
     {
         $str = ucwords(str_replace(['-', '_'], ' ', $str));
-        // 去除空格，并将第一个字母改为小写
+        // 去除空格，并将第一个字母改为大写
         $str = str_replace(' ', '', $str);
         return ucfirst($str);
     }
@@ -56,7 +57,7 @@ trait AutoCodeHelp
     public function lcfirst(string $str): string
     {
         $str = ucwords(str_replace(['-', '_'], ' ', $str));
-        // 去除空格，并将第一个字母改为大写
+        // 去除空格，并将第一个字母改为小写
         $str = str_replace(' ', '', $str);
         return lcfirst($str);
     }
@@ -226,10 +227,14 @@ trait AutoCodeHelp
 
         $column_name = $column->Field;
 
-        if ($column->Key == 'PRI') {
-            $keyGet = true;
-            $primaryKey .= '\'' . $column_name . '\'';
-            return true;
+        if(!$keyGet){
+            if ($column->Key == 'PRI') {
+                $keyGet = true;
+                if($primaryKey == null){
+                    $primaryKey = '\'' . $column_name . '\'';
+                }
+                return true;
+            }
         }
 
         $fillAble .= '\'' . $column_name . '\'' . ',';
@@ -315,7 +320,7 @@ trait AutoCodeHelp
      */
     public function keyWordsBlackList($tableName): mixed
     {
-        return array_reduce(config('repository.intermediate_table'), function ($carry, $item) use ($tableName) {
+        return array_reduce(config('repository.general.intermediate_table'), function ($carry, $item) use ($tableName) {
             return $carry || stripos($tableName, $item) !== false;
         }, false);
     }

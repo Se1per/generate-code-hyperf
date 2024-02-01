@@ -42,28 +42,29 @@ class MakeCrudCodeClass extends HyperfCommand
             $tableName = str_replace(env('DB_PREFIX'), '', $tableName);
             $tableName = $this->camelCase($tableName);
             if ($this->keyWordsBlackList($tableName)) continue;
+
             # controller
-            if (!$this->fileExistsIn($this->config['controller'] . '\\' . $tableName . 'Controller')) {
+            if (!$this->fileExistsIn($this->config['general']['controller'] . '\\'.$this->config['general']['app'] .'\\'. $tableName . 'Controller')) {
                 $this->makeControllerFunc($tableName);
             }
 
             # model
-            if (!$this->fileExistsIn($this->config['model'] . '\\' . $tableName . 'Model')) {
+            if (!$this->fileExistsIn($this->config['general']['model'] . '\\'.$this->config['general']['app']  . $tableName . 'Model')) {
                 $this->makeModelFunc($tableName);
             }
 
             # request
-            if (!$this->fileExistsIn($this->config['request'] . '\\' . $tableName . 'Request')) {
+            if (!$this->fileExistsIn($this->config['general']['request'] . '\\'.$this->config['general']['app']  . '\\' . $tableName . 'Request')) {
                 $this->makeRequestFunc($tableName);
             }
 
             # service
-            if (!$this->fileExistsIn($this->config['service'] . '\\' . $tableName . 'Service')) {
+            if (!$this->fileExistsIn($this->config['general']['service'] . '\\'.$this->config['general']['app'] . '\\' . $tableName . 'Service')) {
                 $this->makeServiceFunc($tableName);
             }
 
             # repository
-            if (!$this->fileExistsIn($this->config['repository'] . '\\' . $tableName . 'Repository')) {
+            if (!$this->fileExistsIn($this->config['general']['repository'] . '\\'.$this->config['general']['app']  . '\\' . $tableName . 'Repository')) {
                 $this->makeRepositoryFunc($tableName);
             }
         }

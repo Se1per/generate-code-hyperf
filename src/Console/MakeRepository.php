@@ -33,7 +33,7 @@ class MakeRepository extends GeneratorCommand
 
     protected function getDefaultNamespace(): string
     {
-        return $this->config['repository'];
+        return $this->config['general']['repository'].'\\'.$this->config['general']['app'];
     }
 
     protected function qualifyClass(string $name): string
@@ -84,7 +84,7 @@ class MakeRepository extends GeneratorCommand
 
         $stub = str_replace('{{ table }}', $this->camelCase($tableName['name']),$stub);
 
-        $stub = str_replace('{{ namespace }}', $this->config['repository'], $stub);
+        $stub = str_replace('{{ namespace }}', $this->config['general']['repository'].'\\'.$this->config['general']['app'], $stub);
 
         return $stub;
     }

@@ -3,74 +3,38 @@
 namespace {{ namespace }};
 
 use App\Lib\Base\BaseController;
-use App\Request\{{ table }}Request;
-use App\Repository\{{ table }}Repository;
-use App\Services\{{ table }}Service;
+use {{ request }}\{{ app }}\{{ table }}Request;
+use {{ service }}\{{ app }}\{{ table }}Service;
 
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\RequestMapping;
 use Hyperf\Validation\Annotation\Scene;
 
-#[Controller(prefix: '/api/{{ prefix }}')]
+#[Controller(prefix: '/api/{{ prefix }}', server: '{{ server }}')]
 class {{ class }} extends BaseController
 {
     #[Inject]
     private ?{{ table }}Service $service;
-    #[Inject]
-    private ?{{ table }}Repository $repository;
 
     #[RequestMapping(path: 'save{{ table }}Data', methods: 'Post')]
     #[Scene(scene: 'save')]
     public function save{{ table }}Data({{ table }}Request $request): string|\Psr\Http\Message\ResponseInterface
     {
-        $validata = $request->validated();
-
-        [$status, $object] = $this->repository->save{{ table }}Data($validata);
-
-
-        if (!$status) {
-            return $this->JsonCallBack->JsonMain(200004, $object);
-        }
-
-        return $this->JsonCallBack->JsonMain(200000, '操作成功');
+        return $this->service->save{{ table }}Data($request->validated());
     }
 
     #[RequestMapping(path: 'del{{ table }}Data', methods: 'put')]
     #[Scene(scene: 'del')]
     public function del{{ table }}Data({{ table }}Request $request): string|\Psr\Http\Message\ResponseInterface
     {
-        $data = $request->validated();
-
-        [$status, $object] = $this->repository->deleteData($data);
-
-        if (!$status) {
-            return $this->JsonCallBack->JsonMain(200004, $object);
-        }
-
-        return $this->JsonCallBack->JsonMain(200000, '移除成功');
+        return $this->service->del{{ table }}Data($request->validated());
     }
 
     #[RequestMapping(path: 'get{{ table }}Data', methods: 'GET')]
     #[Scene(scene: 'get')]
     public function get{{ table }}Data({{ table }}Request $request): string|\Psr\Http\Message\ResponseInterface
     {
-        $data = $request->validated();
-
-        $getSql = $this->service->selectArray(
-            $data
-        );
-
-        try {
-
-            $list = $this->repository->getData($getSql);
-
-            $count = $this->repository->getCount($getSql);
-
-        } catch (\Exception $e) {
-            return $this->JsonCallBack->JsonMain(200002, '数据获取失败'.$e->getMessage());
-        }
-
-        return $this->JsonCallBack->JsonMain(200000, '数据获取成功', $list, $count);
+        return $this->service->get{{ table }}Data($request->validated());
     }
 }

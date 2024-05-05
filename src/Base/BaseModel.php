@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace App\Lib\Base;
 
-use App\Models\DbLogModel;
+
 use Hyperf\DbConnection\Model\Model;
 
 //use Hyperf\ModelCache\Cacheable;
@@ -20,7 +20,5 @@ use Hyperf\DbConnection\Model\Model;
 
 class BaseModel extends Model
 {
-//    use Cacheable;
-
 
 }

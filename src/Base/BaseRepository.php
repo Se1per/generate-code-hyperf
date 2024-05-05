@@ -5,24 +5,30 @@ namespace App\Lib\Base;
 use App\Lib\Base\src\RepositoryFunction;
 use App\Lib\Base\src\RepositoryHelp;
 use Hyperf\Config\Annotation\Value;
+use Hyperf\Context\Context;
+
 
 abstract class BaseRepository
 {
-    use RepositoryFunction,RepositoryHelp;
+    use RepositoryFunction, RepositoryHelp;
 
-    public $model;
+    protected $model;
 
     #[value('repository')]
     protected $config;
 
+    protected $user;
+
     public function model(): string
     {
-        return $this->config['general']['model'].'\\'.$this->config['general']['app'].'\\'.str_replace('Repository', '', class_basename(get_class($this)).'Model');
+        return $this->config['general']['model'] . '\\' . $this->config['general']['app'] . '\\' . str_replace('Repository', '', class_basename(get_class($this)) . 'Model');
     }
 
     public function __construct()
     {
         $this->makeModel();
+
+        return $this;
     }
 
     public function makeModel()
@@ -32,8 +38,23 @@ abstract class BaseRepository
 
     public function setModel($eloquentModel)
     {
-        $this->model = new $eloquentModel;
+        if(!class_exists($eloquentModel)){
+            throw new \RuntimeException('model not found');
+        }
 
-        return $this->model;
+        return $this->model = new $eloquentModel;
+    }
+
+    public function getUserToken(): bool
+    {
+        $user = Context::get('userToken');
+
+        if ($user) {
+            $user = json_decode($user, true);
+        }
+
+        $this->user = $user;
+
+        return true;
     }
 }

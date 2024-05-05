@@ -2,8 +2,10 @@
 
 namespace App\Lib\Base\src;
 
+use ErrorException;
 use Hyperf\Coroutine\Concurrent;
 use Hyperf\DbConnection\Db;
+use SplQueue;
 
 trait RepositoryHelp
 {
@@ -155,9 +157,9 @@ trait RepositoryHelp
      * @return mixed
      * @throws \ErrorException
      */
-    public function getCount(array $data = []): mixed
+    public function getCount(array $data = [], $model = null): mixed
     {
-        return $this->runningSql($data, false, 'count');
+        return $this->runningSql($data, false, 'count', $model);
     }
 
     /**
@@ -168,9 +170,9 @@ trait RepositoryHelp
      * @return mixed
      * @throws \ErrorException
      */
-    public function getData(array $data = [], string $get = 'get', bool $needToArray = false): mixed
+    public function getData(array $data = [], string $get = 'get', $model = null, bool $needToArray = false): mixed
     {
-        return $this->runningSql($data, $needToArray, $get);
+        return $this->runningSql($data, $needToArray, $get, $model);
     }
 
     /**
@@ -182,9 +184,11 @@ trait RepositoryHelp
      * @return mixed
      * @throws \ErrorException
      */
-    public function runningSql($data, bool $needToArray = false, string $get = 'get'): mixed
+    public function runningSql($data, bool $needToArray = false, string $get = 'get', $object = null): mixed
     {
-        $object = $this->model;
+        if (!$object) {
+            $object = $this->model;
+        }
 
         foreach ($data as $k => $val) {
             if ($get == 'count' && $k == 'skip') continue;
@@ -192,24 +196,35 @@ trait RepositoryHelp
                 $object = $object->$k($val);
                 continue;
             }
+
             if ($k == 'skip') {
-//                $val['page'] = $val['page'] ?? 1;
-//                $val['limit'] = $val['limit'] ?? 10;
-//                $val['page'] = ($val['page'] - 1) * $val['limit'];
                 $object = $object->skip($val['page'])->take($val['limit']);
                 continue;
             }
-            if (is_array($val)) {
-                $object = $object->$k(...$val);
-            } else {
-                $object = $object->$k($val);
+
+            switch ($this->array_depth($val)) {
+                case 1;
+                    $object = $object->$k(...$val);
+                    break;
+                case 2;
+                    if ($k == 'whereIn') {
+                        $object = $object->$k(...$val);
+                    } else {
+                        $object = $object->$k($val);
+                    }
+                    break;
+                case 3;
+                    foreach ($val as $vv) {
+                        $object = $object->$k(...$vv);
+                    }
+                    break;
             }
         }
 
         $list = $object->$get();
 
         switch ($get) {
-            case 'find':
+            case 'first':
                 if ($list && $needToArray) $list = $list->toArray();
                 break;
             case 'get':
@@ -220,4 +235,34 @@ trait RepositoryHelp
         return $list;
     }
 
+
+    public function array_depth($array): int
+    {
+        if (!is_array($array)) {
+            return 0;
+        }
+
+        $depth = 1;
+        $queue = new SplQueue();
+        array_walk($array, function ($element) use ($queue) {
+            if (is_array($element)) {
+                $queue->enqueue($element);
+            }
+        });
+
+        while (!$queue->isEmpty()) {
+            $currentLevelSize = $queue->count();
+            for ($i = 0; $i < $currentLevelSize; $i++) {
+                $current = $queue->dequeue();
+                array_walk($current, function ($element) use ($queue) {
+                    if (is_array($element)) {
+                        $queue->enqueue($element);
+                    }
+                });
+            }
+            $depth++;
+        }
+
+        return $depth;
+    }
 }

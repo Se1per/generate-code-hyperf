@@ -4,6 +4,7 @@ namespace App\Lib\Base;
 
 use App\Lib\Base\Interface\JsonCallBackInterface;
 use Carbon\Carbon;
+use Hyperf\Context\Context;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;
 
@@ -13,6 +14,8 @@ abstract class BaseService
     protected JsonCallBackInterface $JsonCallBack;
     #[Inject]
     protected RequestInterface $request;
+
+    protected $user;
 
     public function selectArray($makeData): array
     {
@@ -29,7 +32,7 @@ abstract class BaseService
                 switch ($k) {
                     case 'id':
                         if (!is_array($val)) {
-                            $sql['where'] = $this->convertToWhereQuery($k, '=', $val);
+                            $sql['where'][] = $this->convertToWhereQuery($k, '=', $val);
                         } else {
                             $sql['whereIn'] = $this->convertToWhereQuery($k, 'in', $val);
                         }
@@ -106,7 +109,7 @@ abstract class BaseService
      * @param $object
      * @return mixed
      */
-    public function toJson($status,$object): mixed
+    public function toJson(bool $status, $object = null): mixed
     {
         if (!$status) {
             return $this->JsonCallBack->JsonMain(200004, $object);
@@ -128,5 +131,18 @@ abstract class BaseService
         }
 
         return false;
+    }
+
+    public function getUserToken(): bool
+    {
+        $user = Context::get('userToken');
+
+        if ($user) {
+            $user = json_decode($user, true);
+        }
+
+        $this->user = $user;
+
+        return true;
     }
 }

@@ -12,6 +12,11 @@
             "Japool\\Genconsole\\": "src/"
         }
     },
+    "extra": {
+        "hyperf": {
+            "config": "Japool\\Genconsole\\ConfigProvider"
+        }
+    },
     "minimum-stability": "dev",
     "authors": [
         {

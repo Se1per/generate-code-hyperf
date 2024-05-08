@@ -67,7 +67,8 @@ class MakeRepository extends GeneratorCommand
         $tableName = $this->input->getArguments();
 
         $table = $this->unCamelCase($tableName['name']);
-        $dbPrefix = env('DB_PREFIX');
+//        $dbPrefix = env('DB_PREFIX');
+        $dbPrefix = \Hyperf\Support\env('DB_PREFIX');
         $result = $this->getTableColumnsComment($dbPrefix.$table);
 
         $key = null;

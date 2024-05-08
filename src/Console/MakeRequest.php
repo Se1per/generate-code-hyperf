@@ -79,7 +79,8 @@ class MakeRequest extends GeneratorCommand
 
         $priType = null;
         $priTypeDefault = null;
-        $dbPrefix = env('DB_PREFIX');
+//        $dbPrefix = env('DB_PREFIX');
+        $dbPrefix = \Hyperf\Support\env('DB_PREFIX');
         $result = $this->getTableColumnsComment($dbPrefix.$tableName['name']);
         $key = null;
         $keyCount = 0;

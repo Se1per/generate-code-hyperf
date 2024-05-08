@@ -9,7 +9,7 @@ abstract class BaseRepository
 {
     protected $model;
 
-    #[value('repository')]
+    #[value('generate')]
     protected $config;
 
     protected $user;

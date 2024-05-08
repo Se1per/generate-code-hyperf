@@ -76,7 +76,8 @@ class MakeController extends GeneratorCommand
     {
         $tableName = $this->input->getArguments();
         $tableName['name'] = $this->unCamelCase($tableName['name']);
-        $dbPrefix = env('DB_PREFIX');
+//        $dbPrefix = env('DB_PREFIX');
+        $dbPrefix = \Hyperf\Support\env('DB_PREFIX');
         $result = $this->getTableColumnsComment($dbPrefix.$tableName['name']);
 
         $key = null;
@@ -97,7 +98,8 @@ class MakeController extends GeneratorCommand
             $stub = str_replace('{{ getApi }}', $getApi, $stub);
 
             # saveComment
-            $dbPrefix = env('DB_PREFIX');
+//            $dbPrefix = env('DB_PREFIX');
+            $dbPrefix = \Hyperf\Support\env('DB_PREFIX');
             $tableComment = $this->getTableComment($dbPrefix.$tableName['name']);
             if(!empty($tableComment->Comment)){
                 $stub = str_replace('{{ comment }}', $tableComment->Comment, $stub);

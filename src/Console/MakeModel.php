@@ -68,7 +68,8 @@ class MakeModel extends GeneratorCommand
     {
         $tableName = $this->input->getArguments();
         $tableName['name'] = $this->unCamelCase($tableName['name']);
-        $dbPrefix = env('DB_PREFIX');
+//        $dbPrefix = env('DB_PREFIX');
+        $dbPrefix = \Hyperf\Support\env('DB_PREFIX');
         $sql = 'SHOW COLUMNS FROM `'.$dbPrefix.$tableName['name'].'`;';
         $result = DB::select($sql);
         $primaryKey = null;

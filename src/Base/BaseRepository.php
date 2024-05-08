@@ -2,15 +2,11 @@
 
 namespace Japool\Genconsole\Base;
 
-use App\Lib\Base\src\RepositoryFunction;
-use App\Lib\Base\src\RepositoryHelp;
 use Hyperf\Config\Annotation\Value;
 use Hyperf\Context\Context;
 
 abstract class BaseRepository
 {
-    use RepositoryFunction, RepositoryHelp;
-
     protected $model;
 
     #[value('repository')]

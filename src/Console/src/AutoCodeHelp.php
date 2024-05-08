@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Lib\Console\src;
+namespace Japool\Genconsole\Console\src;
 
 use Hyperf\DbConnection\Db;
 

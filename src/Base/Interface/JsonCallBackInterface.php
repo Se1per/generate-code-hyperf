@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Lib\Base\Interface;
+namespace Japool\Genconsole\Base\Interface;
 
 interface JsonCallBackInterface
 {

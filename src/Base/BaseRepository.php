@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Lib\Base;
+namespace Japool\Genconsole\Base;
 
 use App\Lib\Base\src\RepositoryFunction;
 use App\Lib\Base\src\RepositoryHelp;

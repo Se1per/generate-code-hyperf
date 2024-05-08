@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Lib\Base;
+namespace Japool\Genconsole\Base;
 
 use App\Lib\Base\Interface\JsonCallBackInterface;
 use Carbon\Carbon;

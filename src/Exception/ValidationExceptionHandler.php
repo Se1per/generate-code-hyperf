@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Lib\Exception;
+namespace Japool\Genconsole\Exception;
 
 use Hyperf\ExceptionHandler\ExceptionHandler;
 use Hyperf\HttpMessage\Stream\SwooleStream;

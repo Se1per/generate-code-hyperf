@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Lib\Console;
+namespace Japool\Genconsole\Console;
 
 use App\Lib\Console\src\AutoCodeHelp;
 use Hyperf\Command\Annotation\Command;

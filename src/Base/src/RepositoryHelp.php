@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Lib\Base\src;
+namespace Japool\Genconsole\Base\src;
 
 use ErrorException;
 use Hyperf\Coroutine\Concurrent;

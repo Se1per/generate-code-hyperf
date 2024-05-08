@@ -3,7 +3,7 @@
 namespace Japool\Genconsole\Base\src;
 
 
-use App\Lib\Base\Interface\JsonCallBackInterface;
+use Japool\Genconsole\Base\Interface\JsonCallBackInterface;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\ResponseInterface;
 

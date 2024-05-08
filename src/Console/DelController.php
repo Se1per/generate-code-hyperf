@@ -5,9 +5,7 @@ namespace Japool\Genconsole\Console;
 use Japool\Genconsole\Console\src\AutoCodeHelp;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Config\Annotation\Value;
-
 use Hyperf\Devtool\Generator\GeneratorCommand;
-
 
 #[Command]
 class DelController extends GeneratorCommand

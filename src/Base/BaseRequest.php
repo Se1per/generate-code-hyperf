@@ -1,6 +1,6 @@
 <?php
 
-namespace Japool\Genconsole\Base;
+namespace App\Lib\Base;
 
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;

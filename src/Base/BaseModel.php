@@ -10,7 +10,7 @@ declare(strict_types=1);
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
 
-namespace Japool\Genconsole\Base;
+namespace App\Lib\Base;
 
 
 use Hyperf\DbConnection\Model\Model;

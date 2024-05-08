@@ -1,9 +1,9 @@
 <?php
 
-namespace Japool\Genconsole\Base\src;
+namespace App\Lib\Base\src;
 
 
-use Japool\Genconsole\Base\Interface\JsonCallBackInterface;
+use App\Lib\Base\Interface\JsonCallBackInterface;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\ResponseInterface;
 

@@ -1,5 +1,5 @@
 <?php
-namespace Japool\Genconsole\Base\src;
+namespace App\Lib\Base\src;
 
 use Hyperf\Contract\ContainerInterface;
 use Hyperf\Database\Model\Model;

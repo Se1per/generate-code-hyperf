@@ -1,6 +1,6 @@
 <?php
 
-namespace Japool\Genconsole\Base;
+namespace App\Lib\Base;
 
 use App\Controller\AbstractController;
 use App\Lib\Base\Interface\JsonCallBackInterface;

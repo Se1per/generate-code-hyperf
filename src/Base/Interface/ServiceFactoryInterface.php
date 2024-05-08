@@ -1,6 +1,6 @@
 <?php
 
-namespace Japool\Genconsole\Base\Interface;
+namespace App\Lib\Base\Interface;
 
 use Hyperf\Contract\ContainerInterface;
 

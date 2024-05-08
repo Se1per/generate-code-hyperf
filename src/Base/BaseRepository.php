@@ -1,9 +1,10 @@
 <?php
 
-namespace Japool\Genconsole\Base;
+namespace App\Lib\Base;
 
 use Hyperf\Config\Annotation\Value;
 use Hyperf\Context\Context;
+
 
 abstract class BaseRepository
 {

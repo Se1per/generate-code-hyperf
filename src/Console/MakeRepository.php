@@ -10,7 +10,7 @@ use Hyperf\Devtool\Generator\GeneratorCommand;
 #[Command]
 class MakeRepository extends GeneratorCommand
 {
-    #[value('repository')]
+    #[value('generate')]
     protected $config;
 
     use AutoCodeHelp;

@@ -320,7 +320,7 @@ trait AutoCodeHelp
      */
     public function keyWordsBlackList($tableName): mixed
     {
-        return array_reduce(config('repository.general.intermediate_table'), function ($carry, $item) use ($tableName) {
+        return array_reduce($this->config['general']['intermediate_table'], function ($carry, $item) use ($tableName) {
             return $carry || stripos($tableName, $item) !== false;
         }, false);
     }

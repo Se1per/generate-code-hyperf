@@ -14,7 +14,7 @@ class MakeModel extends GeneratorCommand
 {
     use AutoCodeHelp;
 
-    #[value('repository')]
+    #[value('generate')]
     protected $config;
 
     public function __construct()

@@ -16,7 +16,7 @@ class MakeCrudCodeClass extends HyperfCommand
 
     protected ContainerInterface $container;
 
-    #[value('repository')]
+    #[value('generate')]
     protected $config;
 
     public function __construct(ContainerInterface $container)
@@ -39,7 +39,8 @@ class MakeCrudCodeClass extends HyperfCommand
         foreach ($tables as $val) {
             $val = array_values(json_decode(json_encode($val), true));
             $tableName = array_shift($val);
-            $tableName = str_replace(env('DB_PREFIX'), '', $tableName);
+//            $tableName = str_replace(env('DB_PREFIX'), '', $tableName);
+            $tableName = str_replace(\Hyperf\Support\env('DB_PREFIX'), '', $tableName);
             $tableName = $this->camelCase($tableName);
             if ($this->keyWordsBlackList($tableName)) continue;
 

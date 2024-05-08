@@ -34,15 +34,15 @@ abstract class BaseService
                         if (!is_array($val)) {
                             $sql['where'][] = $this->convertToWhereQuery($k, '=', $val);
                         } else {
-                            $sql['whereIn'] = $this->convertToWhereQuery($k, 'in', $val);
+                            $sql['whereIn'][] = $this->convertToWhereQuery($k, 'in', $val);
                         }
                         break;
                     case 'created_at':
                     case 'updated_at':
                         if (is_array($val)) {
-                            $sql['whereBetween'] = $this->convertToWhereQuery($k, 'in', $val);
+                            $sql['whereBetween'][] = $this->convertToWhereQuery($k, 'in', $val);
                         } else {
-                            $sql['whereDate'] = $this->convertToWhereQuery($k, '=', $val);
+                            $sql['whereDate'][] = $this->convertToWhereQuery($k, '=', $val);
                         }
                         break;
                 }
@@ -127,7 +127,7 @@ abstract class BaseService
         $getServer = $this->request->getHeaders();
 
         if (isset($getServer['x-forwarded-for'][0])) {
-            return $getServer['x-forwarded-for'][0];
+            return array_shift($getServer['x-forwarded-for']);
         }
 
         return false;

@@ -174,6 +174,8 @@ class MakeController extends GeneratorCommand
         $stub = str_replace('{{ prefix }}', $this->lcfirst($tableName['name']), $stub);
 
         $stub = str_replace('{{ namespace }}', $this->config['general']['controller'].'\\'.$this->config['general']['app'], $stub);
+        
+        $stub = str_replace('{{ base }}', $this->config['general']['base'],$stub);
 
         return $stub;
     }

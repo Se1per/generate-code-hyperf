@@ -2,7 +2,7 @@
 
 namespace {{ namespace }};
 
-use App\Lib\Base\BaseService;
+use {{ base }}\BaseService;
 use Hyperf\Di\Annotation\Inject;
 
 use {{ repository }}\{{ app }}\{{ table }}Repository;

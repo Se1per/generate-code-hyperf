@@ -2,7 +2,7 @@
 
 namespace {{ namespace }};
 
-use App\Lib\Base\BaseController;
+use {{ base }}\BaseController;
 use {{ request }}\{{ app }}\{{ table }}Request;
 use {{ service }}\{{ app }}\{{ table }}Service;
 

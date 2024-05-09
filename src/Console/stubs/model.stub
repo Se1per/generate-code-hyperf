@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace {{ namespace }};
 
-use App\Lib\Base\BaseModel;
+use {{ base }}\BaseModel;
 use Hyperf\Database\Model\SoftDeletes;
 {{ useSnowflake }}
 

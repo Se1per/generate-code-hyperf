@@ -10,6 +10,7 @@ return [
         'repository' => 'App\\Repository',
         'service' => 'App\\Services',
         'model' => 'App\\Models',
+        'base' => 'App\\Base',
         'intermediate_table'=>['commons'],
     ],
 

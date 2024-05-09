@@ -2,48 +2,45 @@
 
 namespace Japool\Genconsole\Console;
 
-use Japool\Genconsole\Console\src\AutoCodeHelp;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Config\Annotation\Value;
 use Hyperf\Devtool\Generator\GeneratorCommand;
 
-
 #[Command]
-class MakeService extends GeneratorCommand
+class GenerateValidationExceptionHandler extends GeneratorCommand
 {
     #[value('generate')]
     protected $config;
 
-    use AutoCodeHelp;
-
     public function __construct()
     {
-        parent::__construct('gen:crud-service');
+        parent::__construct('gen:GenerateValidationExceptionHandler');
     }
 
     public function configure()
     {
-        $this->setDescription('Create a new service class');
+        $this->setDescription('Create a new ValidationExceptionHandler class');
         parent::configure();
     }
 
     protected function getStub(): string
     {
-        return __DIR__ . '/stubs/service.stub';
+        return __DIR__ . '/stubs/ValidationExceptionHandler.stub';
     }
 
     protected function getDefaultNamespace(): string
     {
-        return $this->config['general']['service'].'\\'.$this->config['general']['app'];
+        return 'App\\Exception\\Handler';
     }
 
     protected function qualifyClass(string $name): string
     {
         $name = $this->input->getArguments();
 
-        $name = $name['name'].'Service';
+        $name = 'ValidationExceptionHandler';
 
         $namespace = $this->input->getOption('namespace');
+
         if (empty($namespace)) {
             $namespace = $this->getDefaultNamespace();
         }
@@ -59,23 +56,22 @@ class MakeService extends GeneratorCommand
      */
     protected function replaceClass(string $stub, $name): string
     {
-        $stub = $this->replaceName($stub); //替换自定义内容
+        $stub = $this->replaceName($stub);
         return parent::replaceClass($stub, $name);
+        //BaseRepository
     }
 
+    /**
+     * 替换自定义内容
+     * @param $stub
+     * @return string|string[]
+     */
     public function replaceName($stub)
     {
-        $tableName = $this->input->getArguments();
+        $stub = str_replace('{{ namespace }}', 'App\\Exception\\Handler', $stub);
+//        $stub = str_replace('{{ json }}', $this->config['general']['base'].'\\src', $stub);
 
-        $stub = str_replace('{{ class }}', $this->camelCase($tableName['name']).'Service', $stub);
-
-        $stub = str_replace('{{ table }}', $this->camelCase($tableName['name']),$stub);
-
-        $stub = str_replace('{{ namespace }}', $this->config['general']['service'].'\\'.$this->config['general']['app'], $stub);
-
-        $stub = str_replace('{{ repository }}',$this->config['general']['repository'] , $stub);
-        $stub = str_replace('{{ app }}',$this->config['general']['app'] , $stub);
-        $stub = str_replace('{{ base }}', $this->config['general']['base'],$stub);
         return $stub;
     }
+
 }

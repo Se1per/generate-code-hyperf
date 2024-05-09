@@ -14,14 +14,14 @@ abstract class BaseRepository
 
     protected $model;
 
-    #[value('repository')]
+    #[Value('generate')]
     protected $config;
 
     protected $user;
 
     public function model(): string
     {
-        return $this->config['general']['model'] . '\\' . $this->config['general']['app'] . '\\' . str_replace('Repository', '', class_basename(get_class($this)) . 'Model');
+        return $this->config['general']['model'] . '\\' . $this->config['general']['app'] . '\\' . str_replace('Repository', '', $this->class_basename(get_class($this)) . 'Model');
     }
 
     public function __construct()
@@ -43,6 +43,13 @@ abstract class BaseRepository
         }
 
         return $this->model = new $eloquentModel;
+    }
+
+    public function class_basename($class)
+    {
+        $class = is_object($class) ? get_class($class) : $class;
+
+        return basename(str_replace('\\', '/', $class));
     }
 
     public function getUserToken(): bool

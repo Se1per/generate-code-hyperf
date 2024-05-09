@@ -14,8 +14,13 @@ config/autoload/middlewares.php
 # 添加异常处理器
 \App\Exception\Handler\ValidationExceptionHandler::class
 
+# 
+\App\Base\src\JsonCallBackInterface::class=>\App\Base\src\JsonCallBack::class
+
 # 生成base类文件
 php bin/hyperf.php gen:generateBaseCommons
 
 # 生成crud 代码
 php bin/hyperf.php gen:crud-code
+
+

@@ -177,4 +177,5 @@ class MakeController extends GeneratorCommand
 
         return $stub;
     }
+
 }

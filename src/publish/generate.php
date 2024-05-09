@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 return [
     'general'=> [
-        'app'=>'Mid',
+        'app'=>'http',
         'controller' => 'App\\Controller',
         'request' => 'App\\Request',
         'repository' => 'App\\Repository',

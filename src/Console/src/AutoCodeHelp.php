@@ -25,6 +25,16 @@ trait AutoCodeHelp
     }
 
     /**
+     * 检测是否安装了 hyperf 自动化测试扩展
+     * @return bool
+     */
+    function isTestIngExtensionInstalled(): bool
+    {
+        $composerLock = file_get_contents(BASE_PATH . '/composer.lock');
+        return preg_match('/"name":\s+"hyperf\/testing"/', $composerLock) === 1;
+    }
+
+    /**
      * 检测是否安装了 Snowflake 扩展
      * @return bool
      */
@@ -131,14 +141,14 @@ trait AutoCodeHelp
             return true;
 
         } elseif (strpos($column_type, 'decimal') !== false) {
-            // 小数类型
-            // 你的逻辑代码
+            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是字符串' . '\'' . ','. "\r";
         } elseif (strpos($column_type, 'float') !== false) {
-            // 浮点数类型
-            // 你的逻辑代码
+            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是字符串' . '\'' . ','. "\r";
         } elseif (strpos($column_type, 'double') !== false) {
-            // 双精度浮点数类型
-            // 你的逻辑代码
+            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是字符串' . '\'' . ','. "\r";
         } elseif (strpos($column_type, 'char') !== false) {
             $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string' . '\'' . ','. "\r";
             $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是字符串' . '\'' . ','. "\r";
@@ -148,8 +158,8 @@ trait AutoCodeHelp
             $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是字符串' . '\'' . ','. "\r";
             return true;
         } elseif (strpos($column_type, 'text') !== false) {
-            // 文本类型
-            // 你的逻辑代码
+            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是字符串' . '\'' . ','. "\r";
         } elseif (strpos($column_type, 'blob') !== false) {
             // 二进制数据类型
             // 你的逻辑代码

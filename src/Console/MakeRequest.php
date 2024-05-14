@@ -90,14 +90,20 @@ class MakeRequest extends GeneratorCommand
                 if(!$key) {
                     $key = $column->Field;
                 }
-
-                if($pri == 'integer'){
-                    $priType = 'integer';
-                    $priTypeDefault = '\'integer\'';
-                }else{
-                    $priType = 'string';
-                    $priTypeDefault = '\'string\'';
+                
+                switch ($pri)
+                {
+                    case 'integer':
+                        $priType = 'integer';
+                        $priTypeDefault = '\'integer\'';
+                    break;
+                    default:
+                    case 'string':
+                        $priType = 'string';
+                        $priTypeDefault = '\'string\'';
+                    break;
                 }
+                
                 $keyCount++;
             }
 

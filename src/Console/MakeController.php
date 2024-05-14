@@ -87,7 +87,7 @@ class MakeController extends GeneratorCommand
                 $key = '\''.$column->Field.'\'';
             }
         }
-
+        
         if($this->sw){
             $saveApi = '\''.'api/'.$this->lcfirst($tableName['name']).'/'.'save'.$this->camelCase($tableName['name']).'Data'.'\'';
             $delApi = '\''.'api/'.$this->lcfirst($tableName['name']).'/'.'del'.$this->camelCase($tableName['name']).'Data'.'\'';

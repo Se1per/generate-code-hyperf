@@ -68,6 +68,13 @@ class MakeCrudCodeClass extends HyperfCommand
             if (!$this->fileExistsIn($this->config['general']['repository'] . '\\'.$this->config['general']['app']  . '\\' . $tableName . 'Repository')) {
                 $this->makeRepositoryFunc($tableName);
             }
+
+            # TestIng
+            if($this->isTestIngExtensionInstalled()){
+                if (!$this->fileExistsIn('App\\Test'  . '\\' . $tableName . 'Test')) {
+                    $this->makeTestFunc($tableName);
+                }
+            }
         }
     }
 
@@ -111,5 +118,12 @@ class MakeCrudCodeClass extends HyperfCommand
         $this->info('完成生成' . $tableName . '数据访问层');
     }
 
+    public function makeTestFunc($tableName)
+    {
+        $this->call('gen:generateTest', array_filter([
+            'name' => $tableName,
+        ]));
+        $this->info('完成生成' . $tableName . '测试实例');
+    }
 }
 

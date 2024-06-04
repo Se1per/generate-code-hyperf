@@ -20,8 +20,8 @@ composer require hyperf/testing --dev
 \App\Base\src\JsonCallBackInterface::class=>\App\Base\src\JsonCallBack::class
 
 # 生成base类文件
-php bin/hyperf.php gen:generateBaseCommons
+php bin/hyperf.php generate:generateBaseCommons
 
 # 生成crud 代码
-php bin/hyperf.php gen:crud-code
+php bin/hyperf.php generate:crud-code
 

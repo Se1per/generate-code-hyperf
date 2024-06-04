@@ -21,7 +21,7 @@ class MakeController extends GeneratorCommand
 
     public function __construct()
     {
-        parent::__construct('gen:crud-controller');
+        parent::__construct('generate:crud-controller');
     }
 
     public function configure()

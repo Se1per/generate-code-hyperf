@@ -14,7 +14,7 @@ class GenerateValidationExceptionHandler extends GeneratorCommand
 
     public function __construct()
     {
-        parent::__construct('gen:GenerateValidationExceptionHandler');
+        parent::__construct('generate:GenerateValidationExceptionHandler');
     }
 
     public function configure()

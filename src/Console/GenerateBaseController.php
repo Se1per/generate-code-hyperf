@@ -14,7 +14,7 @@ class GenerateBaseController extends GeneratorCommand
 
     public function __construct()
     {
-        parent::__construct('gen:generateBaseController');
+        parent::__construct('generate:generateBaseController');
     }
 
     public function configure()

@@ -18,7 +18,7 @@ class MakeRequest extends GeneratorCommand
 
     public function __construct()
     {
-        parent::__construct('gen:crud-request');
+        parent::__construct('generate:crud-request');
     }
 
     public function configure()

@@ -14,7 +14,7 @@ class GenerateJsonCallBack extends GeneratorCommand
 
     public function __construct()
     {
-        parent::__construct('gen:generateJsonCallBack');
+        parent::__construct('generate:generateJsonCallBack');
     }
 
     public function configure()

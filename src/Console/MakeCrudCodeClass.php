@@ -23,13 +23,13 @@ class MakeCrudCodeClass extends HyperfCommand
     {
         $this->container = $container;
 
-        parent::__construct('gen:crud-code');
+        parent::__construct('generate:crud-code');
     }
 
     public function configure()
     {
         parent::configure();
-        $this->setDescription('gen:crud-code command');
+        $this->setDescription('generate:crud-code command');
     }
 
     public function handle()
@@ -80,7 +80,7 @@ class MakeCrudCodeClass extends HyperfCommand
 
     public function makeControllerFunc($tableName)
     {
-        $this->call('gen:crud-controller', array_filter([
+        $this->call('generate:crud-controller', array_filter([
             'name' => $tableName,
         ]));
         $this->info('完成生成' . $tableName . '控制器层');
@@ -88,7 +88,7 @@ class MakeCrudCodeClass extends HyperfCommand
 
     public function makeModelFunc($tableName)
     {
-        $this->call('gen:crud-model', array_filter([
+        $this->call('generate:crud-model', array_filter([
             'name' => $tableName,
         ]));
         $this->info('完成生成' . $tableName . '模型层');
@@ -96,7 +96,7 @@ class MakeCrudCodeClass extends HyperfCommand
 
     public function makeRequestFunc($tableName)
     {
-        $this->call('gen:crud-request', array_filter([
+        $this->call('generate:crud-request', array_filter([
             'name' => $tableName,
         ]));
         $this->info('完成生成' . $tableName . '验证器层');
@@ -104,7 +104,7 @@ class MakeCrudCodeClass extends HyperfCommand
 
     public function makeServiceFunc($tableName)
     {
-        $this->call('gen:crud-service', array_filter([
+        $this->call('generate:crud-service', array_filter([
             'name' => $tableName,
         ]));
         $this->info('完成生成' . $tableName . '业务逻辑层');
@@ -112,7 +112,7 @@ class MakeCrudCodeClass extends HyperfCommand
 
     public function makeRepositoryFunc($tableName)
     {
-        $this->call('gen:crud-repository', array_filter([
+        $this->call('generate:crud-repository', array_filter([
             'name' => $tableName,
         ]));
         $this->info('完成生成' . $tableName . '数据访问层');
@@ -120,7 +120,7 @@ class MakeCrudCodeClass extends HyperfCommand
 
     public function makeTestFunc($tableName)
     {
-        $this->call('gen:generateTest', array_filter([
+        $this->call('generate:generateTest', array_filter([
             'name' => $tableName,
         ]));
         $this->info('完成生成' . $tableName . '测试实例');

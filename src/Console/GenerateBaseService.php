@@ -14,7 +14,7 @@ class GenerateBaseService extends GeneratorCommand
 
     public function __construct()
     {
-        parent::__construct('gen:generateBaseService');
+        parent::__construct('generate:generateBaseService');
     }
 
     public function configure()

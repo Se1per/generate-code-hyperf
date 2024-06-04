@@ -14,7 +14,7 @@ class GenerateBaseRepository extends GeneratorCommand
 
     public function __construct()
     {
-        parent::__construct('gen:generateBaseRepository');
+        parent::__construct('generate:generateBaseRepository');
     }
 
     public function configure()

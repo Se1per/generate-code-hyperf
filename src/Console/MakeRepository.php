@@ -17,7 +17,7 @@ class MakeRepository extends GeneratorCommand
 
     public function __construct()
     {
-        parent::__construct('gen:crud-repository');
+        parent::__construct('generate:crud-repository');
     }
 
     public function configure()

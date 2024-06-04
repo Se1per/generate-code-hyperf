@@ -18,7 +18,7 @@ class MakeService extends GeneratorCommand
 
     public function __construct()
     {
-        parent::__construct('gen:crud-service');
+        parent::__construct('generate:crud-service');
     }
 
     public function configure()

@@ -19,7 +19,7 @@ class MakeModel extends GeneratorCommand
 
     public function __construct()
     {
-        parent::__construct('gen:crud-model');
+        parent::__construct('generate:crud-model');
     }
 
     public function configure()

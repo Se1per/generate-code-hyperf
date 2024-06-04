@@ -16,7 +16,7 @@ class GenerateBase extends HyperfCommand
     public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
-        parent::__construct('gen:generateBaseCommons');
+        parent::__construct('generate:generateBaseCommons');
     }
 
     public function configure()
@@ -27,42 +27,42 @@ class GenerateBase extends HyperfCommand
 
     public function handle()
     {
-        $this->call('gen:generateBaseController', array_filter([
+        $this->call('generate:generateBaseController', array_filter([
             'name' => 'BaseController',
         ]));
         $this->info('完成生成' . 'BaseController');
 
-        $this->call('gen:GenerateBaseService', array_filter([
+        $this->call('generate:GenerateBaseService', array_filter([
             'name' => 'BaseService',
         ]));
         $this->info('完成生成' . 'BaseService');
         
-        $this->call('gen:GenerateBaseRepository', array_filter([
+        $this->call('generate:GenerateBaseRepository', array_filter([
             'name' => 'BaseModel',
         ]));
         $this->info('完成生成' . 'BaseRepository');
         
-        $this->call('gen:GenerateRepositoryPackage', array_filter([
+        $this->call('generate:GenerateRepositoryPackage', array_filter([
             'name' => 'RepositoryPackage',
         ]));
         $this->info('完成生成' . 'RepositoryPackage');
         
-        $this->call('gen:generateBaseModel', array_filter([
+        $this->call('generate:generateBaseModel', array_filter([
             'name' => 'BaseModel',
         ]));
         $this->info('完成生成' . 'BaseModel');
 
-        $this->call('gen:generateJsonCallBack', array_filter([
+        $this->call('generate:generateJsonCallBack', array_filter([
             'name' => 'JsonCallBack',
         ]));
         $this->info('完成生成' . 'JsonCallBack');
         
-        $this->call('gen:GenerateJsonCallBackInterface', array_filter([
+        $this->call('generate:GenerateJsonCallBackInterface', array_filter([
             'name' => 'JsonCallBackInterface',
         ]));
         $this->info('完成生成' . 'JsonCallBackInterface');
         
-        $this->call('gen:GenerateValidationExceptionHandler', array_filter([
+        $this->call('generate:GenerateValidationExceptionHandler', array_filter([
             'name' => 'ValidationExceptionHandler',
         ]));
         $this->info('完成生成' . 'ValidationExceptionHandler');

@@ -17,7 +17,7 @@ class GenerateTest extends GeneratorCommand
     
     public function __construct()
     {
-        parent::__construct('gen:generateTest');
+        parent::__construct('generate:generateTest');
     }
 
     public function configure()

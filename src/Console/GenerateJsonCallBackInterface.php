@@ -14,7 +14,7 @@ class GenerateJsonCallBackInterface extends GeneratorCommand
 
     public function __construct()
     {
-        parent::__construct('gen:GenerateJsonCallBackInterface');
+        parent::__construct('generate:GenerateJsonCallBackInterface');
     }
 
     public function configure()

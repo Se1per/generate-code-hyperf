@@ -14,7 +14,7 @@ class GenerateBaseModel extends GeneratorCommand
 
     public function __construct()
     {
-        parent::__construct('gen:generateBaseModel');
+        parent::__construct('generate:generateBaseModel');
     }
 
     public function configure()

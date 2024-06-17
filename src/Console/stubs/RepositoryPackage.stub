@@ -177,11 +177,11 @@ trait RepositoryPackage
     }
 
     /**
-     * 执行构造数据层
-     * @param $data
-     * @param bool $needToArray
+     * 执行数据层构造 
+     * @param array $data
      * @param string $get
-     * @param $dataCallBack
+     * @param $model $固定model
+     * @param bool $needToArray 
      * @return mixed
      * @throws \ErrorException
      */

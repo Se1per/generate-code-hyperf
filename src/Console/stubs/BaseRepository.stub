@@ -7,6 +7,7 @@ namespace {{ namespace }};
 use Hyperf\Config\Annotation\Value;
 use Hyperf\Context\Context;
 use {{ namespace }}\src\RepositoryPackage;
+use function Hyperf\Support\make;
 
 abstract class BaseRepository
 {
@@ -42,7 +43,7 @@ abstract class BaseRepository
             throw new \RuntimeException('model not found');
         }
 
-        return $this->model = new $eloquentModel;
+        return $this->model = make($eloquentModel());
     }
 
     public function class_basename($class)

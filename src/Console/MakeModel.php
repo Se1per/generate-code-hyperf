@@ -42,7 +42,7 @@ class MakeModel extends GeneratorCommand
     {
         $name = $this->input->getArguments();
 
-        $name = $name['name'].'Model';
+        $name = $name['name'];
 
         $namespace = $this->input->getOption('namespace');
         if (empty($namespace)) {
@@ -99,7 +99,7 @@ class MakeModel extends GeneratorCommand
         $stub = str_replace('{{ primaryKey }}', $primaryKey, $stub);
         $stub = str_replace('{{ fillAble }}', $fillAble, $stub);
 
-        $stub = str_replace('{{ class }}', $this->camelCase($tableName['name']).'Model', $stub);
+        $stub = str_replace('{{ class }}', $this->camelCase($tableName['name']), $stub);
         $stub = str_replace('{{ namespace }}', $this->config['general']['model'].'\\'.$this->config['general']['app'], $stub);
         $stub = str_replace('{{ base }}', $this->config['general']['base'],$stub);
         return $stub;

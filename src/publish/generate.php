@@ -9,7 +9,7 @@ return [
         'request' => 'App\\Request',
         'repository' => 'App\\Repository',
         'service' => 'App\\Services',
-        'model' => 'App\\Models',
+        'model' => 'App\\Model',
         'base' => 'App\\Base',
         'intermediate_table'=>['commons'],
     ],

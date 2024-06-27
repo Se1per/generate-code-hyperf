@@ -3,7 +3,8 @@
 declare(strict_types=1);
 
 return [
-    'general'=> [
+    'general'=>
+    [
         'app'=>'http',
         'controller' => 'App\\Controller',
         'request' => 'App\\Request',
@@ -11,6 +12,7 @@ return [
         'service' => 'App\\Services',
         'model' => 'App\\Model',
         'base' => 'App\\Base',
+        'test' => 'App\\Test',
         'intermediate_table'=>['commons'],
     ],
 

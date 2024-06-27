@@ -33,7 +33,7 @@ class GenerateTest extends GeneratorCommand
 
     protected function getDefaultNamespace(): string
     {
-        return 'App\\Test';
+        return $this->config['general']['test'];
     }
 
     protected function qualifyClass(string $name): string
@@ -71,7 +71,7 @@ class GenerateTest extends GeneratorCommand
      */
     public function replaceName($stub)
     {
-        $stub = str_replace('{{ namespace }}', 'HyperfTest\Cases', $stub);
+        $stub = str_replace('{{ namespace }}', $this->config['general']['test'], $stub);
         $tableName = $this->input->getArguments();
 
         $tableName['name'] = $this->unCamelCase($tableName['name']);

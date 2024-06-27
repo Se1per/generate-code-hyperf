@@ -330,9 +330,13 @@ trait AutoCodeHelp
      */
     public function keyWordsBlackList($tableName): mixed
     {
-        return array_reduce($this->config['general']['intermediate_table'], function ($carry, $item) use ($tableName) {
-            return $carry || stripos($tableName, $item) !== false;
-        }, false);
+        $blacklist = $this->config['general']['intermediate_table'];
+        foreach ($blacklist as $keyword) {
+            if (stripos($tableName, $keyword) !== false) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

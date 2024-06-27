@@ -43,7 +43,7 @@ abstract class BaseRepository
             throw new \RuntimeException('model not found');
         }
 
-        return $this->model = make($eloquentModel());
+        return $this->model = new $eloquentModel();
     }
 
     public function class_basename($class)

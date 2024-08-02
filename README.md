@@ -10,8 +10,10 @@ composer require hyperf/validation
 # 添加中间件 config/autoload/middlewares.php
 \Hyperf\Validation\Middleware\ValidationMiddleware::class
 
-# 添加异常处理器
+# 添加验证器异常处理器
 \App\Exception\Handler\ValidationExceptionHandler::class
+# 添加api 接口异常处理器
+\App\Exception\Handler\ApiExceptionHandler::class,
 
 # [可选] 自动化测试
 composer require hyperf/testing --dev

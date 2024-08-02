@@ -23,7 +23,7 @@ trait RepositoryPackage
 
         return [true, $createData];
     }
-
+    
     public function saveAllData($data): array
     {
         $concurrent = new Concurrent(10);
@@ -100,6 +100,39 @@ trait RepositoryPackage
         return [true, '批量更新成功'];
     }
 
+    /**
+     * 判断数据是否更新
+     * @param $object
+     * @param $data
+     * @return bool
+     */
+    public function filterUpdateData($object,$data): bool
+    {
+        $update = false;
+        foreach ($data as $k => $value) {
+            if(is_object($object)){
+                if($value != $object->$k){
+                    $update = true;
+                    $object->$k = $value;
+                }
+            }else if(is_array($object)){
+                if($value != $object[$k]){
+                    $update = true;
+                    $object[$k] = $value;
+                }
+            }
+        }
+        if($update) $object->save();
+
+        return true;
+    }
+
+    
+    /**
+     * 删除数据
+     * @param $data
+     * @return array
+     */
     public function deleteData($data): array
     {
         try {

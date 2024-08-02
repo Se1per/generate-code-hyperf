@@ -14,6 +14,7 @@ abstract class BaseService
 {
     #[Inject]
     protected JsonCallBackInterface $JsonCallBack;
+
     #[Inject]
     protected RequestInterface $request;
 
@@ -38,7 +39,7 @@ abstract class BaseService
                         } else {
                             $sql['whereIn'] = $this->convertToWhereQuery($k, 'in', $val);
                         }
-                        break;
+                    break;
                     case 'created_at':
                     case 'updated_at':
                         if (is_array($val)) {
@@ -46,7 +47,7 @@ abstract class BaseService
                         } else {
                             $sql['whereDate'] = $this->convertToWhereQuery($k, '=', $val);
                         }
-                        break;
+                    break;
                 }
             }
         }
@@ -55,15 +56,13 @@ abstract class BaseService
 
     /**
      * 构造查询条件
-     * @param $column string 字段
-     * @param $operator string 运算符
-     * @param $val array|string 值
-     * @param $operatorName string|null 关系默认 and 可选 or
-     * @return array|Carbon|mixed|string
-     * User: Se1per
-     * Date: 2023/8/4 11:07
+     * @param string $column
+     * @param string $operator
+     * @param $val
+     * @param string|null $operatorName
+     * @return array|Carbon|mixed|string|string[]
      */
-    public function convertToWhereQuery(string $column, string $operator, array|string $val, string $operatorName = null): array
+    public function convertToWhereQuery(string $column, string $operator,$val, string $operatorName = null): array
     {
         if (is_string($val)) {
             switch ($val) {
@@ -135,16 +134,12 @@ abstract class BaseService
         return false;
     }
 
-    public function getUserToken(): bool
+    /**
+     * 获取用户token
+     * @return false|string
+     */
+    public function getUserToken()
     {
-        $user = Context::get('userToken');
-
-        if ($user) {
-            $user = json_decode($user, true);
-        }
-
-        $this->user = $user;
-
-        return true;
+        return Context::get('userToken');
     }
 }

@@ -27,7 +27,7 @@ class ValidationExceptionHandler extends ExceptionHandler
             'message' => '数据验证失败:'.$throwable->validator->errors()->first(),
         ], JSON_UNESCAPED_UNICODE);
 
-        return $response->withBody(new SwooleStream($data));
+        return $response->withStatus(200)->withBody(new SwooleStream($data));
     }
 
     public function isValid(Throwable $throwable): bool

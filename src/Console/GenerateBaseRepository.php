@@ -69,6 +69,7 @@ class GenerateBaseRepository extends GeneratorCommand
     {
         $stub = str_replace('{{ namespace }}', $this->config['general']['base'], $stub);
 
+        $stub = str_replace('{{ model }}', $this->config['general']['model'].'\\'.$this->config['general']['app'], $stub);
         return $stub;
     }
 

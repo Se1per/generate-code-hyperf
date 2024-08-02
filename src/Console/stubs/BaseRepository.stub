@@ -7,7 +7,7 @@ namespace {{ namespace }};
 use Hyperf\Config\Annotation\Value;
 use Hyperf\Context\Context;
 use {{ namespace }}\src\RepositoryPackage;
-use function Hyperf\Support\make;
+ 
 
 abstract class BaseRepository
 {
@@ -22,7 +22,7 @@ abstract class BaseRepository
 
     public function model(): string
     {
-        return $this->config['general']['model'] . '\\' . $this->config['general']['app'] . '\\' . str_replace('Repository', '', $this->class_basename(get_class($this)));
+        return {{ model }}. '\\' . str_replace('Repository', '', $this->class_basename(get_class($this)));
     }
 
     public function __construct()

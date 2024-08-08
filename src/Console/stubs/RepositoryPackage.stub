@@ -196,29 +196,12 @@ trait RepositoryPackage
         return $this->runningSql($data, false, 'count', $model);
     }
 
-    /**
-     * 执行数据层构造
-     * @param array $data
-     * @param bool $needToArray
-     * @param string $get get|find
-     * @return mixed
-     * @throws \ErrorException
-     */
-    public function getData(array $data = [], string $get = 'get', $model = null, bool $needToArray = false): mixed
+    public function getData(array $data = [], $get = 'get', $model = null, bool $needToArray = false,&$dataCallBack = null): mixed
     {
-        return $this->runningSql($data, $needToArray, $get, $model);
+        return $this->runningSql($data, $needToArray, $get, $model,$dataCallBack);
     }
 
-    /**
-     * 执行数据层构造 
-     * @param array $data
-     * @param string $get
-     * @param $model $固定model
-     * @param bool $needToArray 
-     * @return mixed
-     * @throws \ErrorException
-     */
-    public function runningSql($data, bool $needToArray = false, string $get = 'get', $object = null): mixed
+    public function runningSql($data, bool $needToArray = false, $get = 'get', $object = null,&$dataCallBack = null): mixed
     {
         if (!$object) {
             $object = $this->model;
@@ -239,7 +222,7 @@ trait RepositoryPackage
             switch ($this->array_depth($val)) {
                 case 1;
                     $object = $object->$k(...$val);
-                break;
+                    break;
                 case 2;
                     if ($k == 'whereIn') {
                         $object = $object->$k(...$val);
@@ -250,18 +233,43 @@ trait RepositoryPackage
                     } else {
                         $object = $object->$k($val);
                     }
-                break;
+                    break;
                 case 3;
                     foreach ($val as $vv) {
                         $object = $object->$k(...$vv);
                     }
-                break;
-        }
+                    break;
+            }
         }
 
-        $list = $object->$get();
+        if ($get == 'chunk') {
+            $object->$get(200,function($value) use (&$dataCallBack){
+                foreach ($value as  $val)
+                {
+                    $dataCallBack[] = $val->toArray();
+                }
+            });
+            return $dataCallBack;
+        }
+
+        if($get == 'cursor'){
+            foreach ($object->$get() as $flight) {
+                if($needToArray) $flight= $flight->toArray();
+                $dataCallBack[] = $flight;
+            }
+            return $dataCallBack;
+        }
+
+        if(is_array($get)){
+            $key = key($get);
+            $list = $object->$key($get[$key]);
+            $get = $key;
+        }else{
+            $list = $object->$get();
+        }
 
         switch ($get) {
+            case 'pluck':
             case 'first':
                 if ($list && $needToArray) $list = $list->toArray();
             break;

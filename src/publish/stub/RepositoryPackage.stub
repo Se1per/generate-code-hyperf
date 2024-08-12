@@ -1,0 +1,322 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Base\src;
+
+use Hyperf\Coroutine\Concurrent;
+use Hyperf\DbConnection\Db;
+use SplQueue;
+
+trait RepositoryPackage
+{
+    public function saveData($data): array
+    {
+        try {
+
+            $createData = $this->model->create($data);
+
+        } catch (\Exception $e) {
+
+            return [false, $e->getMessage()];
+        }
+
+        return [true, $createData];
+    }
+    
+    public function saveAllData($data): array
+    {
+        $concurrent = new Concurrent(10);
+
+        Db::beginTransaction();
+
+        foreach ($data as $value) {
+            $concurrent->create(function () use ($value) {
+                try {
+                    $createData = $this->model->create($value);
+                } catch (\Exception $e) {
+                    return [false, $e->getMessage()];
+                }
+                return true;
+            });
+        }
+
+        Db::commit();
+
+        return [true, '批量新增成功'];
+    }
+
+    public function updateData($data, string $key = 'id'): array
+    {
+        if (is_array($data[$key])) {
+
+            $concurrent = new Concurrent(10);
+
+            $object = $this->getDataInBy($key, $data[$key]);
+
+            foreach ($object as $value) {
+                $concurrent->create(function () use ($value, $data, &$num) {
+                    try {
+                        $value = $value->fill($data);
+                        $value->save();
+                    } catch (\Exception $e) {
+                        return [false, $e->getMessage()];
+                    }
+                    return true;
+                });
+            }
+
+            return [true, '更新成功'];
+
+        } else {
+            $object = $this->getDataFindBy($key, $data[$key]);
+
+            try {
+                $object = $object->fill($data);
+                $object->save();
+            } catch (\Exception $e) {
+                return [false, $e->getMessage()];
+            }
+
+            return [true, $object];
+        }
+    }
+
+    public function updateAllData($object, $data): array
+    {
+        $concurrent = new Concurrent(10);
+        foreach ($object as $value) {
+            $concurrent->create(function () use ($value, $data, &$num) {
+                try {
+                    $value = $value->fill($data);
+                    $value->save();
+                } catch (\Exception $e) {
+                    return [false, $e->getMessage()];
+                }
+                return true;
+            });
+        }
+
+        return [true, '批量更新成功'];
+    }
+
+    /**
+     * 判断数据是否更新
+     * @param $object
+     * @param $data
+     * @return bool
+     */
+    public function filterUpdateData($object,$data): bool
+    {
+        $update = false;
+        foreach ($data as $k => $value) {
+            if(is_object($object)){
+                if($value != $object->$k){
+                    $update = true;
+                    $object->$k = $value;
+                }
+            }else if(is_array($object)){
+                if($value != $object[$k]){
+                    $update = true;
+                    $object[$k] = $value;
+                }
+            }
+        }
+        if($update) $object->save();
+
+        return true;
+    }
+
+    
+    /**
+     * 删除数据
+     * @param $data
+     * @return array
+     */
+    public function deleteData($data): array
+    {
+        try {
+
+            $this->model->destroy($data);
+
+        } catch (\Exception $e) {
+
+            return [false, $e->getMessage()];
+        }
+
+        return [true, '数据已删除'];
+    }
+
+    /**
+     * 获取单条数据
+     * @param $attribute
+     * @param $value
+     * @param string $symbol
+     * @param array $columns
+     * @return mixed
+     */
+    public function getDataFindBy($attribute, $value, string $symbol = '=', array $columns = array('*')): mixed
+    {
+        return $this->model->where($attribute, $symbol, $value)->first($columns);
+    }
+
+    /**
+     * 获取数据集
+     * @param $attribute
+     * @param $value
+     * @param string $symbol
+     * @param array $columns
+     * @return mixed
+     */
+    public function getDataAllBy($attribute, $value, string $symbol = '=', array $columns = array('*')): mixed
+    {
+        return $this->model->where($attribute, $symbol, $value)->get($columns);
+    }
+
+    /**
+     * 获取游标对象
+     * @return mixed
+     */
+    public function getCursorDataAll(): mixed
+    {
+        return $this->model->cursor();
+    }
+
+    /**
+     * 获取数据集
+     * @param $attribute
+     * @param array $value
+     * @param array $columns
+     * @return mixed
+     */
+    public function getDataInBy($attribute, array $value, array $columns = array('*')): mixed
+    {
+        return $this->model->whereIn($attribute, $value)->get($columns);
+    }
+
+    /**
+     * 执行数据层构造
+     * @param array $data
+     * @return mixed
+     * @throws \ErrorException
+     */
+    public function getCount(array $data = [], $model = null): mixed
+    {
+        return $this->runningSql($data, false, 'count', $model);
+    }
+
+    public function getData(array $data = [], $get = 'get', $model = null, bool $needToArray = false,&$dataCallBack = null): mixed
+    {
+        return $this->runningSql($data, $needToArray, $get, $model,$dataCallBack);
+    }
+
+    public function runningSql($data, bool $needToArray = false, $get = 'get', $object = null,&$dataCallBack = null): mixed
+    {
+        if (!$object) {
+            $object = $this->model;
+        }
+
+        foreach ($data as $k => $val) {
+            if ($get == 'count' && $k == 'skip') continue;
+            if ($k == 'with') {
+                $object = $object->$k($val);
+                continue;
+            }
+
+            if ($k == 'skip') {
+                $object = $object->skip($val['page'])->take($val['limit']);
+                continue;
+            }
+
+            switch ($this->array_depth($val)) {
+                case 1;
+                    $object = $object->$k(...$val);
+                    break;
+                case 2;
+                    if ($k == 'whereIn') {
+                        $object = $object->$k(...$val);
+                    } else if ($k == 'where') {
+                        foreach ($val as $vv) {
+                            $object = $object->$k(...$vv);
+                        }
+                    } else {
+                        $object = $object->$k($val);
+                    }
+                    break;
+                case 3;
+                    foreach ($val as $vv) {
+                        $object = $object->$k(...$vv);
+                    }
+                    break;
+            }
+        }
+
+        if ($get == 'chunk') {
+            $object->$get(200,function($value) use (&$dataCallBack){
+                foreach ($value as  $val)
+                {
+                    $dataCallBack[] = $val->toArray();
+                }
+            });
+            return $dataCallBack;
+        }
+
+        if($get == 'cursor'){
+            foreach ($object->$get() as $flight) {
+                if($needToArray) $flight= $flight->toArray();
+                $dataCallBack[] = $flight;
+            }
+            return $dataCallBack;
+        }
+
+        if(is_array($get)){
+            $key = key($get);
+            $list = $object->$key($get[$key]);
+            $get = $key;
+        }else{
+            $list = $object->$get();
+        }
+
+        switch ($get) {
+            case 'pluck':
+            case 'first':
+                if ($list && $needToArray) $list = $list->toArray();
+            break;
+            case 'get':
+                if ($needToArray) $list = $list->toArray();
+            break;
+        }
+
+        return $list;
+    }
+
+    public function array_depth($array): int
+    {
+        if (!is_array($array)) {
+            return 0;
+        }
+
+        $depth = 1;
+        $queue = new SplQueue();
+        array_walk($array, function ($element) use ($queue) {
+            if (is_array($element)) {
+                $queue->enqueue($element);
+            }
+        });
+
+        while (!$queue->isEmpty()) {
+            $currentLevelSize = $queue->count();
+            for ($i = 0; $i < $currentLevelSize; $i++) {
+                $current = $queue->dequeue();
+                array_walk($current, function ($element) use ($queue) {
+                    if (is_array($element)) {
+                        $queue->enqueue($element);
+                    }
+                });
+            }
+            $depth++;
+        }
+
+        return $depth;
+    }
+}

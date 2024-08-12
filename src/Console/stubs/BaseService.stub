@@ -20,7 +20,7 @@ abstract class BaseService
 
     protected $user;
 
-    public function selectArray($makeData): array
+public function selectArray($makeData, $with = null): array
     {
         $sql = [];
         foreach ($makeData as $k => $val) {
@@ -50,6 +50,9 @@ abstract class BaseService
                     break;
                 }
             }
+        }
+        if ($with) {
+            $sql['with'] = $with;
         }
         return $sql;
     }

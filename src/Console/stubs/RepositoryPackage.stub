@@ -8,12 +8,12 @@ use Hyperf\Coroutine\Concurrent;
 use Hyperf\DbConnection\Db;
 use SplQueue;
 
+
 trait RepositoryPackage
 {
     public function saveData($data): array
     {
         try {
-
             $createData = $this->model->create($data);
 
         } catch (\Exception $e) {
@@ -23,7 +23,7 @@ trait RepositoryPackage
 
         return [true, $createData];
     }
-    
+
     public function saveAllData($data): array
     {
         $concurrent = new Concurrent(10);
@@ -69,6 +69,7 @@ trait RepositoryPackage
             return [true, '更新成功'];
 
         } else {
+
             $object = $this->getDataFindBy($key, $data[$key]);
 
             try {
@@ -85,6 +86,7 @@ trait RepositoryPackage
     public function updateAllData($object, $data): array
     {
         $concurrent = new Concurrent(10);
+
         foreach ($object as $value) {
             $concurrent->create(function () use ($value, $data, &$num) {
                 try {
@@ -122,12 +124,12 @@ trait RepositoryPackage
                 }
             }
         }
+
         if($update) $object->save();
 
         return true;
     }
 
-    
     /**
      * 删除数据
      * @param $data
@@ -173,6 +175,11 @@ trait RepositoryPackage
         return $this->model->where($attribute, $symbol, $value)->get($columns);
     }
 
+    public function getCursorDataAll(): mixed
+    {
+        return $this->model->cursor();
+    }
+
     /**
      * 获取数据集
      * @param $attribute
@@ -195,6 +202,7 @@ trait RepositoryPackage
     {
         return $this->runningSql($data, false, 'count', $model);
     }
+
 
     public function getData(array $data = [], $get = 'get', $model = null, bool $needToArray = false,&$dataCallBack = null): mixed
     {
@@ -238,7 +246,7 @@ trait RepositoryPackage
                     foreach ($val as $vv) {
                         $object = $object->$k(...$vv);
                     }
-                    break;
+                break;
             }
         }
 
@@ -310,4 +318,5 @@ trait RepositoryPackage
 
         return $depth;
     }
+
 }

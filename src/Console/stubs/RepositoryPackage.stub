@@ -48,17 +48,21 @@ trait RepositoryPackage
 
     public function updateData($data, string $key = 'id'): array
     {
-        if (is_array($data[$key])) {
-
+        if ($this->array_depth($data) == 2) {
+            //二维数组批量更新
             $concurrent = new Concurrent(10);
 
-            $object = $this->getDataInBy($key, $data[$key]);
+            foreach ($data as $va) {
 
-            foreach ($object as $value) {
-                $concurrent->create(function () use ($value, $data, &$num) {
+                $concurrent->create(function () use ($va, $key) {
+
+                    $object = $this->getDataFindBy($key, $va[$key]);
+
                     try {
-                        $value = $value->fill($data);
-                        $value->save();
+
+                        $object->fill($va);
+                        $object->save();
+
                     } catch (\Exception $e) {
                         return [false, $e->getMessage()];
                     }
@@ -69,17 +73,21 @@ trait RepositoryPackage
             return [true, '更新成功'];
 
         } else {
-
+            
             $object = $this->getDataFindBy($key, $data[$key]);
 
             try {
+
                 $object = $object->fill($data);
+
                 $object->save();
+
             } catch (\Exception $e) {
                 return [false, $e->getMessage()];
             }
 
             return [true, $object];
+            
         }
     }
 

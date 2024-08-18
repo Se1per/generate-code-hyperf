@@ -42,10 +42,10 @@ class {{ class }} extends BaseService
 
         try {
 
+            $count = $this->repository->getCount($getSql);
+
             $list = $this->repository
             ->getData($getSql);
-
-            $count = $this->repository->getCount($getSql);
 
         } catch (\Exception $e) {
             return $this->JsonCallBack->JsonMain(200002, '数据获取失败' . $e->getMessage());

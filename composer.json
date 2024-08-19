@@ -17,7 +17,7 @@
             "config": "Japool\\Genconsole\\ConfigProvider"
         }
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "authors": [
         {
             "name": "japool"

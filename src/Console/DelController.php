@@ -71,6 +71,7 @@ class DelController extends GeneratorCommand
 
     public function replaceName($stub)
     {
+        //TODO 此处需要后续添加移除功能
         $tableName = $this->input->getArguments();
         $tableName['name'] = $this->unCamelCase($tableName['name']);
 //        $dbPrefix = env('DB_PREFIX');

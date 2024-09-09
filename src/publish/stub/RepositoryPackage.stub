@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Base\src;
 
-use Hyperf\Coroutine\Concurrent;
+use Hyperf\Coroutine\Exception\ParallelExecutionException;
+use Hyperf\Coroutine\Parallel;
 use Hyperf\DbConnection\Db;
 use SplQueue;
 
@@ -23,120 +24,185 @@ trait RepositoryPackage
 
         return [true, $createData];
     }
-    
-    public function saveAllData($data): array
+
+    /**
+     * 批量插入数据 协程
+     * @param $data
+     * @param int $unpack
+     * @return array
+     */
+    public function saveAllData($data, int $unpack = 5): array
     {
-        $concurrent = new Concurrent(10);
+        $dataNum = count($data);
+
+        if ($dataNum > $unpack) {
+            foreach ($data as &$val) {
+                $val['created_at'] = date('Y-m-d H:i:s');
+                $val['updated_at'] = date('Y-m-d H:i:s');
+            }
+            $data = array_chunk($data, $unpack);
+        }
+
+        $num = $this->divideByTwo(count($data));
+
+        $parallel = new Parallel($num);
 
         Db::beginTransaction();
 
         foreach ($data as $value) {
-            $concurrent->create(function () use ($value) {
-                try {
-                    $createData = $this->model->create($value);
-                } catch (\Exception $e) {
-                    return [false, $e->getMessage()];
-                }
-                return true;
+            $parallel->add(function () use ($value) {
+                return $this->model->insert($value);
             });
         }
 
-        Db::commit();
+        try {
 
-        return [true, '批量新增成功'];
-    }
+            $results = $parallel->wait();
 
-    public function updateData($data, string $key = 'id'): array
-    {
-        if ($this->array_depth($data) == 2) {
-            //二维数组批量更新
-            $concurrent = new Concurrent(10);
+            Db::commit();
 
-            foreach ($data as $va) {
+            return [true, $results];
 
-                $concurrent->create(function () use ($va, $key) {
-
-                    $object = $this->getDataFindBy($key, $va[$key]);
-
-                    try {
-
-                        $object->fill($va);
-                        $object->save();
-
-                    } catch (\Exception $e) {
-                        return [false, $e->getMessage()];
-                    }
-                    return true;
-                });
-            }
-
-            return [true, '更新成功'];
-
-        } else {
-            
-            $object = $this->getDataFindBy($key, $data[$key]);
-
-            try {
-
-                $object = $object->fill($data);
-
-                $object->save();
-
-            } catch (\Exception $e) {
-                return [false, $e->getMessage()];
-            }
-
-            return [true, $object];
-            
+        } catch (ParallelExecutionException $e) {
+            $results = $e->getResults();
+            Db::rollBack();
+            return [false, $results];
         }
-    }
-
-    public function updateAllData($object, $data): array
-    {
-        $concurrent = new Concurrent(10);
-        foreach ($object as $value) {
-            $concurrent->create(function () use ($value, $data, &$num) {
-                try {
-                    $value = $value->fill($data);
-                    $value->save();
-                } catch (\Exception $e) {
-                    return [false, $e->getMessage()];
-                }
-                return true;
-            });
-        }
-
-        return [true, '批量更新成功'];
     }
 
     /**
-     * 判断数据是否更新
+     * 更新数据
+     * @param $data
+     * @param string $key
+     * @return array
+     */
+    public function updateData($data, string $key = 'id'): array
+    {
+        $object = $this->getDataFindBy($key, $data[$key]);
+
+        try {
+
+            $needsUpdate = $this->inspectUpdateData($object, $data);
+
+            if ($needsUpdate) {
+                $object->update($data);
+            }
+
+        } catch (\Exception $e) {
+            return [false, $e->getMessage()];
+        }
+
+        return [true, $object];
+    }
+
+    /**
+     * 批量更新数据
+     * @param $data
+     * @param string $key
+     * @return array
+     */
+    public function updateAllData($data, string $key = 'id'): array
+    {
+        $num = $this->divideByTwo(count($data));
+
+        $parallel = new Parallel($num);
+
+        Db::beginTransaction();
+
+        foreach ($data as $val) {
+            $parallel->add(function () use ($key, $val) {
+                $object = $this->getDataFindBy($key, $val[$key]);
+                $needsUpdate = $this->inspectUpdateData($object, $val);
+                if ($needsUpdate) {
+                    unset($val[$key]);
+                    $object->update($val);
+                }
+                return $object;
+            });
+        }
+
+        try {
+
+            $results = $parallel->wait();
+            Db::commit();
+            return [true, $results];
+        } catch (ParallelExecutionException $e) {
+            $results = $e->getResults();
+            Db::rollBack();
+            return [false, $results];
+        }
+    }
+
+    /**
+     * 根据对象批量判断更新
+     * @param $object $对象列表
+     * @param $data $参数
+     * @return array
+     */
+    public function updateAllDataToObject($object, $data): array
+    {
+        $dataNum = $object->count();
+
+        $num = $this->divideByTwo($dataNum);
+
+        $parallel = new Parallel($num);
+
+        Db::beginTransaction();
+
+        foreach ($object as $value) {
+            $parallel->add(function () use ($value, $data, &$num) {
+                $value = $value->fill($data);
+                $value->save();
+                return $value;
+            });
+        }
+
+        try {
+
+            $results = $parallel->wait();
+
+            Db::commit();
+
+            return [true, $results];
+
+        } catch (ParallelExecutionException $e) {
+
+            $results = $e->getResults();
+
+            Db::rollBack();
+
+            return [false, $results];
+        }
+    }
+
+    /**
+     * 判断(单个)数据是否更新
      * @param $object
      * @param $data
      * @return bool
      */
-    public function filterUpdateData($object,$data): bool
+    public function filterUpdateData($object, $data): bool
     {
         $update = false;
         foreach ($data as $k => $value) {
-            if(is_object($object)){
-                if($value != $object->$k){
+            if (is_object($object)) {
+                if ($value != $object->$k) {
                     $update = true;
                     $object->$k = $value;
                 }
-            }else if(is_array($object)){
-                if($value != $object[$k]){
+            } else if (is_array($object)) {
+                if ($value != $object[$k]) {
                     $update = true;
                     $object[$k] = $value;
                 }
             }
         }
-        if($update) $object->save();
+
+        if ($update) $object->save();
 
         return true;
     }
 
-    
     /**
      * 删除数据
      * @param $data
@@ -206,20 +272,38 @@ trait RepositoryPackage
     /**
      * 执行数据层构造
      * @param array $data
+     * @param $model
      * @return mixed
-     * @throws \ErrorException
      */
     public function getCount(array $data = [], $model = null): mixed
     {
         return $this->runningSql($data, false, 'count', $model);
     }
 
-    public function getData(array $data = [], $get = 'get', $model = null, bool $needToArray = false,&$dataCallBack = null): mixed
+    /**
+     * 统一执行sql
+     * @param array $data
+     * @param $get
+     * @param $model
+     * @param bool $needToArray
+     * @param $dataCallBack
+     * @return mixed
+     */
+    public function getData(array $data = [], $get = 'get', $model = null, bool $needToArray = false, &$dataCallBack = null): mixed
     {
-        return $this->runningSql($data, $needToArray, $get, $model,$dataCallBack);
+        return $this->runningSql($data, $needToArray, $get, $model, $dataCallBack);
     }
 
-    public function runningSql($data, bool $needToArray = false, $get = 'get', $object = null,&$dataCallBack = null): mixed
+    /**
+     * 执行底层sql
+     * @param $data
+     * @param bool $needToArray
+     * @param $get
+     * @param $object
+     * @param $dataCallBack
+     * @return mixed
+     */
+    public function runningSql($data, bool $needToArray = false, $get = 'get', $object = null, &$dataCallBack = null): mixed
     {
         if (!$object) {
             $object = $this->model;
@@ -261,28 +345,27 @@ trait RepositoryPackage
         }
 
         if ($get == 'chunk') {
-            $object->$get(200,function($value) use (&$dataCallBack){
-                foreach ($value as  $val)
-                {
+            $object->$get(200, function ($value) use (&$dataCallBack) {
+                foreach ($value as $val) {
                     $dataCallBack[] = $val->toArray();
                 }
             });
             return $dataCallBack;
         }
 
-        if($get == 'cursor'){
+        if ($get == 'cursor') {
             foreach ($object->$get() as $flight) {
-                if($needToArray) $flight= $flight->toArray();
+                if ($needToArray) $flight = $flight->toArray();
                 $dataCallBack[] = $flight;
             }
             return $dataCallBack;
         }
 
-        if(is_array($get)){
+        if (is_array($get)) {
             $key = key($get);
             $list = $object->$key($get[$key]);
             $get = $key;
-        }else{
+        } else {
             $list = $object->$get();
         }
 
@@ -290,15 +373,20 @@ trait RepositoryPackage
             case 'pluck':
             case 'first':
                 if ($list && $needToArray) $list = $list->toArray();
-            break;
+                break;
             case 'get':
                 if ($needToArray) $list = $list->toArray();
-            break;
+                break;
         }
 
         return $list;
     }
 
+    /**
+     * 判断数据是否二维或者一维数组
+     * @param $array
+     * @return int
+     */
     public function array_depth($array): int
     {
         if (!is_array($array)) {
@@ -327,5 +415,45 @@ trait RepositoryPackage
         }
 
         return $depth;
+    }
+
+    /**
+     * 根据数组条数获取/2得协程数,最大限制 50个协程运行
+     * @param $number
+     * @param int $num
+     * @param int $max
+     * @return int
+     */
+    public function divideByTwo($number, int $num = 2, int $max = 50): int
+    {
+        $num = intdiv($number, $num);
+
+        if ($num > $max) {
+            $num = $max;
+        }
+
+        return $num;
+    }
+
+    /**
+     * 判断数据是否需要更新
+     * @param $object
+     * @param $data
+     * @return bool
+     */
+    public function inspectUpdateData($object, $data): bool
+    {
+        // 标识是否需要更新
+        $needsUpdate = false;
+
+        // 遍历客户端传来的数据
+        foreach ($data as $key => $value) {
+            // 检查是否存在该字段且与数据库中的值不一致
+            if (array_key_exists($key, $object->getAttributes()) && $object->$key != $value) {
+                $needsUpdate = true; // 标记需要更新
+            }
+        }
+
+        return $needsUpdate;
     }
 }

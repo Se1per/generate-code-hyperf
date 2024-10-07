@@ -220,7 +220,7 @@ trait AutoCodeHelp
         }
 
 //        $getRules .= '\'' . 'page' . '\'' . ','. "\r";
-//        $getRules .= '\'' . 'limit' . '\'' . ','. "\r";
+//        $getRules .= '\'' . 'pagesize' . '\'' . ','. "\r";
 
         return true;
     }
@@ -264,10 +264,10 @@ trait AutoCodeHelp
         $store .= '\'' . 'page' . '\'' . '=>' . '\'' . 'integer' . '\'' . ','. "\r";
         $msg .= '\'' . 'page' . '.integer' . '\'' . '=>' . '\'' . '分页参数必须是数字' . '\'' . ','. "\r";
 
-        $store .= '\'' . 'limit' . '\'' . '=>' . '\'' . 'integer' . '\'' . ','. "\r";
-        $msg .= '\'' . 'limit' . '.integer' . '\'' . '=>' . '\'' . '分页参数必须是数字' . '\'' . ','. "\r";
+        $store .= '\'' . 'pagesize' . '\'' . '=>' . '\'' . 'integer' . '\'' . ','. "\r";
+        $msg .= '\'' . 'pagesize' . '.integer' . '\'' . '=>' . '\'' . '分页参数必须是数字' . '\'' . ','. "\r";
         $getRules .= '\'' . 'page' . '\'' . ','. "\r";
-        $getRules .= '\'' . 'limit' . '\'' . ','. "\r";
+        $getRules .= '\'' . 'pagesize' . '\'' . ','. "\r";
         return true;
     }
 

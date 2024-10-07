@@ -27,10 +27,10 @@ abstract class BaseService
             if (isset($val)) {
                 if ($k == 'page' && count($sql) <= 2) {
                     $data['page'] = $val;
-                    $data['limit'] = $makeData['limit'] ?? 10;
-                    $data['page'] = ($data['page'] - 1) * $data['limit'];
+                    $data['pagesize'] = $makeData['pagesize'] ?? 10;
+                    $data['page'] = ($data['page'] - 1) * $data['pagesize'];
                     $sql['skip']['page'] = $data['page'];
-                    $sql['skip']['limit'] = $data['limit'];
+                    $sql['skip']['pagesize'] = $data['pagesize'];
                 }
                 switch ($k) {
                     case 'id':

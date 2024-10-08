@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Exception\Handler;
 
+use App\Base\src\LogMonMain;
+use Hyperf\Context\Context;
+use Hyperf\Di\Annotation\Inject;
 use Hyperf\ExceptionHandler\ExceptionHandler;
 use Hyperf\HttpMessage\Stream\SwooleStream;
 use Psr\Http\Message\ResponseInterface;
@@ -11,19 +14,35 @@ use Throwable;
 
 class ApiExceptionHandler extends ExceptionHandler
 {
+    #[Inject]
+    protected LogMonMain $logMonMain;
+
     public function handle(Throwable $throwable, ResponseInterface $response)
     {
         // 判断被捕获到的异常是希望被捕获的异常
         if ($throwable instanceof \Exception) {
             // 格式化输出
             $data = json_encode([
-                'code' => 200004,
+                'code' => 504001,
                 'status' => 'error',
-                'message' => '数据操作异常:'.$throwable->getMessage().',file:'.$throwable->getFile().'line:'.$throwable->getLine(),
+                'message' => '操作异常:请稍后再试',
             ], JSON_UNESCAPED_UNICODE);
 
             // 阻止异常冒泡
-            $this->stopPropagation();
+            //$this->stopPropagation();
+
+            $url = Context::get('url');
+
+            $errorMessage = sprintf(
+                "%s\nLine: %d\nFile: %s\nUrl: %s\nDate: %s",
+                $throwable->getMessage(),
+                $throwable->getLine(),
+                $throwable->getFile(),
+                $url,
+                date("Y-m-d H:i:s")
+            );
+
+            $this->logMonMain->error('error',$errorMessage);
 
             return $response->withStatus(500)->withBody(new SwooleStream($data));
         }

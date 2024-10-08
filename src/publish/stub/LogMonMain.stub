@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Base\src;
+
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\RotatingFileHandler;
+use Monolog\Logger;
+
+class LogMonMain
+{
+    //$this->logMonMain->info('login', 'hahaha', [1234, 123444]);
+    public function info($channel,$msg,$context = [])
+    {
+        // 定义一个 channel，monolog 为 channel 名字
+        $log        = new Logger($channel);
+
+        $stream     = new RotatingFileHandler(BASE_PATH . '/runtime/logs/'.date('Y-m-d').'/'.'_info.log', Logger::INFO);
+
+        $dateFormat = "Y-m-d H:i:s";
+//        $output     = "%datetime%||%channel||%level_name%||%message%||%context%||%extra%\n";
+        $output     = "%datetime%||%level_name%||%message%||%context%||%extra%\n";
+        $formatter  = new LineFormatter($output, $dateFormat);
+
+        $stream->setFormatter($formatter);
+        $log->pushHandler($stream);
+
+        $log->info($msg,$context);
+
+        return true;
+    }
+
+    public function error($channel,$msg,$context = [])
+    {
+        // 定义一个 channel，monolog 为 channel 名字
+        $log        = new Logger($channel);
+
+        $stream     = new RotatingFileHandler(BASE_PATH . '/runtime/logs/'.date('Y-m-d').'/'.'_error.log', Logger::ERROR);
+
+        $dateFormat = "Y-m-d H:i:s";
+        $output     = "%datetime%||%level_name%||%message%||%context%||%extra%\n";
+        $formatter  = new LineFormatter($output, $dateFormat);
+
+        $stream->setFormatter($formatter);
+        $log->pushHandler($stream);
+        $log->error($msg,$context);
+        return true;
+    }
+
+    public function warning($channel,$msg,$context = [])
+    {
+        // 定义一个 channel，monolog 为 channel 名字
+        $log        = new Logger($channel);
+
+        $stream     = new RotatingFileHandler(BASE_PATH . '/runtime/logs/'.date('Y-m-d').'/'.'_warning.log', Logger::WARNING);
+
+        $dateFormat = "Y-m-d H:i:s";
+        $output     = "%datetime%||%level_name%||%message%||%context%||%extra%\n";
+        $formatter  = new LineFormatter($output, $dateFormat);
+
+        $stream->setFormatter($formatter);
+        $log->pushHandler($stream);
+        $log->warning($msg,$context);
+        return true;
+    }
+}

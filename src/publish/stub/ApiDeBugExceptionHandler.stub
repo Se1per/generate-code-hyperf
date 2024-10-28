@@ -28,7 +28,7 @@ class ApiDeBugExceptionHandler extends ExceptionHandler
     public function handle(Throwable $throwable, ResponseInterface $response)
     {
         $errorMessage = sprintf(
-            "%s\nLine: %d\nFile: %s\nDate: %s",
+            "%s\nLine: %d\nFile:%s\nDate: %s",
             $throwable->getMessage(),
             $throwable->getLine(),
             $throwable->getFile(),

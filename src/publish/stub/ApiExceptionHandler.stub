@@ -15,8 +15,12 @@ use Hyperf\Context\Context;
 
 class ApiExceptionHandler extends ExceptionHandler
 {
-    #[Inject]
-    protected LogMonMain $logMonMain;
+    protected $logMonMain;
+
+    public function __construct(ContainerInterface $container)
+    {
+        $this->logMonMain = $container->get(LogMonMain::class);
+    }
 
     public function handle(Throwable $throwable, ResponseInterface $response)
     {

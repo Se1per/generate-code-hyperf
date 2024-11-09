@@ -22,7 +22,7 @@ abstract class BaseRepository
 
     public function model(): string
     {
-        return {{ model }}. '\\' . str_replace('Repository', '', $this->class_basename(get_class($this)));
+        return $this->config['general']['model']. '\\' . str_replace('Repository', '', $this->class_basename(get_class($this)));
     }
 
     public function __construct()

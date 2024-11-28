@@ -21,7 +21,7 @@ composer require hyperf/testing --dev
 # 添加抽象对象注入 config/autoload/dependencies.php
 \App\Base\src\JsonCallBackInterface::class=>\App\Base\src\JsonCallBack::class
 
-# 生成base类文件
+# 生成base类文件 (已取消)
 # php bin/hyperf.php generate:generateBaseCommons
 
 # 生成crud 代码

@@ -47,7 +47,8 @@ class {{ class }} extends BaseService
             $list = $this->repository
             ->getData($getSql);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            
             return $this->JsonCallBack->JsonMain(200002, '数据获取失败' . $e->getMessage());
         }
 

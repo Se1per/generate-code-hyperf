@@ -34,44 +34,53 @@ class MakeCrudCodeClass extends HyperfCommand
 
     public function handle()
     {
-        $tables = DB::select('SHOW TABLES');
+        $argument = $this->input->getArgument('tableName') ?? '';
 
+        $tables = DB::select('SHOW TABLES');
+ 
         foreach ($tables as $val) {
+
             $val = array_values(json_decode(json_encode($val), true));
             $tableName = array_shift($val);
-//            $tableName = str_replace(env('DB_PREFIX'), '', $tableName);
             $tableName = str_replace(\Hyperf\Support\env('DB_PREFIX'), '', $tableName);
+
+            if($argument){
+                if($tableName != $argument){
+                    continue;
+                }
+            }
+
             $tableName = $this->camelCase($tableName);
             if ($this->keyWordsBlackList($tableName)) continue;
 
             # controller
-            if (!$this->fileExistsIn($this->config['general']['controller'] . '\\'.$this->config['general']['app'] .'\\'. $tableName . 'Controller')) {
+            if (!$this->fileExistsIn($this->config['general']['controller'] . '\\' . $this->config['general']['app'] . '\\' . $tableName . 'Controller')) {
                 $this->makeControllerFunc($tableName);
             }
 
             # model
-            if (!$this->fileExistsIn($this->config['general']['model'] . '\\'.$this->config['general']['app']  . $tableName . 'Model')) {
+            if (!$this->fileExistsIn($this->config['general']['model'] . '\\' . $this->config['general']['app'] . $tableName . 'Model')) {
                 $this->makeModelFunc($tableName);
             }
 
             # request
-            if (!$this->fileExistsIn($this->config['general']['request'] . '\\'.$this->config['general']['app']  . '\\' . $tableName . 'Request')) {
+            if (!$this->fileExistsIn($this->config['general']['request'] . '\\' . $this->config['general']['app'] . '\\' . $tableName . 'Request')) {
                 $this->makeRequestFunc($tableName);
             }
 
             # service
-            if (!$this->fileExistsIn($this->config['general']['service'] . '\\'.$this->config['general']['app'] . '\\' . $tableName . 'Service')) {
+            if (!$this->fileExistsIn($this->config['general']['service'] . '\\' . $this->config['general']['app'] . '\\' . $tableName . 'Service')) {
                 $this->makeServiceFunc($tableName);
             }
 
             # repository
-            if (!$this->fileExistsIn($this->config['general']['repository'] . '\\'.$this->config['general']['app']  . '\\' . $tableName . 'Repository')) {
+            if (!$this->fileExistsIn($this->config['general']['repository'] . '\\' . $this->config['general']['app'] . '\\' . $tableName . 'Repository')) {
                 $this->makeRepositoryFunc($tableName);
             }
 
             # TestIng
-            if($this->isTestIngExtensionInstalled()){
-                if (!$this->fileExistsIn('App\\Test'  . '\\' . $tableName . 'Test')) {
+            if ($this->isTestIngExtensionInstalled()) {
+                if (!$this->fileExistsIn('App\\Test' . '\\' . $tableName . 'Test')) {
                     $this->makeTestFunc($tableName);
                 }
             }
@@ -124,6 +133,14 @@ class MakeCrudCodeClass extends HyperfCommand
             'name' => $tableName,
         ]));
         $this->info('完成生成' . $tableName . '测试实例');
+    }
+
+    protected
+    function getArguments()
+    {
+        return [
+            ['tableName', InputArgument::OPTIONAL, '表名']
+        ];
     }
 }
 

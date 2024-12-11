@@ -32,11 +32,11 @@ class ApiDeBugExceptionHandler extends ExceptionHandler
     public function handle(Throwable $throwable, ResponseInterface $response)
     {
         $errorMessage = sprintf(
-            "%s\nLine: %d\nFile:%s\nDate: %s",
+            "\nDate: %s\nMessage: %s\nLine: %d\nFile: %s",
+            date("Y-m-d H:i:s"),
             $throwable->getMessage(),
             $throwable->getLine(),
-            $throwable->getFile(),
-            date("Y-m-d H:i:s")
+            $throwable->getFile()
         );
 
         $this->logMonMain->error('DeBug',$errorMessage);

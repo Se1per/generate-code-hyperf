@@ -38,16 +38,13 @@ class ApiExceptionHandler extends ExceptionHandler
 
         // 阻止异常冒泡
         $this->stopPropagation();
-
-        $url = Context::get('url');
-
+        
         $errorMessage = sprintf(
-            "%s\nLine: %d\nFile: %s\nUrl: %s\nDate: %s",
+            "\nDate: %s\nMessage: %s\nLine: %d\nFile: %s",
+            date("Y-m-d H:i:s"),
             $throwable->getMessage(),
             $throwable->getLine(),
-            $throwable->getFile(),
-            $url,
-            date("Y-m-d H:i:s")
+            $throwable->getFile()
         );
 
         $this->logMonMain->error('error',$errorMessage);

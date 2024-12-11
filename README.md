@@ -12,8 +12,10 @@ composer require hyperf/validation
 
 # 添加验证器异常处理器
 \App\Exception\Handler\ValidationExceptionHandler::class
-# 添加api 接口异常处理器
-\App\Exception\Handler\ApiExceptionHandler::class,
+# 添加api(生产) 接口异常处理器
+\App\Exception\Handler\ApiExceptionHandler::class, 
+# 添加api(测试) 接口异常处理器
+\App\Exception\Handler\ApiDeBugExceptionHandler::class,
 
 # [可选] 自动化测试
 composer require hyperf/testing --dev
@@ -27,3 +29,5 @@ composer require hyperf/testing --dev
 # 生成crud 代码
 php bin/hyperf.php generate:crud-code
 
+# 生成user 表crud 代码
+php bin/hyperf.php generate:crud-code user

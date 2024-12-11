@@ -36,7 +36,7 @@ class {{ class }} extends BaseService
 
     public function get{{ table }}Data($data)
     {
-        $getSql = $this->selectArray(
+        $getSql = $this->repository->selectArray(
             $data
         );
 

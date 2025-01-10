@@ -9,6 +9,7 @@ use Hyperf\DbConnection\Db;
 use Psr\Container\ContainerInterface;
 use Hyperf\Command\Command as HyperfCommand;
 use Symfony\Component\Console\Input\InputArgument;
+
 #[Command]
 class MakeCrudCodeClass extends HyperfCommand
 {

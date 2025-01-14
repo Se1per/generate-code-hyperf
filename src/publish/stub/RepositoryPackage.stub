@@ -326,9 +326,9 @@ trait RepositoryPackage
                     $object = $object->$k(...$val);
                     break;
                 case 2;
-                    if ($k == 'whereIn') {
+                    if ($k == 'whereIn' || $k == 'whereBetween') {
                         $object = $object->$k(...$val);
-                    } else if ($k == 'where') {
+                    } else if ($k == 'where' || $k == 'orderBy') {
                         foreach ($val as $vv) {
                             $object = $object->$k(...$vv);
                         }
@@ -340,25 +340,25 @@ trait RepositoryPackage
                     foreach ($val as $vv) {
                         $object = $object->$k(...$vv);
                     }
-                    break;
+                break;
             }
         }
 
         if ($get == 'chunk') {
-            $object->$get(200, function ($value) use (&$dataCallBack) {
-                foreach ($value as $val) {
-                    $dataCallBack[] = $val->toArray();
-                }
-            });
-            return $dataCallBack;
+//            $object->$get(200, function ($value) use (&$dataCallBack) {
+//                foreach ($value as $val) {
+//                    $dataCallBack[] = $val->toArray();
+//                }
+//            });
+            return $object;
         }
 
         if ($get == 'cursor') {
-            foreach ($object->$get() as $flight) {
-                if ($needToArray) $flight = $flight->toArray();
-                $dataCallBack[] = $flight;
-            }
-            return $dataCallBack;
+//            foreach ($object->$get() as $flight) {
+//                if ($needToArray) $flight = $flight->toArray();
+//                $dataCallBack[] = $flight;
+//            }
+            return $object;
         }
 
         if (is_array($get)) {

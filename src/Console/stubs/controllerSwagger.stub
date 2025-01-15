@@ -40,7 +40,13 @@ class {{ class }} extends BaseController
     #[Scene(scene: 'save')]
     public function save{{ table }}Data({{ table }}Request $request): string|\Psr\Http\Message\ResponseInterface
     {
-        return $this->service->save{{ table }}Data($request->validated());
+        [$status, $object] = $this->service->save{{ table }}Data($request->validated());
+
+        if (!$status) {
+            return $this->JsonCallBack->JsonMain(200004, $object);
+        }
+
+        return $this->JsonCallBack->JsonMain(200000, '操作成功');
     }
 
     #[SA\Put(path: {{ delApi }}, summary: '删除{{ comment }}', tags: [{{ delTags }}])]
@@ -64,7 +70,13 @@ class {{ class }} extends BaseController
     #[Scene(scene: 'del')]
     public function del{{ table }}Data({{ table }}Request $request): string|\Psr\Http\Message\ResponseInterface
     {
-        return $this->service->del{{ table }}Data($request->validated());
+        [$status, $object] = $this->service->del{{ table }}Data($request->validated());
+        
+        if (!$status) {
+            return $this->JsonCallBack->JsonMain(200004, $object);
+        }
+
+        return $this->JsonCallBack->JsonMain(200000, '移除成功');
     }
 
 
@@ -82,6 +94,8 @@ class {{ class }} extends BaseController
     #[Scene(scene: 'get')]
     public function get{{ table }}Data({{ table }}Request $request): string|\Psr\Http\Message\ResponseInterface
     {
-        return $this->service->get{{ table }}Data($request->validated());
+        [$list, $count] = $this->service->get{{ table }}Data($request->validated());
+
+        return $this->JsonCallBack->JsonMain(200000, '数据获取成功', $list, $count);
     }
 }

@@ -86,9 +86,9 @@ abstract class BaseRepository
                         if (!is_array($val)) {
                             $sql['where'][] = $this->convertToWhereQuery($k, '=', $val);
                         } else {
-                            $sql['whereIn'] = $this->convertToWhereQuery($k, 'in', $val);
+                            $sql['whereIn'][] = $this->convertToWhereQuery($k, 'in', $val);
                         }
-                        break;
+                    break;
                     case 'created_at':
                     case 'updated_at':
                         if (is_array($val)) {
@@ -96,7 +96,7 @@ abstract class BaseRepository
                         } else {
                             $sql['whereDate'] = $this->convertToWhereQuery($k, '=', $val);
                         }
-                        break;
+                    break;
                 }
             }
         }
@@ -107,13 +107,13 @@ abstract class BaseRepository
      * 构造查询条件
      * @param $column string 字段
      * @param $operator string 运算符
-     * @param $val array|string 值
+     * @param $val array|string|int|bool 值
      * @param $operatorName string|null 关系默认 and 可选 or
-     * @return array|Carbon|mixed|string
+     * @return array
      * User: Se1per
      * Date: 2023/8/4 11:07
      */
-    public function convertToWhereQuery(string $column, string $operator, array|string $val, string $operatorName = null): array
+    public function convertToWhereQuery(string $column, string $operator,array|string|int|bool $val, string $operatorName = null): array
     {
         if (is_string($val)) {
             switch ($val) {
@@ -150,6 +150,14 @@ abstract class BaseRepository
                 return $val;
             case 'notNull':
                 return $column;
+            case 'order':
+            case 'orderBy':
+                switch ($val) {
+                    case '0':
+                        return [$column, 'asc'];
+                    default:
+                        return [$column, 'desc'];
+                }
             default://in notIn
                 return [$column, $val];
         }

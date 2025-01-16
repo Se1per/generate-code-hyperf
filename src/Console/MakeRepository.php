@@ -85,7 +85,7 @@ class MakeRepository extends GeneratorCommand
 
         $stub = str_replace('{{ table }}', $this->camelCase($tableName['name']),$stub);
 
-        $stub = str_replace('{{ namespace }}', $this->config['general']['repository'].'\\'.$this->config['general']['app'], $stub);
+        $stub = str_replace('{{ namespace }}', $this->config['general']['repository'], $stub);
         $stub = str_replace('{{ base }}', $this->config['general']['base'],$stub);
         return $stub;
     }

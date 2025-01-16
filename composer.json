@@ -1,7 +1,7 @@
 {
     "name": "japool/generate-code-hyperf",
     "type": "library",
-    "license": "CC BY-NC",
+    "license": "proprietary",
     "keywords": [
         "php",
         "hyperf"

@@ -5,7 +5,7 @@ namespace {{ namespace }};
 use {{ base }}\BaseService;
 use Hyperf\Di\Annotation\Inject;
 
-use {{ repository }}\{{ app }}\{{ table }}Repository;
+use {{ repository }}\{{ table }}Repository;
 
 class {{ class }} extends BaseService
 {

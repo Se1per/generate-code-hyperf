@@ -3,8 +3,8 @@
 namespace {{ namespace }};
 
 use {{ base }}\BaseController;
-use {{ request }}\{{ app }}\{{ table }}Request;
-use {{ service }}\{{ app }}\{{ table }}Service;
+use {{ request }}\{{ table }}Request;
+use {{ service }}\{{ table }}Service;
 
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;

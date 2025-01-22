@@ -17,7 +17,7 @@ class {{ class }} extends BaseRepository
         foreach ($makeData as $k => $val) {
             if (isset($val)) {
                 if ($k == 'page' && count($sql) <= 2) {
-                    $data = $this->funcHelp->pageLimit($makeData);
+                    $data = $this->pageLimit($makeData);
 
                     $sql['skip']['page'] = $data['page'];
                     $sql['skip']['limit'] = $data['limit'];

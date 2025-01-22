@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace App\Exception\Handler;
 
 use App\Base\src\LogMonMain;
-use Hyperf\Context\Context;
-use Hyperf\Di\Annotation\Inject;
+use Hyperf\Contract\ContainerInterface;
 use Hyperf\ExceptionHandler\ExceptionHandler;
 use Hyperf\HttpMessage\Stream\SwooleStream;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
-use Hyperf\Context\Context;
 
 class ApiExceptionHandler extends ExceptionHandler
 {

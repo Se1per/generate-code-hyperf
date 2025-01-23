@@ -13,6 +13,7 @@ return [
     'general' => [
         'app' => 'http',
         'controller' => 'App\Controller',
+        'manager' => 'App\Manager',
         'request' => 'App\Request',
         'repository' => 'App\Repository',
         'service' => 'App\Services',

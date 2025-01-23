@@ -173,7 +173,7 @@ abstract class BaseRepository
     {
         $data['page'] = $data['page'] ?? 1;
 
-        $data['limit'] = $data['pagesize'] ?? 10;
+        $data['limit'] = $data['pageSize'] ?? 10;
 
         $data['page'] = ($data['page'] - 1) * $data['limit'];
 

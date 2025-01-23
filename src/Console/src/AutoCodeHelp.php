@@ -264,10 +264,11 @@ trait AutoCodeHelp
         $store .= '\'' . 'page' . '\'' . '=>' . '\'' . 'integer' . '\'' . ','. "\r";
         $msg .= '\'' . 'page' . '.integer' . '\'' . '=>' . '\'' . '分页参数必须是数字' . '\'' . ','. "\r";
 
-        $store .= '\'' . 'pagesize' . '\'' . '=>' . '\'' . 'integer' . '\'' . ','. "\r";
-        $msg .= '\'' . 'pagesize' . '.integer' . '\'' . '=>' . '\'' . '分页参数必须是数字' . '\'' . ','. "\r";
+        $store .= '\'' . 'pageSize' . '\'' . '=>' . '\'' . 'integer' . '\'' . ','. "\r";
+        $msg .= '\'' . 'pageSize' . '.integer' . '\'' . '=>' . '\'' . '分页参数必须是数字' . '\'' . ','. "\r";
+        
         $getRules .= '\'' . 'page' . '\'' . ','. "\r";
-        $getRules .= '\'' . 'pagesize' . '\'' . ','. "\r";
+        $getRules .= '\'' . 'pageSize' . '\'' . ','. "\r";
         return true;
     }
 

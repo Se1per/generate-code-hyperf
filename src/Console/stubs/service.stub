@@ -22,7 +22,7 @@ class {{ class }} extends BaseService
         return $this->repository->deleteData($data);
     }
 
-    public function get{{ table }}Data($data)
+    public function get{{ table }}Data($data) 
     {
         $getSql = $this->repository->selectArray(
             $data

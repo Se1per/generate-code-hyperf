@@ -34,7 +34,7 @@ class MakeRequest extends GeneratorCommand
 
     protected function getDefaultNamespace(): string
     {
-        return $this->config['general']['request'].'\\'.$this->config['general']['app'];
+        return $this->config['general']['request'];
     }
 
     protected function qualifyClass(string $name): string

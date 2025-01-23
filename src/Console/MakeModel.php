@@ -35,7 +35,7 @@ class MakeModel extends GeneratorCommand
 
     protected function getDefaultNamespace(): string
     {
-        return $this->config['general']['model'].'\\'.$this->config['general']['app'];
+        return $this->config['general']['model'];
     }
 
     protected function qualifyClass(string $name): string

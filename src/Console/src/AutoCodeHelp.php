@@ -261,11 +261,15 @@ trait AutoCodeHelp
      */
     public function makeGetArrayPaginate(&$store, &$msg,&$getRules)
     {
-        $store .= '\'' . 'page' . '\'' . '=>' . '\'' . 'integer' . '\'' . ','. "\r";
+        $store .= '\'' . 'page' . '\'' . '=>' . '\'' . 'required|integer|min:1' . '\'' . ','. "\r";
+        $msg .= '\'' . 'page' . '.required' . '\'' . '=>' . '\'' . '分页参数必须携带' . '\'' . ','. "\r";
         $msg .= '\'' . 'page' . '.integer' . '\'' . '=>' . '\'' . '分页参数必须是数字' . '\'' . ','. "\r";
+        $msg .= '\'' . 'page' . '.min' . '\'' . '=>' . '\'' . '分页参数必须大于0' . '\'' . ','. "\r";
 
-        $store .= '\'' . 'pageSize' . '\'' . '=>' . '\'' . 'integer' . '\'' . ','. "\r";
+        $store .= '\'' . 'pageSize' . '\'' . '=>' . '\'' . 'required|integer|min:1' . '\'' . ','. "\r";
+        $msg .= '\'' . 'pageSize' . '.required' . '\'' . '=>' . '\'' . '分页参数必须携带' . '\'' . ','. "\r";
         $msg .= '\'' . 'pageSize' . '.integer' . '\'' . '=>' . '\'' . '分页参数必须是数字' . '\'' . ','. "\r";
+        $msg .= '\'' . 'pageSize' . '.min' . '\'' . '=>' . '\'' . '分页参数必须大于0' . '\'' . ','. "\r";
         
         $getRules .= '\'' . 'page' . '\'' . ','. "\r";
         $getRules .= '\'' . 'pageSize' . '\'' . ','. "\r";

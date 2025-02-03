@@ -4,20 +4,73 @@ declare(strict_types=1);
 
 namespace App\Base\src;
 
+use Carbon\Carbon;
+use Hyperf\Config\Annotation\Value;
+use Hyperf\Coroutine\Coroutine;
 use Hyperf\Coroutine\Exception\ParallelExecutionException;
 use Hyperf\Coroutine\Parallel;
 use Hyperf\DbConnection\Db;
+use Hyperf\Di\Annotation\Inject;
 use SplQueue;
+use function Hyperf\coroutine\co;
 
-trait RepositoryPackage
+abstract class RepositoryPackage
 {
+    protected $model;
+
+    #[Value('generate')]
+    protected $config;
+
+    #[Inject]
+    private ?LogMonMain $logMonMain;
+
+    protected $user;
+
+    public function model(): string
+    {
+        return $this->config['general']['model'] . '\\' . str_replace('Repository', '', $this->class_basename(get_class($this)));
+    }
+
+    public function __construct()
+    {
+        $this->makeModel();
+
+        return $this;
+    }
+
+    public function makeModel()
+    {
+        return $this->setModel($this->model());
+    }
+
+    public function setModel($eloquentModel)
+    {
+        if (!class_exists($eloquentModel)) {
+            throw new \RuntimeException('model not found');
+        }
+
+        return $this->model = new $eloquentModel();
+    }
+
+    public function class_basename($class)
+    {
+        $class = is_object($class) ? get_class($class) : $class;
+
+        return basename(str_replace('\\', '/', $class));
+    }
+
+    /**
+     * 保存数据
+     * @param $data
+     * @return array
+     */
     public function saveData($data): array
     {
         try {
 
             $createData = $this->model->create($data);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
 
             return [false, $e->getMessage()];
         }
@@ -33,6 +86,8 @@ trait RepositoryPackage
      */
     public function saveAllData($data, int $unpack = 5): array
     {
+        $startTime = microtime(true);
+
         $dataNum = count($data);
 
         if ($dataNum > $unpack) {
@@ -40,14 +95,13 @@ trait RepositoryPackage
                 $val['created_at'] = date('Y-m-d H:i:s');
                 $val['updated_at'] = date('Y-m-d H:i:s');
             }
-            $data = array_chunk($data, $unpack);
         }
+
+        $data = array_chunk($data, $unpack);
 
         $num = $this->divideByTwo(count($data));
 
         $parallel = new Parallel($num);
-
-        Db::beginTransaction();
 
         foreach ($data as $value) {
             $parallel->add(function () use ($value) {
@@ -56,22 +110,33 @@ trait RepositoryPackage
         }
 
         try {
-
             $results = $parallel->wait();
+            $endTime = microtime(true);
 
-            Db::commit();
+            $executionTime = $endTime - $startTime;
+            $this->logMonMain->info('db_log', 'saveAllData', [
+                'count' => count($data),
+                'executionTime' => $executionTime
+            ]);
 
             return [true, $results];
 
         } catch (ParallelExecutionException $e) {
             $results = $e->getResults();
-            Db::rollBack();
+            $endTime = microtime(true);
+            $executionTime = $endTime - $startTime;
+            $this->logMonMain->error('db_log', 'saveAllData', [
+                'count' => count($data),
+                'executionTime' => $executionTime,
+                'error' => $e->getResults(),
+                'Throwables' => $e->getThrowables(),
+            ]);
             return [false, $results];
         }
     }
 
     /**
-     * 更新数据
+     * 更新数据(单个更新数据,检测数据是否需要更新)
      * @param $data
      * @param string $key
      * @return array
@@ -88,7 +153,7 @@ trait RepositoryPackage
                 $object->update($data);
             }
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return [false, $e->getMessage()];
         }
 
@@ -96,111 +161,107 @@ trait RepositoryPackage
     }
 
     /**
-     * 批量更新数据
+     * 批量更新数据(不检查是否需要更新直接批量更新)
      * @param $data
      * @param string $key
+     * @param int $unpack
      * @return array
      */
-    public function updateAllData($data, string $key = 'id'): array
+    public function updateAllData($data, string $key = 'id',int $unpack = 5): array
     {
+        $startTime = microtime(true);
+
         $num = $this->divideByTwo(count($data));
+
+        $dataNum = count($data);
 
         $parallel = new Parallel($num);
 
-        Db::beginTransaction();
+        if ($dataNum > $unpack) {
+            $data = array_chunk($data, $unpack);
+        } else {
+            $data[] = $data;
+        }
 
         foreach ($data as $val) {
             $parallel->add(function () use ($key, $val) {
-                $object = $this->getDataFindBy($key, $val[$key]);
-                $needsUpdate = $this->inspectUpdateData($object, $val);
-                if ($needsUpdate) {
-                    unset($val[$key]);
-                    $object->update($val);
-                }
-                return $object;
+                return $this->updateBatch($val,$key);
             });
         }
 
         try {
-
             $results = $parallel->wait();
-            Db::commit();
+            $endTime = microtime(true);
+
+            $executionTime = $endTime - $startTime;
+            $this->logMonMain->info('db_log', 'updateAllData', [
+                'count' => count($data),
+                'executionTime' => $executionTime
+            ]);
+
             return [true, $results];
+
         } catch (ParallelExecutionException $e) {
             $results = $e->getResults();
-            Db::rollBack();
+            $endTime = microtime(true);
+            $executionTime = $endTime - $startTime;
+            $this->logMonMain->error('db_log', 'updateAllData', [
+                'count' => count($data),
+                'executionTime' => $executionTime,
+                'error' => $e->getResults(),
+                'Throwables' => $e->getThrowables(),
+            ]);
             return [false, $results];
         }
     }
 
     /**
-     * 根据对象批量判断更新
-     * @param $object $对象列表
-     * @param $data $参数
-     * @return array
+     * 批量更新基类
+     * @param array $inputs
+     * @param string $where_field
+     * @param string $when_field
+     * @return mixed
+     * $value = [
+     * *     [
+     * *         'id' => 1,
+     * *         'status' => 'active',
+     * *         'nickname' => 'Mohammad'
+     * *     ],
+     * *     [
+     * *         'id' => 5,
+     * *         'status' => 'deactive',
+     * *         'nickname' => 'Ghanbari'
+     * *     ],
+     * *     [
+     * *         'id' => 7,
+     * *         'status' => 'deactive',
+     * *         'nickname' => 'Ghanbari'
+     * *     ]
+     * * ];
      */
-    public function updateAllDataToObject($object, $data): array
+    public function updateBatch(array $inputs,string $where_field = 'id', string $when_field = 'id'): mixed
     {
-        $dataNum = $object->count();
-
-        $num = $this->divideByTwo($dataNum);
-
-        $parallel = new Parallel($num);
-
-        Db::beginTransaction();
-
-        foreach ($object as $value) {
-            $parallel->add(function () use ($value, $data, &$num) {
-                $value = $value->fill($data);
-                $value->save();
-                return $value;
-            });
+        if (empty($inputs)) {
+            throw new \InvalidArgumentException('The update data is empty.');
         }
 
-        try {
-
-            $results = $parallel->wait();
-
-            Db::commit();
-
-            return [true, $results];
-
-        } catch (ParallelExecutionException $e) {
-
-            $results = $e->getResults();
-
-            Db::rollBack();
-
-            return [false, $results];
+        if (!($where = $this->array_pluck($inputs, $where_field)) || !($when = $this->array_pluck($inputs, $when_field))) {
+            throw new \InvalidArgumentException('Missing update condition');
         }
-    }
-
-    /**
-     * 判断(单个)数据是否更新
-     * @param $object
-     * @param $data
-     * @return bool
-     */
-    public function filterUpdateData($object, $data): bool
-    {
-        $update = false;
-        foreach ($data as $k => $value) {
-            if (is_object($object)) {
-                if ($value != $object->$k) {
-                    $update = true;
-                    $object->$k = $value;
-                }
-            } else if (is_array($object)) {
-                if ($value != $object[$k]) {
-                    $update = true;
-                    $object[$k] = $value;
-                }
+        $when_arr = [];
+        foreach ($inputs as $k => $input) {
+            $when_val = $input[$when_field] ?? '';
+            foreach ($input as $key => $value) {
+                if ($key == $when_field) continue;
+                $when_arr[$key][] = "when {$when_field} = '{$when_val}' then '{$value}'";
             }
         }
 
-        if ($update) $object->save();
+        foreach ($when_arr as $key => &$item) {
+            $item = DB::raw('case ' . implode(' ', $item) . ' end ');
+        }
 
-        return true;
+        return $this->model->whereIn($where_field, $where)->update($when_arr);
     }
 
     /**
@@ -340,7 +401,7 @@ trait RepositoryPackage
                     foreach ($val as $vv) {
                         $object = $object->$k(...$vv);
                     }
-                break;
+                    break;
             }
         }
 
@@ -435,6 +496,13 @@ trait RepositoryPackage
         return $num;
     }
 
+    public function array_pluck(array $array, string $key)
+    {
+        return array_map(function ($item) use ($key) {
+            return $item[$key] ?? null;
+        }, $array);
+    }
+
     /**
      * 判断数据是否需要更新
      * @param $object
@@ -456,4 +524,5 @@ trait RepositoryPackage
 
         return $needsUpdate;
     }
+
 }

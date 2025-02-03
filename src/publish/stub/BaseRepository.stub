@@ -4,54 +4,14 @@ declare(strict_types=1);
 
 namespace App\Base;
 
-use Hyperf\Config\Annotation\Value;
-use Hyperf\Context\Context;
 use App\Base\src\RepositoryPackage;
+use Hyperf\Context\Context;
 use Carbon\Carbon;
 
-abstract class BaseRepository
+abstract class BaseRepository extends RepositoryPackage
 {
-    use RepositoryPackage;
-
     protected $model;
-
-    #[Value('generate')]
-    protected $config;
-
     protected $user;
-
-    public function model(): string
-    {
-        return $this->config['general']['model']. '\\' . str_replace('Repository', '', $this->class_basename(get_class($this)));
-    }
-
-    public function __construct()
-    {
-        $this->makeModel();
-
-        return $this;
-    }
-
-    public function makeModel()
-    {
-        return $this->setModel($this->model());
-    }
-
-    public function setModel($eloquentModel)
-    {
-        if(!class_exists($eloquentModel)){
-            throw new \RuntimeException('model not found');
-        }
-
-        return $this->model = new $eloquentModel();
-    }
-
-    public function class_basename($class)
-    {
-        $class = is_object($class) ? get_class($class) : $class;
-
-        return basename(str_replace('\\', '/', $class));
-    }
 
     public function getUserToken(): bool
     {

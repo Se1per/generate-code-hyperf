@@ -8,6 +8,7 @@ use Hyperf\Config\Annotation\Value;
 use Hyperf\DbConnection\Db;
 use Psr\Container\ContainerInterface;
 use Hyperf\Command\Command as HyperfCommand;
+use Symfony\Component\Console\Input\InputArgument;
 
 #[Command]
 class MakeCrudCodeClass extends HyperfCommand
@@ -57,24 +58,29 @@ class MakeCrudCodeClass extends HyperfCommand
             if (!$this->fileExistsIn($this->config['general']['controller'] . '\\' . $this->config['general']['app'] . '\\' . $tableName . 'Controller')) {
                 $this->makeControllerFunc($tableName);
             }
+            
+            # manager
+            if (!$this->fileExistsIn($this->config['general']['manager'] . '\\'.$tableName.'Manager')) {
+                $this->makeManagerFunc($tableName);
+            }
 
             # model
-            if (!$this->fileExistsIn($this->config['general']['model'] . '\\' . $this->config['general']['app'] . $tableName . 'Model')) {
+            if (!$this->fileExistsIn($this->config['general']['model'] . '\\'.$tableName . 'Model')) {
                 $this->makeModelFunc($tableName);
             }
 
             # request
-            if (!$this->fileExistsIn($this->config['general']['request'] . '\\' . $this->config['general']['app'] . '\\' . $tableName . 'Request')) {
+            if (!$this->fileExistsIn($this->config['general']['request'] . '\\'.$tableName . 'Request')) {
                 $this->makeRequestFunc($tableName);
             }
 
             # service
-            if (!$this->fileExistsIn($this->config['general']['service'] . '\\' . $this->config['general']['app'] . '\\' . $tableName . 'Service')) {
+            if (!$this->fileExistsIn($this->config['general']['service'] . '\\'. $tableName . 'Service')) {
                 $this->makeServiceFunc($tableName);
             }
 
             # repository
-            if (!$this->fileExistsIn($this->config['general']['repository'] . '\\' . $this->config['general']['app'] . '\\' . $tableName . 'Repository')) {
+            if (!$this->fileExistsIn($this->config['general']['repository'] . '\\'. $tableName . 'Repository')) {
                 $this->makeRepositoryFunc($tableName);
             }
 
@@ -95,6 +101,14 @@ class MakeCrudCodeClass extends HyperfCommand
         $this->info('完成生成' . $tableName . '控制器层');
     }
 
+    public function makeManagerFunc($tableName)
+    {
+        $this->call('generate:crud-manager', array_filter([
+            'name' => $tableName,
+        ]));
+        $this->info('完成生成' . $tableName . '业务层');
+    }
+
     public function makeModelFunc($tableName)
     {
         $this->call('generate:crud-model', array_filter([
@@ -108,7 +122,7 @@ class MakeCrudCodeClass extends HyperfCommand
         $this->call('generate:crud-request', array_filter([
             'name' => $tableName,
         ]));
-        $this->info('完成生成' . $tableName . '验证器层');
+        $this->info('完成生成' . $tableName . '验证层');
     }
 
     public function makeServiceFunc($tableName)
@@ -116,7 +130,7 @@ class MakeCrudCodeClass extends HyperfCommand
         $this->call('generate:crud-service', array_filter([
             'name' => $tableName,
         ]));
-        $this->info('完成生成' . $tableName . '业务逻辑层');
+        $this->info('完成生成' . $tableName . '服务层');
     }
 
     public function makeRepositoryFunc($tableName)
@@ -124,7 +138,7 @@ class MakeCrudCodeClass extends HyperfCommand
         $this->call('generate:crud-repository', array_filter([
             'name' => $tableName,
         ]));
-        $this->info('完成生成' . $tableName . '数据访问层');
+        $this->info('完成生成' . $tableName . '数据层');
     }
 
     public function makeTestFunc($tableName)

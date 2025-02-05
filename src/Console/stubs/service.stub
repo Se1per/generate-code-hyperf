@@ -5,7 +5,7 @@ namespace {{ namespace }};
 use {{ base }}\BaseService;
 use Hyperf\Di\Annotation\Inject;
 
-use {{ repository }}\{{ app }}\{{ table }}Repository;
+use {{ repository }}\{{ table }}Repository;
 
 class {{ class }} extends BaseService
 {
@@ -14,44 +14,25 @@ class {{ class }} extends BaseService
 
     public function save{{ table }}Data($data)
     {
-        [$status, $object] = $this->repository->save{{ table }}Data($data);
-
-        if (!$status) {
-            return $this->JsonCallBack->JsonMain(200004, $object);
-        }
-
-        return $this->JsonCallBack->JsonMain(200000, '操作成功');
+        return $this->repository->save{{ table }}Data($data);
     }
 
     public function del{{ table }}Data($data)
     {
-        [$status, $object] = $this->repository->deleteData($data);
-
-        if (!$status) {
-            return $this->JsonCallBack->JsonMain(200004, $object);
-        }
-
-        return $this->JsonCallBack->JsonMain(200000, '移除成功');
+        return $this->repository->deleteData($data);
     }
 
-    public function get{{ table }}Data($data)
+    public function get{{ table }}Data($data) 
     {
         $getSql = $this->repository->selectArray(
             $data
         );
 
-        try {
+        $count = $this->repository->getCount($getSql);
 
-            $count = $this->repository->getCount($getSql);
+        $list = $this->repository
+        ->getData($getSql);
 
-            $list = $this->repository
-            ->getData($getSql);
-
-        } catch (\Throwable $e) {
-            
-            return $this->JsonCallBack->JsonMain(200002, '数据获取失败' . $e->getMessage());
-        }
-
-        return $this->JsonCallBack->JsonMain(200000, '数据获取成功', $list, $count);
+        return [$list,$count];
     }
 }

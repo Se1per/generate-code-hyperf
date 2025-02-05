@@ -156,14 +156,14 @@ class MakeController extends GeneratorCommand
 
             $stub = str_replace('{{ getProperties }}', $getProperties, $stub);
             $stub = str_replace('{{ response }}', $getResponse, $stub);
-
         }
 
         $stub = str_replace('{{ primaryKey }}', $key, $stub);
 
         $stub = str_replace('{{ request }}',$this->config['general']['request'] , $stub);
         $stub = str_replace('{{ service }}',$this->config['general']['service'] , $stub);
-        $stub = str_replace('{{ app }}',$this->config['general']['app'] , $stub);
+
+//        $stub = str_replace('{{ app }}',$this->config['general']['app'] , $stub);
 
         $stub = str_replace('{{ server }}',$this->lcfirst($this->config['general']['app']) , $stub);
 

@@ -34,7 +34,7 @@ class MakeRequest extends GeneratorCommand
 
     protected function getDefaultNamespace(): string
     {
-        return $this->config['general']['request'].'\\'.$this->config['general']['app'];
+        return $this->config['general']['request'];
     }
 
     protected function qualifyClass(string $name): string
@@ -128,7 +128,7 @@ class MakeRequest extends GeneratorCommand
         $stub = str_replace('{{ allRules }}', $rules, $stub);
         $stub = str_replace('{{ messages }}', $messages, $stub);
 
-        $stub = str_replace('{{ namespace }}', $this->config['general']['request'].'\\'.$this->config['general']['app'], $stub);
+        $stub = str_replace('{{ namespace }}', $this->config['general']['request'], $stub);
 
         $stub = str_replace('{{ class }}', $this->camelCase($tableName['name']), $stub);
 

@@ -5,44 +5,49 @@ namespace Japool\Genconsole\Console;
 use Japool\Genconsole\Console\src\AutoCodeHelp;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Config\Annotation\Value;
+
 use Hyperf\Devtool\Generator\GeneratorCommand;
 
+
 #[Command]
-class MakeRepository extends GeneratorCommand
+class MakeManager extends GeneratorCommand
 {
     #[value('generate')]
     protected $config;
 
     use AutoCodeHelp;
 
+    protected $sw = false;
+
     public function __construct()
     {
-        parent::__construct('generate:crud-repository');
+        parent::__construct('generate:crud-manager');
     }
 
     public function configure()
     {
-        $this->setDescription('Create a new repository class');
+        $this->setDescription('Create a new Manager class');
         parent::configure();
     }
 
     protected function getStub(): string
     {
-        return __DIR__ . '/stubs/repository.stub';
+        return __DIR__ . '/stubs/manager.stub';
     }
 
     protected function getDefaultNamespace(): string
     {
-        return $this->config['general']['repository'];
+        return $this->config['general']['manager'];
     }
 
     protected function qualifyClass(string $name): string
     {
         $name = $this->input->getArguments();
 
-        $name = $name['name'].'Repository';
+        $name = $name['name'].'Manager';
 
         $namespace = $this->input->getOption('namespace');
+
         if (empty($namespace)) {
             $namespace = $this->getDefaultNamespace();
         }
@@ -65,11 +70,10 @@ class MakeRepository extends GeneratorCommand
     public function replaceName($stub)
     {
         $tableName = $this->input->getArguments();
-
-        $table = $this->unCamelCase($tableName['name']);
+        $tableName['name'] = $this->unCamelCase($tableName['name']);
 //        $dbPrefix = env('DB_PREFIX');
         $dbPrefix = \Hyperf\Support\env('DB_PREFIX');
-        $result = $this->getTableColumnsComment($dbPrefix.$table);
+        $result = $this->getTableColumnsComment($dbPrefix.$tableName['name']);
 
         $key = null;
 
@@ -79,14 +83,11 @@ class MakeRepository extends GeneratorCommand
             }
         }
 
-        $stub = str_replace('{{ primaryKey }}', $key, $stub);
+        $stub = str_replace('{{ class }}', $this->camelCase($tableName['name']).'Manager', $stub);
 
-        $stub = str_replace('{{ class }}', $this->camelCase($tableName['name']).'Repository', $stub);
+        $stub = str_replace('{{ namespace }}', $this->config['general']['manager'], $stub);
 
-        $stub = str_replace('{{ table }}', $this->camelCase($tableName['name']),$stub);
-
-        $stub = str_replace('{{ namespace }}', $this->config['general']['repository'], $stub);
-        $stub = str_replace('{{ base }}', $this->config['general']['base'],$stub);
         return $stub;
     }
+
 }

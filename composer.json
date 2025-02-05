@@ -1,28 +1,51 @@
 {
     "name": "japool/generate-code-hyperf",
     "type": "library",
-    "license": "MIT",
+    "license": "proprietary",
+    "keywords": [
+        "php",
+        "hyperf"
+    ],
+    "description": "generate code help",
     "autoload": {
         "psr-4": {
             "Japool\\Genconsole\\": "src/"
         }
     },
-    "authors": [
-        {
-            "name": "japool",
-            "email": "jappol@163.com"
+    "autoload-dev": {
+        "psr-4": {
+            "HyperfTest\\": "tests"
         }
-    ],
+    },
+    "require": {
+        "php": ">=8.1",
+        "hyperf/framework": "3.1.*",
+        "hyperf/di": "3.1.*"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "mockery/mockery": "^1.0",
+        "phpstan/phpstan": "^1.0",
+        "phpunit/phpunit": "^10.0",
+        "swoole/ide-helper": "dev-master"
+    },
+    "suggest": {
+        "swow/swow": "Required to create swow components."
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    },
+    "scripts": {
+        "test": "phpunit -c phpunit.xml --colors=always",
+        "analyse": "phpstan analyse --memory-limit 1024M -l 0 ./src",
+        "cs-fix": "php-cs-fixer fix $1"
+    },
     "extra": {
         "hyperf": {
             "config": "Japool\\Genconsole\\ConfigProvider"
         }
-    },
-    "config": {
-        "sort-packages": true
-    },
-    "require": {
-        "php": ">=8.1",
-        "ext-pdo_mysql": "*"
     }
 }

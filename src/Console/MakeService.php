@@ -34,7 +34,7 @@ class MakeService extends GeneratorCommand
 
     protected function getDefaultNamespace(): string
     {
-        return $this->config['general']['service'].'\\'.$this->config['general']['app'];
+        return $this->config['general']['service'];
     }
 
     protected function qualifyClass(string $name): string
@@ -71,10 +71,12 @@ class MakeService extends GeneratorCommand
 
         $stub = str_replace('{{ table }}', $this->camelCase($tableName['name']),$stub);
 
-        $stub = str_replace('{{ namespace }}', $this->config['general']['service'].'\\'.$this->config['general']['app'], $stub);
+        $stub = str_replace('{{ namespace }}', $this->config['general']['service'], $stub);
 
-        $stub = str_replace('{{ repository }}',$this->config['general']['repository'] , $stub);
-        $stub = str_replace('{{ app }}',$this->config['general']['app'] , $stub);
+        $stub = str_replace('{{ repository }}',$this->config['general']['repository'],$stub);
+
+//        $stub = str_replace('{{ app }}',$this->config['general']['app'] , $stub);
+
         $stub = str_replace('{{ base }}', $this->config['general']['base'],$stub);
         return $stub;
     }

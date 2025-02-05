@@ -1,16 +1,63 @@
 <?php
 
 declare(strict_types=1);
-
 namespace App\Base\src;
 
+use Hyperf\Config\Annotation\Value;
+use Hyperf\Coroutine\Coroutine;
 use Hyperf\Coroutine\Exception\ParallelExecutionException;
 use Hyperf\Coroutine\Parallel;
 use Hyperf\DbConnection\Db;
 use SplQueue;
+use function Hyperf\coroutine\co;
 
-trait RepositoryPackage
+abstract class RepositoryPackage
 {
+    protected $model;
+
+    #[Value('generate')]
+    protected $config;
+
+    protected $user;
+
+    public function model(): string
+    {
+        return $this->config['general']['model'] . '\\' . str_replace('Repository', '', $this->class_basename(get_class($this)));
+    }
+
+    public function __construct()
+    {
+        $this->makeModel();
+
+        return $this;
+    }
+
+    public function makeModel()
+    {
+        return $this->setModel($this->model());
+    }
+
+    public function setModel($eloquentModel)
+    {
+        if (!class_exists($eloquentModel)) {
+            throw new \RuntimeException('model not found');
+        }
+
+        return $this->model = new $eloquentModel();
+    }
+
+    public function class_basename($class)
+    {
+        $class = is_object($class) ? get_class($class) : $class;
+
+        return basename(str_replace('\\', '/', $class));
+    }
+
+    /**
+     * 保存数据
+     * @param $data
+     * @return array
+     */
     public function saveData($data): array
     {
         try {
@@ -40,14 +87,13 @@ trait RepositoryPackage
                 $val['created_at'] = date('Y-m-d H:i:s');
                 $val['updated_at'] = date('Y-m-d H:i:s');
             }
-            $data = array_chunk($data, $unpack);
         }
+
+        $data = array_chunk($data,$unpack);
 
         $num = $this->divideByTwo(count($data));
 
         $parallel = new Parallel($num);
-
-        Db::beginTransaction();
 
         foreach ($data as $value) {
             $parallel->add(function () use ($value) {
@@ -59,15 +105,13 @@ trait RepositoryPackage
 
             $results = $parallel->wait();
 
-            Db::commit();
-
             return [true, $results];
 
         } catch (ParallelExecutionException $e) {
             $results = $e->getResults();
-            Db::rollBack();
             return [false, $results];
         }
+
     }
 
     /**
@@ -317,7 +361,7 @@ trait RepositoryPackage
             }
 
             if ($k == 'skip') {
-                $object = $object->skip($val['page'])->take($val['pagesize']);
+                $object = $object->skip($val['page'])->take($val['limit']);
                 continue;
             }
 
@@ -326,9 +370,9 @@ trait RepositoryPackage
                     $object = $object->$k(...$val);
                     break;
                 case 2;
-                    if ($k == 'whereIn') {
+                    if ($k == 'whereIn' || $k == 'whereBetween') {
                         $object = $object->$k(...$val);
-                    } else if ($k == 'where') {
+                    } else if ($k == 'where' || $k == 'orderBy') {
                         foreach ($val as $vv) {
                             $object = $object->$k(...$vv);
                         }
@@ -345,20 +389,20 @@ trait RepositoryPackage
         }
 
         if ($get == 'chunk') {
-            $object->$get(200, function ($value) use (&$dataCallBack) {
-                foreach ($value as $val) {
-                    $dataCallBack[] = $val->toArray();
-                }
-            });
-            return $dataCallBack;
+//            $object->$get(200, function ($value) use (&$dataCallBack) {
+//                foreach ($value as $val) {
+//                    $dataCallBack[] = $val->toArray();
+//                }
+//            });
+            return $object;
         }
 
         if ($get == 'cursor') {
-            foreach ($object->$get() as $flight) {
-                if ($needToArray) $flight = $flight->toArray();
-                $dataCallBack[] = $flight;
-            }
-            return $dataCallBack;
+//            foreach ($object->$get() as $flight) {
+//                if ($needToArray) $flight = $flight->toArray();
+//                $dataCallBack[] = $flight;
+//            }
+            return $object;
         }
 
         if (is_array($get)) {

@@ -72,6 +72,20 @@ class ConfigProvider
                     'destination' => BASE_PATH . '/app/Base/src/RepositoryPackage.php', // 复制为这个路径下的该文件
                 ],
                 [
+                    'id' => 'RepositoryAspect',
+                    'description' => 'RepositoryAspect generate', // 描述
+                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
+                    'source' => __DIR__ . '/publish/stub/RepositoryAspect.stub',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/app/Aspect/RepositoryAspect.php', // 复制为这个路径下的该文件
+                ],
+                [
+                    'id' => 'ReturnAnnotation',
+                    'description' => 'ReturnAnnotation generate', // 描述
+                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
+                    'source' => __DIR__ . '/publish/stub/ReturnAnnotation.stub',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/app/Annotation/ReturnAnnotation.php', // 复制为这个路径下的该文件
+                ],
+                [
                     'id' => 'LogMonMain',
                     'description' => 'LogMonMain generate', // 描述
                     // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
@@ -98,6 +112,13 @@ class ConfigProvider
                     // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
                     'source' => __DIR__ . '/publish/stub/BaseModel.stub',  // 对应的配置文件路径
                     'destination' => BASE_PATH . '/app/Base/BaseModel.php', // 复制为这个路径下的该文件
+                ],
+                [
+                    'id' => 'BaseRedis',
+                    'description' => 'BaseRedis generate', // 描述
+                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
+                    'source' => __DIR__ . '/publish/stub/BaseRedis.stub',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/app/Base/BaseRedis.php', // 复制为这个路径下的该文件
                 ],
                 [
                     'id' => 'BaseController',

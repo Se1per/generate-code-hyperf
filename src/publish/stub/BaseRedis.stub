@@ -1,0 +1,12 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Base;
+
+use Hyperf\Redis\Redis;
+
+class BaseRedis extends Redis
+{
+    protected string $poolName = 'default';
+}

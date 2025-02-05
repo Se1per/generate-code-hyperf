@@ -1,9 +1,11 @@
 <?php
 
 declare(strict_types=1);
+
 namespace App\Base\src;
 
 use Carbon\Carbon;
+use Hyperf\Cache\Annotation\Cacheable;
 use Hyperf\Config\Annotation\Value;
 use Hyperf\Coroutine\Coroutine;
 use Hyperf\Coroutine\Exception\ParallelExecutionException;
@@ -18,7 +20,7 @@ abstract class RepositoryPackage
     protected $model;
 
     #[Value('generate')]
-    protected $config;
+    protected array $config;
 
     #[Inject]
     private ?LogMonMain $logMonMain;
@@ -132,7 +134,6 @@ abstract class RepositoryPackage
             ]);
             return [false, $results];
         }
-
     }
 
     /**

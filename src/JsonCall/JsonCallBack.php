@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 // namespace App\Base\src;
-namespace Japool\Genconsole\JsonCall\src;
+namespace Japool\Genconsole\JsonCall;
 
 use Japool\Genconsole\JsonCall\JsonCallBackInterface;
 use App\Constants\JsonCodeConstants;

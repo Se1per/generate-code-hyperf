@@ -3,7 +3,7 @@
 namespace App\Aspect;
 
 use App\Annotation\ReturnAnnotation;
-use Japool\Genconsole\JsonCall\JsonCallBackInterface;
+use Japool\Genconsole\JsonCall\JsonCallBackInterFace;
 use Hyperf\Di\Annotation\Aspect;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\Di\Aop\AbstractAspect;
@@ -13,7 +13,7 @@ use Hyperf\Di\Aop\ProceedingJoinPoint;
 class ReturnCallAspect extends AbstractAspect
 {
     #[Inject]
-    protected JsonCallBackInterface $JsonCallBack;
+    protected JsonCallBackInterFace $JsonCallBack;
 
     public array $classes = [
     ];

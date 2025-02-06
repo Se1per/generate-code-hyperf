@@ -5,12 +5,12 @@ declare(strict_types=1);
 // namespace App\Base\src;
 namespace Japool\Genconsole\JsonCall;
 
-use Japool\Genconsole\JsonCall\JsonCallBackInterface;
+use Japool\Genconsole\JsonCall\JsonCallBackInterFace;
 use App\Constants\JsonCodeConstants;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\ResponseInterface;
 
-class JsonCallBack 
+class JsonCallBack implements JsonCallBackInterFace
 {
     #[Inject]
     protected ResponseInterface $response;

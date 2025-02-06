@@ -8,12 +8,12 @@ use Carbon\Carbon;
 use Hyperf\Context\Context;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;
-use Japool\Genconsole\JsonCall\JsonCallBackInterface;
+use Japool\Genconsole\JsonCall\JsonCallBackInterFace;
 
 abstract class BaseService
 {
     #[Inject]
-    protected JsonCallBackInterface $JsonCallBack;
+    protected JsonCallBackInterFace $JsonCallBack;
 
     #[Inject]
     protected RequestInterface $request;

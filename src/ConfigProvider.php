@@ -56,7 +56,14 @@ class ConfigProvider
                     // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
                     'source' => __DIR__ . '/publish/stub/JsonCodeConstants.stub',  // 对应的配置文件路径
                     'destination' => BASE_PATH . '/app/Constants/JsonCodeConstants.php', // 复制为这个路径下的该文件
-                ],                
+                ],               
+                [
+                    'id' => 'ReturnCallAspect',
+                    'description' => 'ReturnCallAspect generate', // 描述
+                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
+                    'source' => __DIR__ . '/publish/stub/ReturnCallAspect.stub',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/app/Aspect/ReturnCallAspect.php', // 复制为这个路径下的该文件
+                ],          
                 // [
                 //     'id' => 'JsonCallBackInterFace',
                 //     'description' => 'JsonCallBackInterFace generate', // 描述
@@ -77,20 +84,6 @@ class ConfigProvider
                     // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
                     'source' => __DIR__ . '/publish/stub/RepositoryPackage.stub',  // 对应的配置文件路径
                     'destination' => BASE_PATH . '/app/Base/src/RepositoryPackage.php', // 复制为这个路径下的该文件
-                ],
-                [
-                    'id' => 'RepositoryAspect',
-                    'description' => 'RepositoryAspect generate', // 描述
-                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
-                    'source' => __DIR__ . '/publish/stub/RepositoryAspect.stub',  // 对应的配置文件路径
-                    'destination' => BASE_PATH . '/app/Aspect/RepositoryAspect.php', // 复制为这个路径下的该文件
-                ],
-                [
-                    'id' => 'ReturnAnnotation',
-                    'description' => 'ReturnAnnotation generate', // 描述
-                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
-                    'source' => __DIR__ . '/publish/stub/ReturnAnnotation.stub',  // 对应的配置文件路径
-                    'destination' => BASE_PATH . '/app/Annotation/ReturnAnnotation.php', // 复制为这个路径下的该文件
                 ],
                 [
                     'id' => 'LogMonMain',

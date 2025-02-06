@@ -3,7 +3,7 @@
 namespace App\Base;
 
 use App\Controller\AbstractController;
-use App\Base\src\JsonCallBackInterface;
+use Japool\Genconsole\JsonCall\JsonCallBackInterface;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Psr\Container\ContainerInterface;

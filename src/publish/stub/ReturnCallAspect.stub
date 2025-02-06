@@ -3,14 +3,14 @@
 namespace App\Aspect;
 
 use App\Annotation\ReturnAnnotation;
-use App\Base\src\JsonCallBackInterface;
+use Japool\Genconsole\JsonCall\JsonCallBackInterface;
 use Hyperf\Di\Annotation\Aspect;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\Di\Aop\AbstractAspect;
 use Hyperf\Di\Aop\ProceedingJoinPoint;
 
 #[Aspect]
-class RepositoryAspect extends AbstractAspect
+class ReturnCallAspect extends AbstractAspect
 {
     #[Inject]
     protected JsonCallBackInterface $JsonCallBack;

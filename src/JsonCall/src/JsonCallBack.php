@@ -10,7 +10,7 @@ use App\Constants\JsonCodeConstants;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\ResponseInterface;
 
-class JsonCallBack implements JsonCallBackInterface
+class JsonCallBack 
 {
     #[Inject]
     protected ResponseInterface $response;

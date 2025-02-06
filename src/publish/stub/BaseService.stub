@@ -8,7 +8,7 @@ use Carbon\Carbon;
 use Hyperf\Context\Context;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;
-use App\Base\src\JsonCallBackInterface;
+use Japool\Genconsole\JsonCall\JsonCallBackInterface;
 
 abstract class BaseService
 {

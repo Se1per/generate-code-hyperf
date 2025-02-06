@@ -51,19 +51,26 @@ class ConfigProvider
                     'destination' => BASE_PATH . '/app/Exception/Handler/ValidationExceptionHandler.php', // 复制为这个路径下的该文件
                 ],
                 [
-                    'id' => 'JsonCallBackInterFace',
-                    'description' => 'JsonCallBackInterFace generate', // 描述
+                    'id' => 'JsonCodeConstants',
+                    'description' => 'JsonCodeConstants generate', // 描述
                     // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
-                    'source' => __DIR__ . '/publish/stub/JsonCallBackInterface.stub',  // 对应的配置文件路径
-                    'destination' => BASE_PATH . '/app/Base/src/JsonCallBackInterface.php', // 复制为这个路径下的该文件
-                ],
-                [
-                    'id' => 'JsonCallBack',
-                    'description' => 'JsonCallBack generate', // 描述
-                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
-                    'source' => __DIR__ . '/publish/stub/JsonCallBack.stub',  // 对应的配置文件路径
-                    'destination' => BASE_PATH . '/app/Base/src/JsonCallBack.php', // 复制为这个路径下的该文件
-                ],
+                    'source' => __DIR__ . '/publish/stub/JsonCodeConstants.stub',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/app/Constants/JsonCodeConstants.php', // 复制为这个路径下的该文件
+                ],                
+                // [
+                //     'id' => 'JsonCallBackInterFace',
+                //     'description' => 'JsonCallBackInterFace generate', // 描述
+                //     // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
+                //     'source' => __DIR__ . '/publish/stub/JsonCallBackInterface.stub',  // 对应的配置文件路径
+                //     'destination' => BASE_PATH . '/app/Base/src/JsonCallBackInterface.php', // 复制为这个路径下的该文件
+                // ],
+                // [
+                //     'id' => 'JsonCallBack',
+                //     'description' => 'JsonCallBack generate', // 描述
+                //     // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
+                //     'source' => __DIR__ . '/publish/stub/JsonCallBack.stub',  // 对应的配置文件路径
+                //     'destination' => BASE_PATH . '/app/Base/src/JsonCallBack.php', // 复制为这个路径下的该文件
+                // ],
                 [
                     'id' => 'RepositoryPackage',
                     'description' => 'RepositoryPackage generate', // 描述

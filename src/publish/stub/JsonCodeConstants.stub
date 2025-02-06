@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Constants;
+
+
+use Hyperf\Constants\Annotation\Constants;
+use Hyperf\Constants\Annotation\Message;
+use Hyperf\Constants\EnumConstantsTrait;
+
+#[Constants]
+enum JsonCodeConstants: int
+{
+    use EnumConstantsTrait;
+
+    #[Message("请求成功")]
+    case Success = 200000;
+
+    #[Message("请求参数异常")]
+    case ARGUMENTS = 200001;
+
+    #[Message("您点击得速度有点快哦！稍等片刻再试吧，我们会一直在等您。")]
+    case SUBMITTING_QUICKLY = 200002;
+
+    #[Message("操作数据异常")]
+    case SUBMITTING_OPERATE = 200003;
+
+    #[Message("code错误 %s 不存在该错误码,请定义jsonCode文件正确返回错误信息")]
+    case CODE_ERROR = 500000;
+
+    #[Message("身份信息过期")]
+    case TOKEN_TIME_OUT = 300001;
+
+    #[Message("身份信息无效")]
+    case TOKEN_INVALID = 300002;
+
+    #[Message("系统维护中")]
+    case MAINTENANCE = 504000;
+
+    #[Message("请求错误")]
+    case ERROR_SERVICE = 504001;
+
+}

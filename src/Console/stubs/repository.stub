@@ -44,7 +44,7 @@ class {{ class }} extends BaseRepository
         return $sql;
     }
 
-   public function save{{ table }}Data($data = [])
+    public function save{{ table }}Data($data = [])
     {
         if (!isset($data[{{ primaryKey }}])) {
             [$status, $object] = $this->saveData($data);

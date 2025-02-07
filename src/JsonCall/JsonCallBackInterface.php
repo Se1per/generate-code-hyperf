@@ -8,7 +8,7 @@ namespace Japool\Genconsole\JsonCall;
 use App\Constants\JsonCodeConstants;
 use Psr\Http\Message\ResponseInterface;
 
-interface JsonCallBackInterFace
+interface JsonCallBackInterface
 {
     /**
      * 返回类

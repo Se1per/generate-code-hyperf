@@ -23,7 +23,7 @@ php bin/hyperf.php vendor:publish japool/generate-code-hyperf
 composer require hyperf/testing --dev
 
 # 添加抽象对象注入 config/autoload/dependencies.php
-\Japool\Genconsole\JsonCall\JsonCallBackInterFace::class => \Japool\Genconsole\JsonCall\JsonCallBack::class
+\Japool\Genconsole\JsonCall\JsonCallBackInterface::class => \Japool\Genconsole\JsonCall\JsonCallBack::class
 
 # 生成base类文件 (已取消)
 # php bin/hyperf.php generate:generateBaseCommons

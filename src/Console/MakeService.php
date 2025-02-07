@@ -74,6 +74,8 @@ class MakeService extends GeneratorCommand
         $stub = str_replace('{{ namespace }}', $this->config['general']['service'], $stub);
 
         $stub = str_replace('{{ repository }}',$this->config['general']['repository'],$stub);
+        
+        $stub = str_replace('{{ manager }}',$this->config['general']['manager'],$stub);
 
 //        $stub = str_replace('{{ app }}',$this->config['general']['app'] , $stub);
 

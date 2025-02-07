@@ -4,7 +4,7 @@ namespace {{ namespace }};
 
 use {{ base }}\BaseService;
 use Hyperf\Di\Annotation\Inject;
-
+use App\Constants\JsonCodeConstants;
 use {{ repository }}\{{ table }}Repository;
 
 class {{ class }} extends BaseService
@@ -12,14 +12,26 @@ class {{ class }} extends BaseService
     #[Inject]
     private ?{{ table }}Repository $repository;
 
-    public function save{{ table }}Data($data)
+    public function save{{ table }}Data($data): array
     {
-        return $this->repository->save{{ table }}Data($data);
+        [$status,$msg] = $this->repository->save{{ table }}Data($data);
+
+        if($status) {
+            return [JsonCodeConstants::Success];
+        }
+
+        return [JsonCodeConstants::WARNING,$msg];
     }
 
-    public function del{{ table }}Data($data)
+    public function del{{ table }}Data($data): array
     {
-        return $this->repository->deleteData($data);
+        [$status,$msg] = $this->repository->deleteData($data);
+
+        if($status) {
+            return [JsonCodeConstants::Success];
+        }
+
+        return [JsonCodeConstants::WARNING,$msg];
     }
 
     public function get{{ table }}Data($data) 
@@ -33,6 +45,6 @@ class {{ class }} extends BaseService
         $list = $this->repository
         ->getData($getSql);
 
-        return [$list,$count];
+        return [JsonCodeConstants::Success,null,$list,$count];
     }
 }

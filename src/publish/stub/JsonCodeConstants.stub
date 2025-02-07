@@ -22,7 +22,7 @@ enum JsonCodeConstants: int
     case SUBMITTING_QUICKLY = 200002;
 
     #[Message("操作数据异常")]
-    case SUBMITTING_OPERATE = 200003;
+    case WARNING = 200003;
 
     #[Message("code错误 %s 不存在该错误码,请定义jsonCode文件正确返回错误信息")]
     case CODE_ERROR = 500000;

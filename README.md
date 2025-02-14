@@ -10,10 +10,7 @@ composer require firebase/php-jwt
 # [可选] 自动化测试
 composer require hyperf/testing --dev
 
-# generate-code-hyperf
-
-使用Hyperf框架生成代码的示例项目。该项目包含一个命令行工具，用于生成Hyperf框架下的代码。
-
+# 安装生成器代码 generate-code-hyperf
 composer require japool/generate-code-hyperf
 
 # 生成配置依赖

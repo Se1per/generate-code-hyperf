@@ -220,7 +220,7 @@ trait AutoCodeHelp
         }
 
 //        $getRules .= '\'' . 'page' . '\'' . ','. "\r";
-//        $getRules .= '\'' . 'pagesize' . '\'' . ','. "\r";
+//        $getRules .= '\'' . 'pageSize' . '\'' . ','. "\r";
 
         return true;
     }

@@ -19,11 +19,11 @@ class {{tableName}}ControllerTest extends HttpTestCase
     public function testGet{{tableName}}Data()
     {
         $this->assertTrue(true);
-        $res = $this->client->get('/api/{{smollTableName}}/get{{tableName}}Data', ['page' => 1, 'pagesize' => 10]);
+        $res = $this->client->get('/api/{{smollTableName}}/get{{tableName}}Data', ['page' => 1, 'pageSize' => 10]);
         $this->assertSame(200000, $res['code']);
         $this->assertSame('请求成功:数据获取成功', $res['message']);
 
-        $res = $this->client->get('/api/{{smollTableName}}/get{{tableName}}Data', ['page' => 2, 'pagesize' => 10]);
+        $res = $this->client->get('/api/{{smollTableName}}/get{{tableName}}Data', ['page' => 2, 'pageSize' => 10]);
         $this->assertSame(200000, $res['code']);
         $this->assertSame('请求成功:数据获取成功', $res['message']);
     }
@@ -36,7 +36,7 @@ class {{tableName}}ControllerTest extends HttpTestCase
         $this->assertSame('请求成功:操作成功', $res['message']);
 
         $this->assertTrue(true);
-        $getObject = $this->client->get('/api/{{smollTableName}}/get{{tableName}}Data', ['page' => 1, 'pagesize' => 10]);
+        $getObject = $this->client->get('/api/{{smollTableName}}/get{{tableName}}Data', ['page' => 1, 'pageSize' => 10]);
         $getTest = array_shift($getObject['data']);
 
         $res = $this->client->post('/api/{{smollTableName}}/save{{tableName}}Data', [{{primaryKey}} => $getTest[{{primaryKey}}]]);
@@ -47,7 +47,7 @@ class {{tableName}}ControllerTest extends HttpTestCase
     public function testDel{{tableName}}Data()
     {
         $this->assertTrue(true);
-        $getObject = $this->client->get('/api/{{smollTableName}}/get{{tableName}}Data', ['page' => 1, 'pagesize' => 10]);
+        $getObject = $this->client->get('/api/{{smollTableName}}/get{{tableName}}Data', ['page' => 1, 'pageSize' => 10]);
         $getTest = $getObject['data'][0];
 
         $res = $this->client->put('/api/{{smollTableName}}/del{{tableName}}Data', [{{primaryKey}} => $getTest[{{primaryKey}}]]);

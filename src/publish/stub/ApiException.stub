@@ -4,11 +4,11 @@ namespace App\Exception;
 
 use Hyperf\Server\Exception\ServerException;
 use Throwable;
-use App\Constants\JsonCodeConstants;
+use App\Constants\CodeConstants;
 
 class ApiException extends ServerException
 {
-    public function __construct(JsonCodeConstants|int $code = 0, string|array|null $message = null, ?Throwable $previous = null)
+    public function __construct(CodeConstants|int $code = 0, string|array|null $message = null, ?Throwable $previous = null)
     {
         if(is_array($message)){
             $message = json_encode(
@@ -17,14 +17,14 @@ class ApiException extends ServerException
         }
         
         if (is_null($message)) {
-            if ($code instanceof JsonCodeConstants) {
+            if ($code instanceof CodeConstants) {
                 $message = $code->getMessage();
             } else {
-                $message = JsonCodeConstants::CODE_ERROR;
+                $message = CodeConstants::CODE_ERROR;
             }
         }
 
-        $code = $code instanceof JsonCodeConstants ? $code->value : $code;
+        $code = $code instanceof CodeConstants ? $code->value : $code;
 
         parent::__construct($message, $code, $previous);
     }

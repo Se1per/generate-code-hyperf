@@ -37,9 +37,9 @@ trait ArrayTrait
     {
         $data['page'] = $data['page'] ?? 1;
 
-        $data['pagesize'] = $data['pagesize'] ?? 10;
+        $data['pageSize'] = $data['pageSize'] ?? 10;
 
-        $data['page'] = ($data['page'] - 1) * $data['pagesize'];
+        $data['page'] = ($data['page'] - 1) * $data['pageSize'];
 
         return $data;
     }

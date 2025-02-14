@@ -24,7 +24,7 @@ class JsonCallBack implements JsonCallBackInterface
 
             return $this->response->json([
                 'status' => 'error',
-                'code' => $code->value,
+                'code' => CodeConstants::CODE_ERROR->value,
                 'message' => $message,
             ]);
         }

@@ -13,6 +13,9 @@ class {{ class }} extends BaseService
 {
     #[Inject]
     private ?{{ table }}Repository $repository;
+    
+    #[Inject]
+    private ?{{ table }}Manager $manager;
 
     public function save{{ table }}Data($data): array
     {

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Base\src;
 
 
-use App\Constants\JsonCodeConstants;
+use App\Constants\CodeConstants;
 use App\Exception\ApiException;
 use Hyperf\Config\Annotation\Value;
 
@@ -47,7 +47,7 @@ abstract class RepositoryPackage
     public function setModel($eloquentModel)
     {
         if (!class_exists($eloquentModel)) {
-            throw new ApiException(JsonCodeConstants::ERROR, '模型不存在');
+            throw new ApiException(CodeConstants::ERROR, '模型不存在');
         }
 
         return $this->model = new $eloquentModel();
@@ -72,7 +72,7 @@ abstract class RepositoryPackage
             $createData = $this->model->create($data);
 
         } catch (\Throwable $e) {
-            throw new ApiException(JsonCodeConstants::ERROR, $e->getMessage());
+            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
         }
 
         return $createData;
@@ -132,7 +132,7 @@ abstract class RepositoryPackage
                 'error' => $e->getResults(),
                 'Throwables' => $e->getThrowables(),
             ]);
-            throw new ApiException(JsonCodeConstants::ERROR, json_encode($results));
+            throw new ApiException(CodeConstants::ERROR, json_encode($results));
         }
 
         return $results;
@@ -157,7 +157,7 @@ abstract class RepositoryPackage
             }
 
         } catch (\Throwable $e) {
-            throw new ApiException(JsonCodeConstants::ERROR, $e->getMessage());
+            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
         }
 
         return $object;
@@ -278,7 +278,7 @@ abstract class RepositoryPackage
         try {
             return  $this->model->increment($field,$value);
         } catch (\Throwable $e) {
-            throw new ApiException(JsonCodeConstants::ERROR, $e->getMessage());
+            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
         }
     }
 
@@ -295,7 +295,7 @@ abstract class RepositoryPackage
             return $this->model->decrement($field,$value);
             
         } catch (\Throwable $e) {
-            throw new ApiException(JsonCodeConstants::ERROR, $e->getMessage());
+            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
         }
     }
 
@@ -312,7 +312,7 @@ abstract class RepositoryPackage
             $status = $this->model->query(true)->where($key, $data[$key])->delete();
 
         } catch (\Throwable $e) {
-            throw new ApiException(JsonCodeConstants::ERROR, $e->getMessage());
+            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
         }
 
         return [true, $status];

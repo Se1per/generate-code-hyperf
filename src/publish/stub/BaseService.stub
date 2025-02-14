@@ -8,33 +8,14 @@ use Carbon\Carbon;
 use Hyperf\Context\Context;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;
-use Japool\Genconsole\JsonCall\JsonCallBackInterface;
 
 abstract class BaseService
 {
-    #[Inject]
-    protected JsonCallBackInterface $JsonCallBack;
-
     #[Inject]
     protected RequestInterface $request;
 
     protected $user;
     
-    /**
-     * 返回json
-     * @param $status
-     * @param $object
-     * @return mixed
-     */
-    public function toJson(bool $status, $object = null): mixed
-    {
-        if (!$status) {
-            return $this->JsonCallBack->JsonMain(200004, $object);
-        }
-
-        return $this->JsonCallBack->JsonMain(200000, '操作成功');
-    }
-
     /**
      * 获取ip
      * @return false|string

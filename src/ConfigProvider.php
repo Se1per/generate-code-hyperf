@@ -134,6 +134,13 @@ class ConfigProvider
                     'source' => __DIR__ . '/publish/stub/BaseController.stub',  // 对应的配置文件路径
                     'destination' => BASE_PATH . '/app/Base/BaseController.php', // 复制为这个路径下的该文件
                 ],
+                [
+                    'id' => 'JwtTokenMiddleware',
+                    'description' => 'JwtTokenMiddleware generate', // 描述
+                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
+                    'source' => __DIR__ . '/publish/stub/JwtTokenMiddleware.stub',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/app/Middleware/JwtTokenMiddleware.php', // 复制为这个路径下的该文件
+                ],
             ],
             // 亦可继续定义其它配置，最终都会合并到与 ConfigInterface 对应的配置储存器中
         ];

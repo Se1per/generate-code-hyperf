@@ -31,18 +31,24 @@ class ConfigProvider
                     'destination' => BASE_PATH . '/config/autoload/generate.php', // 复制为这个路径下的该文件
                 ],
                 [
+                    'id' => 'ApiException',
+                    'description' => 'ApiException generate', // 描述
+                    'source' => __DIR__ . '/publish/stub/ApiException.stub',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/app/Exception/ApiException.php', // 复制为这个路径下的该文件
+                ],
+                [
                     'id' => 'ApiExceptionHandler',
                     'description' => 'ApiExceptionHandler generate', // 描述
                     // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
                     'source' => __DIR__ . '/publish/stub/ApiExceptionHandler.stub',  // 对应的配置文件路径
                     'destination' => BASE_PATH . '/app/Exception/Handler/ApiExceptionHandler.php', // 复制为这个路径下的该文件
                 ],                
-                [
-                    'id' => 'ApiDeBugExceptionHandler',
-                    'description' => 'ApiDeBugExceptionHandler generate', // 描述
-                    'source' => __DIR__ . '/publish/stub/ApiDeBugExceptionHandler.stub',  // 对应的配置文件路径
-                    'destination' => BASE_PATH . '/app/Exception/Handler/ApiDeBugExceptionHandler.php', // 复制为这个路径下的该文件
-                ],
+                // [
+                //     'id' => 'ApiDeBugExceptionHandler',
+                //     'description' => 'ApiDeBugExceptionHandler generate', // 描述
+                //     'source' => __DIR__ . '/publish/stub/ApiDeBugExceptionHandler.stub',  // 对应的配置文件路径
+                //     'destination' => BASE_PATH . '/app/Exception/Handler/ApiDeBugExceptionHandler.php', // 复制为这个路径下的该文件
+                // ],
                 [
                     'id' => 'ValidationExceptionHandler',
                     'description' => 'ValidationExceptionHandler generate', // 描述

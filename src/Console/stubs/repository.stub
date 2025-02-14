@@ -47,15 +47,23 @@ class {{ class }} extends BaseRepository
     public function save{{ table }}Data($data = [])
     {
         if (!isset($data[{{ primaryKey }}])) {
-            [$status, $object] = $this->saveData($data);
+            return $this->saveData($data);
         } else {
-            [$status, $object] = $this->updateData($data,{{ primaryKey }});
+            return $this->updateData($data,{{ primaryKey }});
         }
+    }
 
-        if (!$status) {
-            return [false,$object];
-        }
+    public function get{{ table }}Data($data,$get = 'get',$cache = true)
+    {
+        return $this->getData($this->selectArray(
+            $data
+        ),$get,null,$cache);
+    }
 
-        return [true,$object];
+    public function get{{ table }}Count($data)
+    {
+        return $this->getCount($this->selectArray(
+            $data
+        ));
     }
 }

@@ -72,7 +72,7 @@ class JsonCallBack implements JsonCallBackInterface
             'code' => $this->code,
             'message' => $this->msg,
             'data' => $this->data,
-            'count' => $this->count,
+            'total' => $this->count,
         ]));
 
         if(!empty($this->custom)){

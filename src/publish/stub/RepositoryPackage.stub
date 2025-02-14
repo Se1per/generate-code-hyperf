@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Base\src;
 
-use Carbon\Carbon;
-use Hyperf\Cache\Annotation\Cacheable;
+
+use App\Constants\JsonCodeConstants;
+use App\Exception\ApiException;
 use Hyperf\Config\Annotation\Value;
-use Hyperf\Coroutine\Coroutine;
+
 use Hyperf\Coroutine\Exception\ParallelExecutionException;
 use Hyperf\Coroutine\Parallel;
 use Hyperf\DbConnection\Db;
 use Hyperf\Di\Annotation\Inject;
 use SplQueue;
-use function Hyperf\coroutine\co;
 
 abstract class RepositoryPackage
 {
@@ -47,7 +47,7 @@ abstract class RepositoryPackage
     public function setModel($eloquentModel)
     {
         if (!class_exists($eloquentModel)) {
-            throw new \RuntimeException('model not found');
+            throw new ApiException(JsonCodeConstants::ERROR, '模型不存在');
         }
 
         return $this->model = new $eloquentModel();
@@ -72,11 +72,10 @@ abstract class RepositoryPackage
             $createData = $this->model->create($data);
 
         } catch (\Throwable $e) {
-
-            return [false, $e->getMessage()];
+            throw new ApiException(JsonCodeConstants::ERROR, $e->getMessage());
         }
 
-        return [true, $createData];
+        return $createData;
     }
 
     /**
@@ -111,16 +110,17 @@ abstract class RepositoryPackage
         }
 
         try {
+
             $results = $parallel->wait();
+
             $endTime = microtime(true);
 
             $executionTime = $endTime - $startTime;
+
             $this->logMonMain->info('db_log', 'saveAllData', [
                 'count' => count($data),
                 'executionTime' => $executionTime
             ]);
-
-            return [true, $results];
 
         } catch (ParallelExecutionException $e) {
             $results = $e->getResults();
@@ -132,8 +132,10 @@ abstract class RepositoryPackage
                 'error' => $e->getResults(),
                 'Throwables' => $e->getThrowables(),
             ]);
-            return [false, $results];
+            throw new ApiException(JsonCodeConstants::ERROR, json_encode($results));
         }
+
+        return $results;
     }
 
     /**
@@ -151,14 +153,14 @@ abstract class RepositoryPackage
             $needsUpdate = $this->inspectUpdateData($object, $data);
 
             if ($needsUpdate) {
-                $object->update($data);
+                $object = $object->query(true)->update($data);
             }
 
         } catch (\Throwable $e) {
-            return [false, $e->getMessage()];
+            throw new ApiException(JsonCodeConstants::ERROR, $e->getMessage());
         }
 
-        return [true, $object];
+        return $object;
     }
 
     /**
@@ -168,7 +170,7 @@ abstract class RepositoryPackage
      * @param int $unpack
      * @return array
      */
-    public function updateAllData($data, string $key = 'id',int $unpack = 5): array
+    public function updateAllData($data, string $key = 'id', int $unpack = 5): array
     {
         $startTime = microtime(true);
 
@@ -186,7 +188,7 @@ abstract class RepositoryPackage
 
         foreach ($data as $val) {
             $parallel->add(function () use ($key, $val) {
-                return $this->updateBatch($val,$key);
+                return $this->updateBatch($val, $key);
             });
         }
 
@@ -240,7 +242,7 @@ abstract class RepositoryPackage
      * *     ]
      * * ];
      */
-    public function updateBatch(array $inputs,string $where_field = 'id', string $when_field = 'id'): mixed
+    public function updateBatch(array $inputs, string $where_field = 'id', string $when_field = 'id'): mixed
     {
         if (empty($inputs)) {
             throw new \InvalidArgumentException('The update data is empty.');
@@ -262,26 +264,58 @@ abstract class RepositoryPackage
             $item = DB::raw('case ' . implode(' ', $item) . ' end ');
         }
 
-        return $this->model->whereIn($where_field, $where)->update($when_arr);
+        return $this->model->query(true)->whereIn($where_field, $where)->update($when_arr);
+    }
+
+    /**
+     * 自增某字段
+     * @param $field
+     * @param int $value
+     * @return mixed
+     */
+    public function increment($field, int $value = 1): mixed
+    {
+        try {
+            return  $this->model->increment($field,$value);
+        } catch (\Throwable $e) {
+            throw new ApiException(JsonCodeConstants::ERROR, $e->getMessage());
+        }
+    }
+
+    /**
+     * 自减某字段
+     * @param $field
+     * @param int $value
+     * @return mixed
+     */
+    public function decrement($field,int $value = 1): mixed
+    {
+        try {
+            
+            return $this->model->decrement($field,$value);
+            
+        } catch (\Throwable $e) {
+            throw new ApiException(JsonCodeConstants::ERROR, $e->getMessage());
+        }
     }
 
     /**
      * 删除数据
      * @param $data
+     * @param string $key
      * @return array
      */
-    public function deleteData($data): array
+    public function deleteData($data, string $key = 'id'): array
     {
         try {
 
-            $this->model->destroy($data);
+            $status = $this->model->query(true)->where($key, $data[$key])->delete();
 
-        } catch (\Exception $e) {
-
-            return [false, $e->getMessage()];
+        } catch (\Throwable $e) {
+            throw new ApiException(JsonCodeConstants::ERROR, $e->getMessage());
         }
 
-        return [true, '数据已删除'];
+        return [true, $status];
     }
 
     /**
@@ -345,27 +379,40 @@ abstract class RepositoryPackage
     /**
      * 统一执行sql
      * @param array $data
-     * @param $get
+     * @param string|array $get
      * @param $model
+     * @param bool $cache
      * @param bool $needToArray
-     * @param $dataCallBack
      * @return mixed
      */
-    public function getData(array $data = [], $get = 'get', $model = null, bool $needToArray = false, &$dataCallBack = null): mixed
+    public function getData(array $data = [], string|array $get = 'get', $model = null, bool $cache = false, bool $needToArray = false): mixed
     {
-        return $this->runningSql($data, $needToArray, $get, $model, $dataCallBack);
+        if ($cache) {
+            $key = $this->model->getKeyName();
+            switch ($get) {
+                case 'find':
+                case 'first':
+                    $ids = $this->runningSql($data, true, ['pluck' => $key], $model);
+                    return $this->findFromCache(array_shift($ids));
+                default:
+                case 'get':
+                    $ids = $this->runningSql($data, true, ['pluck' => $key], $model);
+                    return $this->findManyFromCache($ids);
+            }
+        }
+
+        return $this->runningSql($data, $needToArray, $get, $model);
     }
 
     /**
      * 执行底层sql
      * @param $data
      * @param bool $needToArray
-     * @param $get
+     * @param string $get
      * @param $object
-     * @param $dataCallBack
      * @return mixed
      */
-    public function runningSql($data, bool $needToArray = false, $get = 'get', $object = null, &$dataCallBack = null): mixed
+    public function runningSql($data, bool $needToArray = false, string|array $get = 'get', $object = null): mixed
     {
         if (!$object) {
             $object = $this->model;
@@ -406,21 +453,10 @@ abstract class RepositoryPackage
             }
         }
 
-        if ($get == 'chunk') {
-//            $object->$get(200, function ($value) use (&$dataCallBack) {
-//                foreach ($value as $val) {
-//                    $dataCallBack[] = $val->toArray();
-//                }
-//            });
-            return $object;
-        }
-
-        if ($get == 'cursor') {
-//            foreach ($object->$get() as $flight) {
-//                if ($needToArray) $flight = $flight->toArray();
-//                $dataCallBack[] = $flight;
-//            }
-            return $object;
+        switch ($get) {
+            case 'chunk':
+            case 'cursor':
+                return $object;
         }
 
         if (is_array($get)) {
@@ -442,6 +478,26 @@ abstract class RepositoryPackage
         }
 
         return $list;
+    }
+
+    /**
+     * 批量查询缓存
+     * @param $ids
+     * @return mixed
+     */
+    public function findManyFromCache($ids)
+    {
+        return $this->model->findManyFromCache($ids);
+    }
+
+    /**
+     * 查询单个缓存
+     * @param $ids
+     * @return mixed
+     */
+    public function findFromCache($ids)
+    {
+        return $this->model->findFromCache($ids);
     }
 
     /**

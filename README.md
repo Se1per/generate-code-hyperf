@@ -14,10 +14,8 @@ php bin/hyperf.php vendor:publish japool/generate-code-hyperf
 
 # 添加验证器异常处理器
 \App\Exception\Handler\ValidationExceptionHandler::class
-# 添加api(生产) 接口异常处理器
+# 添加api 接口异常处理器
 \App\Exception\Handler\ApiExceptionHandler::class, 
-# 添加api(测试) 接口异常处理器
-\App\Exception\Handler\ApiDeBugExceptionHandler::class,
 
 # [可选] 自动化测试
 composer require hyperf/testing --dev

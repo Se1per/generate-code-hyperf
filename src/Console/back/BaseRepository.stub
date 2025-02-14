@@ -15,7 +15,7 @@ abstract class BaseRepository
 
     protected $model;
 
-    #[Value('generate')]
+    #[Value('generator')]
     protected $config;
 
     protected $user;

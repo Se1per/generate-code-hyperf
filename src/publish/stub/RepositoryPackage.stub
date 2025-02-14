@@ -19,7 +19,7 @@ abstract class RepositoryPackage
 {
     protected $model;
 
-    #[Value('generate')]
+    #[Value('generator')]
     protected array $config;
 
     #[Inject]

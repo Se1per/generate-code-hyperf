@@ -11,7 +11,7 @@ use Hyperf\Devtool\Generator\GeneratorCommand;
 #[Command]
 class MakeService extends GeneratorCommand
 {
-    #[value('generate')]
+    #[Value('generator')]
     protected $config;
 
     use AutoCodeHelp;

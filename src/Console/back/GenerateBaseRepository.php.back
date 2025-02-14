@@ -9,7 +9,7 @@ use Hyperf\Devtool\Generator\GeneratorCommand;
 #[Command]
 class GenerateBaseRepository extends GeneratorCommand
 {
-    #[value('generate')]
+    #[Value('generator')]
     protected $config;
 
     public function __construct()

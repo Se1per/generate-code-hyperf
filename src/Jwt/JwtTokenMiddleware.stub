@@ -1,0 +1,108 @@
+<?php
+
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
+
+namespace App\Middleware;
+
+use App\Base\src\JsonCallBack;
+use Hyperf\Context\Context;
+use Hyperf\Di\Annotation\Inject;
+use Japool\HyperfHelpFunc\Jwt\JwtHelp;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class JwtTokenMiddleware implements MiddlewareInterface
+{
+    #[Inject]
+    protected JsonCallBack $JsonCallBack;
+
+    use JwtHelp;
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+        // 获取 JWT 令牌
+        $token = $request->getHeaderLine('Authorization');
+
+        $routeUrl = $request->getUri()->getPath();
+
+        $white = $this->whiteRouteList($routeUrl);
+
+        if ($white) {
+            return $handler->handle($request);
+        }
+
+        $checkTokenStr = $this->validateBearerToken($token);
+
+        if (! $checkTokenStr) {
+            return $this->JsonCallBack->JsonMain(300005);
+        }
+
+        if (! empty($token) && preg_match('/^Bearer\s+(.*)$/', $token, $matches)) {
+
+            if (strstr($matches[1], '.=')) {
+                $tokenGet = explode('.=', $matches[1]);
+                $apiToken = $tokenGet[1];
+                $jwtToken = $tokenGet[0];
+            } else {
+                $jwtToken = $matches[1];
+            }
+
+            if (! $jwtToken) {
+                return $this->JsonCallBack->JsonMain(300003);
+            }
+
+            // 验证 JWT 是否合法
+            [$status,$decoded] = $this->decodeJwtToken($jwtToken);
+
+            if(!$status) return $this->JsonCallBack->JsonMain($decoded);
+
+            if ($decoded['exp'] < time()) {
+                return $this->JsonCallBack->JsonMain(300001);
+            }
+
+//            $userToken = $this->redisService->get('hlerprest_database_single_point:' . $decoded['user_id']);
+//
+//            if (! $userToken) {
+//                return $this->JsonCallBack->JsonMain(300004, '登录已过期,请重新登录');
+//            }
+
+            //$decoded['info'] = json_decode(json_encode($decoded['info']),true);
+
+            Context::set('userToken', $decoded['info']);
+            //$user  = Context::get('userToken', null);
+            return $handler->handle($request);
+        }
+
+        return $this->JsonCallBack->JsonMain(300002);
+    }
+
+    public function validateBearerToken($str): bool
+    {
+        if (is_null($str)) {
+            return false;
+        }
+
+        $trimmedStr = trim($str);
+
+        if (strpos($trimmedStr, 'Bearer ') === 0) {
+            $tokenPart = substr($trimmedStr, 7);
+
+            if ($tokenPart == 'null') {
+                return false;  // Check if the token part is exactly "null"
+            }
+
+            return true;
+        }
+        return false;
+    }
+}

@@ -5,8 +5,8 @@ declare(strict_types=1);
 // namespace App\Base\src;
 namespace Japool\Genconsole\JsonCall;
 
-use Japool\Genconsole\JsonCall\JsonCallBackInterface;
-use App\Constants\JsonCodeConstants;
+use Japool\Genconsole\ReturnCall\JsonCallBackInterface;
+use App\Constants\CodeConstants;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\ResponseInterface;
 
@@ -15,12 +15,12 @@ class JsonCallBack implements JsonCallBackInterface
     #[Inject]
     protected ResponseInterface $response;
 
-    public function JsonMain(JsonCodeConstants|int|string $code, string $msg = null, $data = null, $count = null , $custom = null): string|\Psr\Http\Message\ResponseInterface
+    public function JsonMain(CodeConstants|int|string $code, string $msg = null, $data = null, $count = null , $custom = null): string|\Psr\Http\Message\ResponseInterface
     {
-        if ($code instanceof JsonCodeConstants) {
+        if ($code instanceof CodeConstants) {
             $message = $code->getMessage();
         } else {
-            $message = JsonCodeConstants::CODE_ERROR->getMessage([$code]);
+            $message = CodeConstants::CODE_ERROR->getMessage([$code]);
 
             return $this->response->json([
                 'status' => 'error',

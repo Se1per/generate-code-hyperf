@@ -5,7 +5,7 @@ namespace {{ namespace }};
 use {{ base }}\BaseService;
 use App\Exception\ApiException;
 use Hyperf\Di\Annotation\Inject;
-use App\Constants\JsonCodeConstants;
+use App\Constants\CodeConstants;
 use {{ repository }}\{{ table }}Repository;
 use {{ manager }}\{{ table }}Manager;
 
@@ -18,18 +18,18 @@ class {{ class }} extends BaseService
     {
         $object =  $this->repository->save{{ table }}Data($data);
 
-        if($object) return [JsonCodeConstants::Success];
+        if($object) return [CodeConstants::Success];
 
-        throw new ApiException(JsonCodeConstants::WARNING,$object);
+        throw new ApiException(CodeConstants::WARNING,$object);
     }
 
     public function del{{ table }}Data($data): array
     {
         $object = $this->repository->deleteData($data);
 
-        if($object) return [JsonCodeConstants::Success];
+        if($object) return [CodeConstants::Success];
 
-        throw new ApiException(JsonCodeConstants::WARNING,$object);
+        throw new ApiException(CodeConstants::WARNING,$object);
     }
 
     public function get{{ table }}Data($data) 
@@ -38,6 +38,6 @@ class {{ class }} extends BaseService
 
         $total = $this->repository->get{{ table }}Count($data);
 
-        return [JsonCodeConstants::Success,null,$object,$total];
+        return [CodeConstants::Success,null,$object,$total];
     }
 }

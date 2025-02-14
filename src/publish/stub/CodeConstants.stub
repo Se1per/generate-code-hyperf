@@ -8,7 +8,7 @@ use Hyperf\Constants\Annotation\Message;
 use Hyperf\Constants\EnumConstantsTrait;
 
 #[Constants]
-enum JsonCodeConstants: int
+enum CodeConstants: int
 {
     use EnumConstantsTrait;
 

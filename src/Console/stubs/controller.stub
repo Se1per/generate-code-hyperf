@@ -10,7 +10,7 @@ use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\RequestMapping;
 use Hyperf\Validation\Annotation\Scene;
-use Japool\Genconsole\JsonCall\Annotation\ReturnAnnotation;
+use Japool\Genconsole\ReturnCall\Annotation\ReturnAnnotation;
 
 #[Controller(prefix: '/api/{{ prefix }}', server: '{{ server }}')]
 class {{ class }} extends BaseController

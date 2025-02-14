@@ -58,19 +58,19 @@ class ConfigProvider
                     'destination' => BASE_PATH . '/app/Exception/Handler/ValidationExceptionHandler.php', // 复制为这个路径下的该文件
                 ],
                 [
-                    'id' => 'JsonCodeConstants',
-                    'description' => 'JsonCodeConstants generate', // 描述
+                    'id' => 'CodeConstants',
+                    'description' => 'CodeConstants generate', // 描述
                     // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
-                    'source' => __DIR__ . '/publish/stub/JsonCodeConstants.stub',  // 对应的配置文件路径
-                    'destination' => BASE_PATH . '/app/Constants/JsonCodeConstants.php', // 复制为这个路径下的该文件
+                    'source' => __DIR__ . '/publish/stub/CodeConstants.stub',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/app/Constants/CodeConstants.php', // 复制为这个路径下的该文件
                 ],               
-                [
-                    'id' => 'ReturnCallAspect',
-                    'description' => 'ReturnCallAspect generate', // 描述
-                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
-                    'source' => __DIR__ . '/publish/stub/ReturnCallAspect.stub',  // 对应的配置文件路径
-                    'destination' => BASE_PATH . '/app/Aspect/ReturnCallAspect.php', // 复制为这个路径下的该文件
-                ],          
+                // [
+                //     'id' => 'ReturnCallAspect',
+                //     'description' => 'ReturnCallAspect generate', // 描述
+                //     // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
+                //     'source' => __DIR__ . '/publish/stub/ReturnCallAspect.stub',  // 对应的配置文件路径
+                //     'destination' => BASE_PATH . '/app/Aspect/ReturnCallAspect.php', // 复制为这个路径下的该文件
+                // ],          
                 // [
                 //     'id' => 'JsonCallBackInterFace',
                 //     'description' => 'JsonCallBackInterFace generate', // 描述

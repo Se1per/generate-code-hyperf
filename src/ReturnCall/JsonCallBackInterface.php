@@ -3,21 +3,21 @@
 declare(strict_types=1);
 
 // namespace App\Base\src;
-namespace Japool\Genconsole\JsonCall;
+namespace Japool\Genconsole\ReturnCall;
  
-use App\Constants\JsonCodeConstants;
+use App\Constants\CodeConstants;
 use Psr\Http\Message\ResponseInterface;
 
 interface JsonCallBackInterface
 {
     /**
      * 返回类
-     * @param JsonCodeConstants|int|string $code
+     * @param CodeConstants|int|string $code
      * @param string|null $msg
      * @param $data
      * @param $count
      * @param $custom
      * @return string|ResponseInterface
      */
-    public function JsonMain(JsonCodeConstants|int|string $code, string $msg = null, $data = null, $count = null , $custom = null): string|\Psr\Http\Message\ResponseInterface;
+    public function JsonMain(CodeConstants|int|string $code, string $msg = null, $data = null, $count = null , $custom = null): string|\Psr\Http\Message\ResponseInterface;
 }

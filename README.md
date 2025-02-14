@@ -30,4 +30,4 @@ composer require hyperf/testing --dev
 php bin/hyperf.php generate:crud-code
 
 # 生成user 表crud 代码
-php bin/hyperf.php generate:crud-code user
+php bin/hyperf.php generate:crud-code user_name

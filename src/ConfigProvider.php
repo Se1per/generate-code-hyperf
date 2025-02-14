@@ -33,9 +33,10 @@ class ConfigProvider
                 [
                     'id' => 'ApiException',
                     'description' => 'ApiException generate', // 描述
+                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
                     'source' => __DIR__ . '/publish/stub/ApiException.stub',  // 对应的配置文件路径
                     'destination' => BASE_PATH . '/app/Exception/ApiException.php', // 复制为这个路径下的该文件
-                ],
+                ], 
                 [
                     'id' => 'ApiExceptionHandler',
                     'description' => 'ApiExceptionHandler generate', // 描述
@@ -85,18 +86,18 @@ class ConfigProvider
                 //     'destination' => BASE_PATH . '/app/Base/src/JsonCallBack.php', // 复制为这个路径下的该文件
                 // ],
                 [
-                    'id' => 'RepositoryPackage',
-                    'description' => 'RepositoryPackage generate', // 描述
-                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
-                    'source' => __DIR__ . '/publish/stub/RepositoryPackage.stub',  // 对应的配置文件路径
-                    'destination' => BASE_PATH . '/app/Base/src/RepositoryPackage.php', // 复制为这个路径下的该文件
-                ],
-                [
                     'id' => 'LogMonMain',
                     'description' => 'LogMonMain generate', // 描述
                     // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
                     'source' => __DIR__ . '/publish/stub/LogMonMain.stub',  // 对应的配置文件路径
                     'destination' => BASE_PATH . '/app/Base/src/LogMonMain.php', // 复制为这个路径下的该文件
+                ],
+                [
+                    'id' => 'RepositoryPackage',
+                    'description' => 'RepositoryPackage generate', // 描述
+                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
+                    'source' => __DIR__ . '/publish/stub/RepositoryPackage.stub',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/app/Base/src/RepositoryPackage.php', // 复制为这个路径下的该文件
                 ],
                 [
                     'id' => 'BaseService',

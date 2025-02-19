@@ -8,6 +8,8 @@ use Hyperf\Di\Annotation\Inject;
 use App\Constants\CodeConstants;
 use {{ repository }}\{{ table }}Repository;
 use {{ manager }}\{{ table }}Manager;
+use Japool\Genconsole\Cache\Annotation\CacheAnnotation;
+use Japool\Genconsole\Cache\Annotation\CacheEventAnnotation;
 
 class {{ class }} extends BaseService
 {
@@ -17,7 +19,8 @@ class {{ class }} extends BaseService
     #[Inject]
     private ?{{ table }}Manager $manager;
 
-    public function save{{ table }}Data($data): array
+    #[CacheEventAnnotation(prefix:'{{ table }}')]
+    public function save{{ table }}Data($data)
     {
         $object =  $this->repository->save{{ table }}Data($data);
 
@@ -26,7 +29,8 @@ class {{ class }} extends BaseService
         throw new ApiException(CodeConstants::WARNING,$object);
     }
 
-    public function del{{ table }}Data($data): array
+    #[CacheEventAnnotation(prefix:'{{ table }}')]
+    public function del{{ table }}Data($data)
     {
         $object = $this->repository->deleteData($data);
 
@@ -35,6 +39,7 @@ class {{ class }} extends BaseService
         throw new ApiException(CodeConstants::WARNING,$object);
     }
 
+    #[CacheAnnotation(prefix:'{{ table }}')]
     public function get{{ table }}Data($data) 
     {
         $object = $this->repository->get{{ table }}Data($data);

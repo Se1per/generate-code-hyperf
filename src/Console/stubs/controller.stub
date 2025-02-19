@@ -5,6 +5,8 @@ namespace {{ namespace }};
 use {{ base }}\BaseController;
 use {{ request }}\{{ table }}Request;
 use {{ service }}\{{ table }}Service;
+use App\Constants\JsonCodeConstants;
+use App\Exception\ApiException;
 
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
@@ -23,7 +25,12 @@ class {{ class }} extends BaseController
     #[ReturnAnnotation]
     public function save{{ table }}Data({{ table }}Request $request): string|array|\Psr\Http\Message\ResponseInterface
     {
-        return $this->service->save{{ table }}Data($request->validated());
+        $object =  $this->service->save{{ table }}Data($request->validated());
+
+        if($object){
+            return [JsonCodeConstants::Success];
+        }
+        throw new ApiException(JsonCodeConstants::WARNING,$object);
     }
 
     #[RequestMapping(path: 'del{{ table }}Data', methods: 'put')]
@@ -31,7 +38,12 @@ class {{ class }} extends BaseController
     #[ReturnAnnotation]
     public function del{{ table }}Data({{ table }}Request $request): string|array|\Psr\Http\Message\ResponseInterface
     {
-        return $this->service->del{{ table }}Data($request->validated());
+        $object = $this->service->del{{ table }}Data($request->validated());
+
+        if($object){
+            return [JsonCodeConstants::Success];
+        }
+        throw new ApiException(JsonCodeConstants::WARNING,$object);
     }
 
     #[RequestMapping(path: 'get{{ table }}Data', methods: 'GET')]
@@ -39,6 +51,8 @@ class {{ class }} extends BaseController
     #[ReturnAnnotation]
     public function get{{ table }}Data({{ table }}Request $request): string|array|\Psr\Http\Message\ResponseInterface
     {
-        return $this->service->get{{ table }}Data($request->validated());
+        [$list,$total] = $this->service->getUserNameData($request->validated());
+
+        return [JsonCodeConstants::Success,null,$list,$total];
     }
 }

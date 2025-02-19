@@ -111,7 +111,6 @@ trait AutoCodeHelp
         if ($column->Key == 'PRI' && $keyCount == 1) {
             $store .= '\'' . $column->Field . '\'' . '=>' . '$this->getKeyRule(),'. "\r";
             $messages .= '\'' . $column->Field . '.required' . '\'' . '=>' . '\'' . $column_default . '不能为空' . '\'' . ',' . "\r";
-
             $messages .= '\'' . $column->Field . '.exists' . '\'' . '=>' . '\'' . $column_default . '必须存在' . '\'' . ','. "\r";
             return true;
         }
@@ -141,24 +140,30 @@ trait AutoCodeHelp
             return true;
 
         } elseif (strpos($column_type, 'decimal') !== false) {
-            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是字符串' . '\'' . ','. "\r";
+            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'numeric|decimal:2' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.numeric' . '\'' . '=>' . '\'' . $column_default . '必须是数字参数' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.decimal' . '\'' . '=>' . '\'' . $column_default . '必须是浮点型保留两位小数' . '\'' . ','. "\r";
+            return true;
         } elseif (strpos($column_type, 'float') !== false) {
-            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是字符串' . '\'' . ','. "\r";
+            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'numeric|decimal:2' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.numeric' . '\'' . '=>' . '\'' . $column_default . '必须是数字参数' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.decimal' . '\'' . '=>' . '\'' . $column_default . '必须是浮点型保留两位小数' . '\'' . ','. "\r";
+            return true;
         } elseif (strpos($column_type, 'double') !== false) {
+            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'numeric|decimal:2' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.numeric' . '\'' . '=>' . '\'' . $column_default . '必须是数字参数' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.decimal' . '\'' . '=>' . '\'' . $column_default . '必须是浮点型保留两位小数' . '\'' . ','. "\r";
+            return true;
+        } elseif (strpos($column_type, 'string') !== false) {
             $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是字符串' . '\'' . ','. "\r";
-        } elseif (strpos($column_type, 'char') !== false) {
-            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是字符串' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须字符串' . '\'' . ','. "\r";
             return true;
         } elseif (strpos($column_type, 'varchar') !== false) {
-            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string' . '\'' . ','. "\r";
+            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string|max:32' . '\'' . ','. "\r";
             $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是字符串' . '\'' . ','. "\r";
             return true;
         } elseif (strpos($column_type, 'text') !== false) {
-            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string' . '\'' . ','. "\r";
+            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string|max:32' . '\'' . ','. "\r";
             $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是字符串' . '\'' . ','. "\r";
         } elseif (strpos($column_type, 'blob') !== false) {
             // 二进制数据类型
@@ -177,8 +182,8 @@ trait AutoCodeHelp
             $messages .= '\'' . $column_name . '.date' . '\'' . '=>' . '\'' . $column_default . '必须是日期格式' . '\'' . ','. "\r";
             return true;
         }elseif (strpos($column_type, 'json') !== false) {
-            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string|nullable ' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是字符串' . '\'' . ','. "\r";
+            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'json|nullable ' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是json格式' . '\'' . ','. "\r";
             return true;
         } elseif (strpos($column_type, 'enum') !== false) {
             // 枚举类型
@@ -225,6 +230,15 @@ trait AutoCodeHelp
         return true;
     }
 
+    /**
+     * 生成Model可编辑数据
+     * @param mixed $column
+     * @param mixed $primaryKey
+     * @param mixed $fillAble
+     * @param mixed $softDeletes
+     * @param mixed $keyGet
+     * @return bool
+     */
     public function makeModelData($column, &$primaryKey, &$fillAble,&$softDeletes,&$keyGet)
     {
         if($column->Field == 'deleted_at'){
@@ -266,10 +280,11 @@ trait AutoCodeHelp
         $msg .= '\'' . 'page' . '.integer' . '\'' . '=>' . '\'' . '分页参数必须是数字' . '\'' . ','. "\r";
         $msg .= '\'' . 'page' . '.min' . '\'' . '=>' . '\'' . '分页参数必须大于0' . '\'' . ','. "\r";
 
-        $store .= '\'' . 'pageSize' . '\'' . '=>' . '\'' . 'required|integer|min:1' . '\'' . ','. "\r";
+        $store .= '\'' . 'pageSize' . '\'' . '=>' . '\'' . 'required|integer|min:1|max:500' . '\'' . ','. "\r";
         $msg .= '\'' . 'pageSize' . '.required' . '\'' . '=>' . '\'' . '分页参数必须携带' . '\'' . ','. "\r";
         $msg .= '\'' . 'pageSize' . '.integer' . '\'' . '=>' . '\'' . '分页参数必须是数字' . '\'' . ','. "\r";
         $msg .= '\'' . 'pageSize' . '.min' . '\'' . '=>' . '\'' . '分页参数必须大于0' . '\'' . ','. "\r";
+        $msg .= '\'' . 'pageSize' . '.max' . '\'' . '=>' . '\'' . '单页参数不能大于500' . '\'' . ','. "\r";
         
         $getRules .= '\'' . 'page' . '\'' . ','. "\r";
         $getRules .= '\'' . 'pageSize' . '\'' . ','. "\r";

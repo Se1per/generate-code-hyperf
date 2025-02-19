@@ -44,7 +44,7 @@ class {{ class }} extends BaseRepository
         return $sql;
     }
 
-    public function save{{ table }}Data($data = [])
+    public function save{{ table }}Data($data = []): mixed
     {
         if (!isset($data[{{ primaryKey }}])) {
             return $this->saveData($data);

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Base\src;
 
 
-use App\Constants\CodeConstants;
+use App\Constants\JsonCodeConstants;
 use App\Exception\ApiException;
 use Hyperf\Config\Annotation\Value;
 
@@ -19,7 +19,7 @@ abstract class RepositoryPackage
 {
     protected $model;
 
-    #[Value('generator')]
+    #[Value('generate')]
     protected array $config;
 
     #[Inject]
@@ -47,7 +47,7 @@ abstract class RepositoryPackage
     public function setModel($eloquentModel)
     {
         if (!class_exists($eloquentModel)) {
-            throw new ApiException(CodeConstants::ERROR, '模型不存在');
+            throw new ApiException(JsonCodeConstants::ERROR, '模型不存在');
         }
 
         return $this->model = new $eloquentModel();
@@ -63,16 +63,16 @@ abstract class RepositoryPackage
     /**
      * 保存数据
      * @param $data
-     * @return array
+     * @return mixed
      */
-    public function saveData($data): array
+    public function saveData($data): mixed
     {
         try {
 
             $createData = $this->model->create($data);
 
         } catch (\Throwable $e) {
-            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
+            throw new ApiException(JsonCodeConstants::ERROR, $e->getMessage());
         }
 
         return $createData;
@@ -132,7 +132,7 @@ abstract class RepositoryPackage
                 'error' => $e->getResults(),
                 'Throwables' => $e->getThrowables(),
             ]);
-            throw new ApiException(CodeConstants::ERROR, json_encode($results));
+            throw new ApiException(JsonCodeConstants::ERROR, json_encode($results));
         }
 
         return $results;
@@ -142,9 +142,9 @@ abstract class RepositoryPackage
      * 更新数据(单个更新数据,检测数据是否需要更新)
      * @param $data
      * @param string $key
-     * @return array
+     * @return mixed
      */
-    public function updateData($data, string $key = 'id'): array
+    public function updateData($data, string $key = 'id'): mixed
     {
         $object = $this->getDataFindBy($key, $data[$key]);
 
@@ -157,7 +157,7 @@ abstract class RepositoryPackage
             }
 
         } catch (\Throwable $e) {
-            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
+            throw new ApiException(JsonCodeConstants::ERROR, $e->getMessage());
         }
 
         return $object;
@@ -278,7 +278,7 @@ abstract class RepositoryPackage
         try {
             return  $this->model->increment($field,$value);
         } catch (\Throwable $e) {
-            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
+            throw new ApiException(JsonCodeConstants::ERROR, $e->getMessage());
         }
     }
 
@@ -291,11 +291,11 @@ abstract class RepositoryPackage
     public function decrement($field,int $value = 1): mixed
     {
         try {
-            
+
             return $this->model->decrement($field,$value);
-            
+
         } catch (\Throwable $e) {
-            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
+            throw new ApiException(JsonCodeConstants::ERROR, $e->getMessage());
         }
     }
 
@@ -303,19 +303,17 @@ abstract class RepositoryPackage
      * 删除数据
      * @param $data
      * @param string $key
-     * @return array
+     * @return mixed
      */
-    public function deleteData($data, string $key = 'id'): array
+    public function deleteData($data, string $key = 'id'): mixed
     {
         try {
 
-            $status = $this->model->query(true)->where($key, $data[$key])->delete();
+            return  $this->model->query(true)->where($key, $data[$key])->delete();
 
         } catch (\Throwable $e) {
-            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
+            throw new ApiException(JsonCodeConstants::ERROR, $e->getMessage());
         }
-
-        return [true, $status];
     }
 
     /**

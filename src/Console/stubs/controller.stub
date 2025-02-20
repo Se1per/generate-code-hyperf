@@ -5,7 +5,7 @@ namespace {{ namespace }};
 use {{ base }}\BaseController;
 use {{ request }}\{{ table }}Request;
 use {{ service }}\{{ table }}Service;
-use App\Constants\JsonCodeConstants;
+use App\Constants\CodeConstants;
 use App\Exception\ApiException;
 
 use Hyperf\Di\Annotation\Inject;
@@ -28,9 +28,9 @@ class {{ class }} extends BaseController
         $object =  $this->service->save{{ table }}Data($request->validated());
 
         if($object){
-            return [JsonCodeConstants::Success];
+            return [CodeConstants::Success];
         }
-        throw new ApiException(JsonCodeConstants::WARNING,$object);
+        throw new ApiException(CodeConstants::WARNING,$object);
     }
 
     #[RequestMapping(path: 'del{{ table }}Data', methods: 'put')]
@@ -41,9 +41,9 @@ class {{ class }} extends BaseController
         $object = $this->service->del{{ table }}Data($request->validated());
 
         if($object){
-            return [JsonCodeConstants::Success];
+            return [CodeConstants::Success];
         }
-        throw new ApiException(JsonCodeConstants::WARNING,$object);
+        throw new ApiException(CodeConstants::WARNING,$object);
     }
 
     #[RequestMapping(path: 'get{{ table }}Data', methods: 'GET')]
@@ -53,6 +53,6 @@ class {{ class }} extends BaseController
     {
         [$list,$total] = $this->service->getUserNameData($request->validated());
 
-        return [JsonCodeConstants::Success,null,$list,$total];
+        return [CodeConstants::Success,null,$list,$total];
     }
 }

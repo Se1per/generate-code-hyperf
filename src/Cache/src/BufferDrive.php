@@ -20,7 +20,7 @@ class BufferDrive
         $arguments = json_encode($arguments);
         $keyArgum = md5($arguments);
  
-        $data = $this->drive->get($this->dataKey);
+        $data = $this->drive->get($this->dataKey.$keyArgum);
 
         if(!empty($data)){
             $data = json_decode($data, true);
@@ -35,7 +35,7 @@ class BufferDrive
         $arguments = json_encode($arguments);
         $keyArgum = md5($arguments);
 
-        return $this->drive->setex($this->dataKey,$config->ttl,json_encode($result));
+        return $this->drive->setex($this->dataKey.$keyArgum,$config->ttl,json_encode($result));
     }
 
     public function removeCache($config)

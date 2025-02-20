@@ -46,6 +46,6 @@ class {{ class }} extends BaseService
 
         $total = $this->repository->get{{ table }}Count($data);
 
-        return [CodeConstants::Success,null,$object,$total];
+        return [$object,$total];
     }
 }

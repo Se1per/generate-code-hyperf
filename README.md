@@ -49,8 +49,15 @@ https://github.com/firebase/php-jwt
 
 #test 错误 还没改
 #版本号区分
-#UserNameManager 自动生成引入 
-#JWT 还有问题
 
-# vben admin 生成
+# 已添加
+自动生成crud 
+jwt 引入
+模型缓存启用
+service 层缓存 模块 
 
+# 代办 
+冷热缓存淘汰
+缓存更新
+待定
+.....

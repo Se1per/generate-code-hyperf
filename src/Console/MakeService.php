@@ -69,6 +69,8 @@ class MakeService extends GeneratorCommand
 
         $stub = str_replace('{{ class }}', $this->camelCase($tableName['name']).'Service', $stub);
 
+        $stub = str_replace('{{ smallTable }}', $tableName['name'],$stub);
+
         $stub = str_replace('{{ table }}', $this->camelCase($tableName['name']),$stub);
 
         $stub = str_replace('{{ namespace }}', $this->config['general']['service'], $stub);

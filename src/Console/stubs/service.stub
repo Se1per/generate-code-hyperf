@@ -19,7 +19,7 @@ class {{ class }} extends BaseService
     #[Inject]
     private ?{{ table }}Manager $manager;
 
-    #[CacheEventAnnotation(prefix:'{{ table }}')]
+    #[CacheEventAnnotation(prefix:'{{ smallTable }}')]
     public function save{{ table }}Data($data)
     {
         $object =  $this->repository->save{{ table }}Data($data);
@@ -29,7 +29,7 @@ class {{ class }} extends BaseService
         throw new ApiException(CodeConstants::WARNING,$object);
     }
 
-    #[CacheEventAnnotation(prefix:'{{ table }}')]
+    #[CacheEventAnnotation(prefix:'{{ smallTable }}')]
     public function del{{ table }}Data($data)
     {
         $object = $this->repository->deleteData($data);
@@ -39,7 +39,7 @@ class {{ class }} extends BaseService
         throw new ApiException(CodeConstants::WARNING,$object);
     }
 
-    #[CacheAnnotation(prefix:'{{ table }}')]
+    #[CacheAnnotation(prefix:'{{ smallTable }}')]
     public function get{{ table }}Data($data) 
     {
         $object = $this->repository->get{{ table }}Data($data);

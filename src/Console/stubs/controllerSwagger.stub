@@ -98,7 +98,7 @@ class {{ class }} extends BaseController
     #[ReturnAnnotation]
     public function get{{ table }}Data({{ table }}Request $request): string|\Psr\Http\Message\ResponseInterface
     {
-        [$list,$total] = $this->service->getUserNameData($request->validated());
+        [$list,$total] = $this->service->get{{ table }}Data($request->validated());
 
         return [CodeConstants::Success,null,$list,$total];
     }

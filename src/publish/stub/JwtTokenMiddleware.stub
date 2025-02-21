@@ -12,11 +12,13 @@ declare(strict_types=1);
 
 namespace App\Middleware;
 
+
+use App\Constants\CodeConstants;
+use App\Exception\ApiException;
 use Hyperf\Context\Context;
 use Hyperf\Di\Annotation\Inject;
-
 use Japool\Genconsole\Jwt\JwtHelp;
-use Japool\Genconsole\ReturnCall\JsonCallBack;
+
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -25,66 +27,38 @@ use Psr\Http\Server\RequestHandlerInterface;
 class JwtTokenMiddleware implements MiddlewareInterface
 {
     #[Inject]
-    protected JsonCallBack $JsonCallBack;
-
-    use JwtHelp;
+    protected JwtHelp $jwtHelp;
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        // 获取 JWT 令牌
-        $token = $request->getHeaderLine('Authorization');
-
-        $routeUrl = $request->getUri()->getPath();
-
-        $white = $this->whiteRouteList($routeUrl);
+        $white = $this->jwtHelp->whiteRouteList($request->getUri()->getPath());
 
         if ($white) {
             return $handler->handle($request);
         }
-
-        $checkTokenStr = $this->validateBearerToken($token);
-
-        if (! $checkTokenStr) {
-            return $this->JsonCallBack->JsonMain(300005);
+        
+        // 获取 JWT 令牌
+        $authorization = $request->getHeaderLine('Authorization');
+        
+        if(strpos($authorization, 'Bearer ') !== 0){
+            return $this->JsonCallBack->JsonMain(CodeConstants::TOKEN_INVALID);
         }
 
-        if (! empty($token) && preg_match('/^Bearer\s+(.*)$/', $token, $matches)) {
+        $authorization = substr($authorization, 7);
+ 
+        // 验证 JWT 是否合法
+        [$status, $decoded] = $this->jwtHelp->decodeJwtToken($authorization);
 
-            if (strstr($matches[1], '.=')) {
-                $tokenGet = explode('.=', $matches[1]);
-                $apiToken = $tokenGet[1];
-                $jwtToken = $tokenGet[0];
-            } else {
-                $jwtToken = $matches[1];
-            }
+        if (!$status) throw new ApiException($decoded);
 
-            if (! $jwtToken) {
-                return $this->JsonCallBack->JsonMain(300003);
-            }
+        $userToken = $this->redisService->get('hlerprest_database_single_point:'.$userId);
 
-            // 验证 JWT 是否合法
-            [$status,$decoded] = $this->decodeJwtToken($jwtToken);
-
-            if(!$status) return $this->JsonCallBack->JsonMain($decoded);
-
-            if ($decoded['exp'] < time()) {
-                return $this->JsonCallBack->JsonMain(300001);
-            }
-
-//            $userToken = $this->redisService->get('hlerprest_database_single_point:' . $decoded['user_id']);
-//
-//            if (! $userToken) {
-//                return $this->JsonCallBack->JsonMain(300004, '登录已过期,请重新登录');
-//            }
-
-            //$decoded['info'] = json_decode(json_encode($decoded['info']),true);
-
-            Context::set('userToken', $decoded['info']);
-            //$user  = Context::get('userToken', null);
-            return $handler->handle($request);
+        if (!$userToken) {
+            throw new ApiException(CodeConstants::TOKEN_TIME_OUT);
         }
 
-        return $this->JsonCallBack->JsonMain(300002);
+        return $handler->handle($request);
+
     }
 
     public function validateBearerToken($str): bool

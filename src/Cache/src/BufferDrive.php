@@ -14,6 +14,11 @@ class BufferDrive
 
     public $dataKey = null;
 
+    /**
+     * 获取cache
+     * @param mixed $config
+     * @param mixed $arguments
+     */
     public function getCache($config, $arguments)
     {
         $this->setDrive($config);
@@ -29,6 +34,12 @@ class BufferDrive
         return $data;
     }
 
+    /**
+     * 设置cache 
+     * @param mixed $config
+     * @param mixed $arguments
+     * @param mixed $result
+     */
     public function setCache($config,$arguments,$result)
     {
         $this->setDrive($config);

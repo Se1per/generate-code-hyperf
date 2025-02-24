@@ -10,7 +10,7 @@ use Japool\Genconsole\Console\src\AutoCodeHelp;
 #[Command]
 class GenerateTest extends GeneratorCommand
 {
-    #[value('generate')]
+    #[Value('generator')]
     protected $config;
     
     use AutoCodeHelp;

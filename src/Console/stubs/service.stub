@@ -3,52 +3,49 @@
 namespace {{ namespace }};
 
 use {{ base }}\BaseService;
+use App\Exception\ApiException;
 use Hyperf\Di\Annotation\Inject;
-use App\Constants\JsonCodeConstants;
+use App\Constants\CodeConstants;
 use {{ repository }}\{{ table }}Repository;
 use {{ manager }}\{{ table }}Manager;
+use Japool\Genconsole\Cache\Annotation\CacheAnnotation;
+use Japool\Genconsole\Cache\Annotation\CacheEventAnnotation;
 
 class {{ class }} extends BaseService
 {
     #[Inject]
     private ?{{ table }}Repository $repository;
-
+    
     #[Inject]
     private ?{{ table }}Manager $manager;
 
-    public function save{{ table }}Data($data): array
+    #[CacheEventAnnotation(prefix:'{{ smallTable }}')]
+    public function save{{ table }}Data($data)
     {
-        [$status,$msg] = $this->repository->save{{ table }}Data($data);
+        $object =  $this->repository->save{{ table }}Data($data);
 
-        if($status) {
-            return [JsonCodeConstants::Success];
-        }
+        if($object) return [CodeConstants::Success];
 
-        return [JsonCodeConstants::WARNING,$msg];
+        throw new ApiException(CodeConstants::WARNING,$object);
     }
 
-    public function del{{ table }}Data($data): array
+    #[CacheEventAnnotation(prefix:'{{ smallTable }}')]
+    public function del{{ table }}Data($data)
     {
-        [$status,$msg] = $this->repository->deleteData($data);
+        $object = $this->repository->deleteData($data);
 
-        if($status) {
-            return [JsonCodeConstants::Success];
-        }
+        if($object) return [CodeConstants::Success];
 
-        return [JsonCodeConstants::WARNING,$msg];
+        throw new ApiException(CodeConstants::WARNING,$object);
     }
 
+    #[CacheAnnotation(prefix:'{{ smallTable }}')]
     public function get{{ table }}Data($data) 
     {
-        $getSql = $this->repository->selectArray(
-            $data
-        );
+        $object = $this->repository->get{{ table }}Data($data);
 
-        $count = $this->repository->getCount($getSql);
+        $total = $this->repository->get{{ table }}Count($data);
 
-        $list = $this->repository
-        ->getData($getSql);
-
-        return [JsonCodeConstants::Success,null,$list,$count];
+        return [$object,$total];
     }
 }

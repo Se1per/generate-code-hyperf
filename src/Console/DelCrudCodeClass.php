@@ -16,7 +16,7 @@ class DelCrudCodeClass extends HyperfCommand
 
     protected ContainerInterface $container;
 
-    #[value('generate')]
+    #[Value('generator')]
     protected $config;
 
     public function __construct(ContainerInterface $container)

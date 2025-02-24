@@ -4,24 +4,25 @@ declare(strict_types=1);
 
 namespace App\Base\src;
 
-use Carbon\Carbon;
-use Hyperf\Cache\Annotation\Cacheable;
+
+use App\Constants\CodeConstants;
+
+use App\Exception\ApiException;
 use Hyperf\Config\Annotation\Value;
-use Hyperf\Coroutine\Coroutine;
+
 use Hyperf\Coroutine\Exception\ParallelExecutionException;
 use Hyperf\Coroutine\Parallel;
 use Hyperf\DbConnection\Db;
 use Hyperf\Di\Annotation\Inject;
 use SplQueue;
-use function Hyperf\coroutine\co;
 
 abstract class RepositoryPackage
 {
     protected $model;
 
-    #[Value('generate')]
+    #[Value('generator')]
     protected array $config;
-
+    
     #[Inject]
     private ?LogMonMain $logMonMain;
 
@@ -47,7 +48,7 @@ abstract class RepositoryPackage
     public function setModel($eloquentModel)
     {
         if (!class_exists($eloquentModel)) {
-            throw new \RuntimeException('model not found');
+            throw new ApiException(CodeConstants::ERROR, '模型不存在');
         }
 
         return $this->model = new $eloquentModel();
@@ -63,20 +64,19 @@ abstract class RepositoryPackage
     /**
      * 保存数据
      * @param $data
-     * @return array
+     * @return mixed
      */
-    public function saveData($data): array
+    public function saveData($data): mixed
     {
         try {
 
             $createData = $this->model->create($data);
 
         } catch (\Throwable $e) {
-
-            return [false, $e->getMessage()];
+            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
         }
 
-        return [true, $createData];
+        return $createData;
     }
 
     /**
@@ -111,16 +111,17 @@ abstract class RepositoryPackage
         }
 
         try {
+
             $results = $parallel->wait();
+
             $endTime = microtime(true);
 
             $executionTime = $endTime - $startTime;
+
             $this->logMonMain->info('db_log', 'saveAllData', [
                 'count' => count($data),
                 'executionTime' => $executionTime
             ]);
-
-            return [true, $results];
 
         } catch (ParallelExecutionException $e) {
             $results = $e->getResults();
@@ -132,17 +133,19 @@ abstract class RepositoryPackage
                 'error' => $e->getResults(),
                 'Throwables' => $e->getThrowables(),
             ]);
-            return [false, $results];
+            throw new ApiException(CodeConstants::ERROR, json_encode($results));
         }
+
+        return $results;
     }
 
     /**
      * 更新数据(单个更新数据,检测数据是否需要更新)
      * @param $data
      * @param string $key
-     * @return array
+     * @return mixed
      */
-    public function updateData($data, string $key = 'id'): array
+    public function updateData($data, string $key = 'id'): mixed
     {
         $object = $this->getDataFindBy($key, $data[$key]);
 
@@ -151,14 +154,14 @@ abstract class RepositoryPackage
             $needsUpdate = $this->inspectUpdateData($object, $data);
 
             if ($needsUpdate) {
-                $object->query(true)->update($data);
+                $object = $object->query(true)->update($data);
             }
 
         } catch (\Throwable $e) {
-            return [false, $e->getMessage()];
+            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
         }
 
-        return [true, $object];
+        return $object;
     }
 
     /**
@@ -266,24 +269,53 @@ abstract class RepositoryPackage
     }
 
     /**
-     * 删除数据
-     * @param $data
-     * @param string $key
-     * @return array
+     * 自增某字段
+     * @param $field
+     * @param int $value
+     * @return mixed
      */
-    public function deleteData($data, string $key = 'id'): array
+    public function increment($field, int $value = 1): mixed
     {
 
         try {
-
-            $status = $this->model->query(true)->where($key, $data[$key])->delete();
-
-        } catch (\Exception $e) {
-
-            return [false, $e->getMessage()];
+            return  $this->model->increment($field,$value);
+        } catch (\Throwable $e) {
+            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
         }
+    }
 
-        return [true,$status];
+    /**
+     * 自减某字段
+     * @param $field
+     * @param int $value
+     * @return mixed
+     */
+    public function decrement($field,int $value = 1): mixed
+    {
+        try {
+
+            return $this->model->decrement($field,$value);
+
+        } catch (\Throwable $e) {
+            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
+        }
+    }
+
+    /**
+     * 删除数据
+     * @param $data
+     * @param string $key
+     * @return mixed
+     */
+    public function deleteData($data, string $key = 'id'): mixed
+    {
+        try {
+
+            return  $this->model->query(true)->where($key, $data[$key])->delete();
+
+        } catch (\Throwable $e) {
+            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
+        }
     }
 
     /**
@@ -357,8 +389,7 @@ abstract class RepositoryPackage
     {
         if ($cache) {
             $key = $this->model->getKeyName();
-            switch ($get)
-            {
+            switch ($get) {
                 case 'find':
                 case 'first':
                     $ids = $this->runningSql($data, true, ['pluck' => $key], $model);
@@ -366,7 +397,7 @@ abstract class RepositoryPackage
                 default:
                 case 'get':
                     $ids = $this->runningSql($data, true, ['pluck' => $key], $model);
-                return $this->findManyFromCache($ids);
+                    return $this->findManyFromCache($ids);
             }
         }
 

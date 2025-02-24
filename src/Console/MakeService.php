@@ -11,7 +11,7 @@ use Hyperf\Devtool\Generator\GeneratorCommand;
 #[Command]
 class MakeService extends GeneratorCommand
 {
-    #[value('generate')]
+    #[Value('generator')]
     protected $config;
 
     use AutoCodeHelp;
@@ -68,6 +68,8 @@ class MakeService extends GeneratorCommand
         $tableName = $this->input->getArguments();
 
         $stub = str_replace('{{ class }}', $this->camelCase($tableName['name']).'Service', $stub);
+
+        $stub = str_replace('{{ smallTable }}', $tableName['name'],$stub);
 
         $stub = str_replace('{{ table }}', $this->camelCase($tableName['name']),$stub);
 

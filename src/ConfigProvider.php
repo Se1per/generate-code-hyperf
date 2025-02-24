@@ -25,10 +25,10 @@ class ConfigProvider
             'publish' => [
                 [
                     'id' => 'config',
-                    'description' => 'The config for generate', // 描述
+                    'description' => 'The config for generator', // 描述
                     // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
-                    'source' => __DIR__ . '/publish/generate.php',  // 对应的配置文件路径
-                    'destination' => BASE_PATH . '/config/autoload/generate.php', // 复制为这个路径下的该文件
+                    'source' => __DIR__ . '/publish/generator.php',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/config/autoload/generator.php', // 复制为这个路径下的该文件
                 ],
                 [
                     'id' => 'ApiException',
@@ -44,12 +44,12 @@ class ConfigProvider
                     'source' => __DIR__ . '/publish/stub/ApiExceptionHandler.stub',  // 对应的配置文件路径
                     'destination' => BASE_PATH . '/app/Exception/Handler/ApiExceptionHandler.php', // 复制为这个路径下的该文件
                 ],                
-                [
-                    'id' => 'ApiDeBugExceptionHandler',
-                    'description' => 'ApiDeBugExceptionHandler generate', // 描述
-                    'source' => __DIR__ . '/publish/stub/ApiDeBugExceptionHandler.stub',  // 对应的配置文件路径
-                    'destination' => BASE_PATH . '/app/Exception/Handler/ApiDeBugExceptionHandler.php', // 复制为这个路径下的该文件
-                ],
+                // [
+                //     'id' => 'ApiDeBugExceptionHandler',
+                //     'description' => 'ApiDeBugExceptionHandler generate', // 描述
+                //     'source' => __DIR__ . '/publish/stub/ApiDeBugExceptionHandler.stub',  // 对应的配置文件路径
+                //     'destination' => BASE_PATH . '/app/Exception/Handler/ApiDeBugExceptionHandler.php', // 复制为这个路径下的该文件
+                // ],
                 [
                     'id' => 'ValidationExceptionHandler',
                     'description' => 'ValidationExceptionHandler generate', // 描述
@@ -58,19 +58,26 @@ class ConfigProvider
                     'destination' => BASE_PATH . '/app/Exception/Handler/ValidationExceptionHandler.php', // 复制为这个路径下的该文件
                 ],
                 [
-                    'id' => 'JsonCodeConstants',
-                    'description' => 'JsonCodeConstants generate', // 描述
+                    'id' => 'ValidatorFactoryResolvedListener',
+                    'description' => 'ValidatorFactoryResolvedListener generate', // 描述
                     // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
-                    'source' => __DIR__ . '/publish/stub/JsonCodeConstants.stub',  // 对应的配置文件路径
-                    'destination' => BASE_PATH . '/app/Constants/JsonCodeConstants.php', // 复制为这个路径下的该文件
-                ],               
+                    'source' => __DIR__ . '/publish/stub/ValidatorFactoryResolvedListener.stub',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/app/Listener/ValidatorFactoryResolvedListener.php', // 复制为这个路径下的该文件
+                ],
                 [
-                    'id' => 'ReturnCallAspect',
-                    'description' => 'ReturnCallAspect generate', // 描述
+                    'id' => 'CodeConstants',
+                    'description' => 'CodeConstants generate', // 描述
                     // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
-                    'source' => __DIR__ . '/publish/stub/ReturnCallAspect.stub',  // 对应的配置文件路径
-                    'destination' => BASE_PATH . '/app/Aspect/ReturnCallAspect.php', // 复制为这个路径下的该文件
-                ],          
+                    'source' => __DIR__ . '/publish/stub/CodeConstants.stub',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/app/Constants/CodeConstants.php', // 复制为这个路径下的该文件
+                ],               
+                // [
+                //     'id' => 'ReturnCallAspect',
+                //     'description' => 'ReturnCallAspect generate', // 描述
+                //     // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
+                //     'source' => __DIR__ . '/publish/stub/ReturnCallAspect.stub',  // 对应的配置文件路径
+                //     'destination' => BASE_PATH . '/app/Aspect/ReturnCallAspect.php', // 复制为这个路径下的该文件
+                // ],          
                 // [
                 //     'id' => 'JsonCallBackInterFace',
                 //     'description' => 'JsonCallBackInterFace generate', // 描述
@@ -133,6 +140,13 @@ class ConfigProvider
                     // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
                     'source' => __DIR__ . '/publish/stub/BaseController.stub',  // 对应的配置文件路径
                     'destination' => BASE_PATH . '/app/Base/BaseController.php', // 复制为这个路径下的该文件
+                ],
+                [
+                    'id' => 'JwtTokenMiddleware',
+                    'description' => 'JwtTokenMiddleware generate', // 描述
+                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
+                    'source' => __DIR__ . '/publish/stub/JwtTokenMiddleware.stub',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/app/Middleware/JwtTokenMiddleware.php', // 复制为这个路径下的该文件
                 ],
             ],
             // 亦可继续定义其它配置，最终都会合并到与 ConfigInterface 对应的配置储存器中

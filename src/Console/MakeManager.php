@@ -12,7 +12,7 @@ use Hyperf\Devtool\Generator\GeneratorCommand;
 #[Command]
 class MakeManager extends GeneratorCommand
 {
-    #[value('generate')]
+    #[Value('generator')]
     protected $config;
 
     use AutoCodeHelp;

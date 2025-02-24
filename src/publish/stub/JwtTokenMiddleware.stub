@@ -1,0 +1,83 @@
+<?php
+
+declare(strict_types=1);
+/**
+ * This file is part of Hyperf.
+ *
+ * @link     https://www.hyperf.io
+ * @document https://hyperf.wiki
+ * @contact  group@hyperf.io
+ * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
+ */
+
+namespace App\Middleware;
+
+
+use App\Constants\CodeConstants;
+use App\Exception\ApiException;
+use Hyperf\Context\Context;
+use Hyperf\Di\Annotation\Inject;
+use Japool\Genconsole\Jwt\JwtHelp;
+
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class JwtTokenMiddleware implements MiddlewareInterface
+{
+    #[Inject]
+    protected JwtHelp $jwtHelp;
+
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+        $white = $this->jwtHelp->whiteRouteList($request->getUri()->getPath());
+
+        if ($white) {
+            return $handler->handle($request);
+        }
+        
+        // 获取 JWT 令牌
+        $authorization = $request->getHeaderLine('Authorization');
+        
+        if(strpos($authorization, 'Bearer ') !== 0){
+            return $this->JsonCallBack->JsonMain(CodeConstants::TOKEN_INVALID);
+        }
+
+        $authorization = substr($authorization, 7);
+ 
+        // 验证 JWT 是否合法
+        [$status, $decoded] = $this->jwtHelp->decodeJwtToken($authorization);
+
+        if (!$status) throw new ApiException($decoded);
+
+        $userToken = $this->redisService->get('hlerprest_database_single_point:'.$userId);
+
+        if (!$userToken) {
+            throw new ApiException(CodeConstants::TOKEN_TIME_OUT);
+        }
+
+        return $handler->handle($request);
+
+    }
+
+    public function validateBearerToken($str): bool
+    {
+        if (is_null($str)) {
+            return false;
+        }
+
+        $trimmedStr = trim($str);
+
+        if (strpos($trimmedStr, 'Bearer ') === 0) {
+            $tokenPart = substr($trimmedStr, 7);
+
+            if ($tokenPart == 'null') {
+                return false;  // Check if the token part is exactly "null"
+            }
+
+            return true;
+        }
+        return false;
+    }
+}

@@ -27,10 +27,10 @@ public function selectArray($makeData, $with = null): array
             if (isset($val)) {
                 if ($k == 'page' && count($sql) <= 2) {
                     $data['page'] = $val;
-                    $data['pagesize'] = $makeData['pagesize'] ?? 10;
-                    $data['page'] = ($data['page'] - 1) * $data['pagesize'];
+                    $data['pageSize'] = $makeData['pageSize'] ?? 10;
+                    $data['page'] = ($data['page'] - 1) * $data['pageSize'];
                     $sql['skip']['page'] = $data['page'];
-                    $sql['skip']['pagesize'] = $data['pagesize'];
+                    $sql['skip']['pageSize'] = $data['pageSize'];
                 }
                 switch ($k) {
                     case 'id':

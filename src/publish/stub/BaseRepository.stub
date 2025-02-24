@@ -5,13 +5,22 @@ declare(strict_types=1);
 namespace App\Base;
 
 use App\Base\src\RepositoryPackage;
+use Hyperf\Cache\Listener\DeleteListenerEvent;
 use Hyperf\Context\Context;
 use Carbon\Carbon;
+use Hyperf\Di\Annotation\Inject;
+use Psr\EventDispatcher\EventDispatcherInterface;
 
 abstract class BaseRepository extends RepositoryPackage
 {
     protected $model;
     protected $user;
+
+    #[Inject]
+    protected EventDispatcherInterface $dispatcher;
+
+    #[Inject]
+    protected BaseRedis $redis;
 
     public function getUserToken(): bool
     {
@@ -70,11 +79,11 @@ abstract class BaseRepository extends RepositoryPackage
      * @param $operator string 运算符
      * @param $val array|string|int|bool 值
      * @param $operatorName string|null 关系默认 and 可选 or
-     * @return array
+     * @return array|bool|int|string
      * User: Se1per
      * Date: 2023/8/4 11:07
      */
-    public function convertToWhereQuery(string $column, string $operator,array|string|int|bool $val, string $operatorName = null): array
+    public function convertToWhereQuery(string $column, string $operator,array|string|int|bool $val, string $operatorName = null): array|bool|int|string
     {
         if (is_string($val)) {
             switch ($val) {
@@ -86,7 +95,7 @@ abstract class BaseRepository extends RepositoryPackage
                     break;
                 case 'tomorrow':
                     $val = Carbon::tomorrow();
-                    break;
+                break;
             }
         }
 
@@ -138,5 +147,15 @@ abstract class BaseRepository extends RepositoryPackage
         $data['page'] = ($data['page'] - 1) * $data['limit'];
 
         return $data;
+    }
+
+    public function flushCache($listener)
+    {
+        $userNameAll = $this->redis->hGetAll('cache:'.$listener);
+        $key = array_values($userNameAll);
+
+        $this->dispatcher->dispatch(new DeleteListenerEvent($listener, $key));
+
+        return true;
     }
 }

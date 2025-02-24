@@ -12,7 +12,7 @@ use Hyperf\Devtool\Generator\GeneratorCommand;
 #[Command]
 class MakeController extends GeneratorCommand
 {
-    #[value('generate')]
+    #[Value('generator')]
     protected $config;
 
     use AutoCodeHelp;
@@ -151,7 +151,7 @@ class MakeController extends GeneratorCommand
             $stub = str_replace('{{ saveProperties }}', $saveProperties, $stub);
             $stub = str_replace('{{ delProperties }}', $delProperties, $stub);
 
-            $getProperties .= "#[SA\QueryParameter(name: '".'pagesize'."', description: '".'分页参数'."',required: true,schema: new SA\Schema(type: '".'integer'."'))]\r";
+            $getProperties .= "#[SA\QueryParameter(name: '".'pageSize'."', description: '".'分页参数'."',required: true,schema: new SA\Schema(type: '".'integer'."'))]\r";
             $getProperties .= "#[SA\QueryParameter(name: '".'page'."', description: '".'分页参数'."',required: true,schema: new SA\Schema(type: '".'integer'."'))]\r";
 
             $stub = str_replace('{{ getProperties }}', $getProperties, $stub);

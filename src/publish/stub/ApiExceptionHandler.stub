@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Exception\Handler;
 
 use App\Base\src\LogMonMain;
+use Hyperf\Context\Context;
 use Hyperf\Contract\ContainerInterface;
 use Hyperf\ExceptionHandler\ExceptionHandler;
 use Hyperf\HttpMessage\Stream\SwooleStream;
@@ -23,20 +24,22 @@ class ApiExceptionHandler extends ExceptionHandler
 
     public function handle(Throwable $throwable, ResponseInterface $response)
     {
+        $request_info  = Context::get('request_info');
+
         $errorMessage = sprintf(
-            "\nDate: %s\nMessage: %s\nLine: %d\nFile: %s",
+            "\nDate: %s\nMessage: %s\nLine: %d\nFile: %s\nRequestId: %s",
             date("Y-m-d H:i:s"),
             $throwable->getMessage(),
             $throwable->getLine(),
-            $throwable->getFile()
+            $throwable->getFile(),
+            $request_info['request_id'],
         );
 
         // 返回 JSON 响应
         $data = [
             'code' => $throwable->getCode(),
             'message' => $throwable->getMessage(),
-            'line' => $throwable->getLine(),
-            'file' => $throwable->getFile(),
+            'request_id' => $request_info['request_id'],
         ];
 
         if(env('APP_ENV') == 'pro'){
@@ -44,6 +47,8 @@ class ApiExceptionHandler extends ExceptionHandler
             $this->logMonMain->error('error',$errorMessage);
         }else{
             $this->logMonMain->error('debug',$errorMessage);
+            $data['line'] = $throwable->getLine();
+            $data['file'] = $throwable->getFile();
         }
 
         return $response->withHeader('Server', 'Hyperf')->withStatus(200)->withBody(new SwooleStream(json_encode($data)));

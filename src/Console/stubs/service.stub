@@ -22,9 +22,9 @@ class {{ class }} extends BaseService
     #[CacheEventAnnotation(prefix:'{{ smallTable }}')]
     public function save{{ table }}Data($data)
     {
-        $object =  $this->repository->save{{ table }}Data($data);
+        $object = $this->repository->save{{ table }}Data($data);
 
-        if($object) return [CodeConstants::Success];
+        if($object) return true;
 
         throw new ApiException(CodeConstants::WARNING,$object);
     }
@@ -34,7 +34,7 @@ class {{ class }} extends BaseService
     {
         $object = $this->repository->deleteData($data);
 
-        if($object) return [CodeConstants::Success];
+        if($object) return true;
 
         throw new ApiException(CodeConstants::WARNING,$object);
     }

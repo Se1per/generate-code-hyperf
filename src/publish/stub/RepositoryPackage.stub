@@ -305,17 +305,18 @@ abstract class RepositoryPackage
      * 删除数据
      * @param $data
      * @param string $key
-     * @return mixed
+     * @return bool
      */
-    public function deleteData($data, string $key = 'id'): mixed
+    public function deleteData($data, string $key = 'id'): bool
     {
         try {
 
-            return  $this->model->query(true)->where($key, $data[$key])->delete();
+            $this->model->query(true)->where($key, $data[$key])->delete();
 
         } catch (\Throwable $e) {
             throw new ApiException(CodeConstants::ERROR, $e->getMessage());
         }
+        return true;
     }
 
     /**

@@ -154,6 +154,7 @@ abstract class RepositoryPackage
             $needsUpdate = $this->inspectUpdateData($object, $data);
 
             if ($needsUpdate) {
+                unset($data[$key]);
                 $object = $object->query(true)->update($data);
             }
 

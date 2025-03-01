@@ -155,7 +155,7 @@ abstract class RepositoryPackage
 
             if ($needsUpdate) {
                 unset($data[$key]);
-                $object = $object->query(true)->update($data);
+                $object = $object->update($data);
             }
 
         } catch (\Throwable $e) {
@@ -266,7 +266,7 @@ abstract class RepositoryPackage
             $item = DB::raw('case ' . implode(' ', $item) . ' end ');
         }
 
-        return $this->model->query(true)->whereIn($where_field, $where)->update($when_arr);
+        return $this->model->whereIn($where_field, $where)->update($when_arr);
     }
 
     /**
@@ -312,7 +312,7 @@ abstract class RepositoryPackage
     {
         try {
 
-            $this->model->query(true)->where($key, $data[$key])->delete();
+            $this->model->where($key, $data[$key])->delete();
 
         } catch (\Throwable $e) {
             throw new ApiException(CodeConstants::ERROR, $e->getMessage());

@@ -53,11 +53,11 @@ class {{ class }} extends BaseRepository
         }
     }
 
-    public function get{{ table }}Data($data,$get = 'get',$cache = true)
+    public function get{{ table }}Data($data,$get = 'get',$model = null,$cache = true)
     {
         return $this->getData($this->selectArray(
             $data
-        ),$get,null,$cache);
+        ),$get,$model,$cache);
     }
 
     public function get{{ table }}Count($data)

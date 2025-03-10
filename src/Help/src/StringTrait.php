@@ -99,7 +99,6 @@ trait StringTrait
         return $maskedString;
     }
     
-
     /**
      * 字符串裁剪内容转成数组
      * @param $str
@@ -126,6 +125,48 @@ trait StringTrait
         }
 
         return $arr;
+    }
+
+    /**
+     * 将字符串分割成指定数量的部分
+     * @param string $str 原始字符串
+     * @param int $n 分割数量
+     * @return array 包含 rank_data_1 ~ rank_data_N 的关联数组
+     */
+    public function splitString($str, $n = 20) {
+        if ($n <= 0 || strlen($str) == 0) return [];
+
+        $len = strlen($str);
+        $chunkSize = floor($len / $n);
+        $remainder = $len % $n;
+        $result = [];
+        $position = 0;
+
+        for ($i = 0; $i < $n; $i++) {
+            $currentLength = $chunkSize + ($i < $remainder ? 1 : 0);
+            $part = substr($str, $position, $currentLength);
+            $result["rank_data_" . ($i + 1)] = $part;
+            $position += $currentLength;
+        }
+
+        return $result;
+    }
+
+    /**
+     * 合并分割后的字符串部分
+     * @param array $parts 包含 rank_data_1 ~ rank_data_N 的关联数组
+     * @return string 合并后的原始字符串
+     */
+    public function mergeString($parts) {
+        // 使用自然排序确保顺序正确
+        $keys = array_keys($parts);
+        natsort($keys);
+
+        $merged = '';
+        foreach ($keys as $key) {
+            $merged .= $parts[$key];
+        }
+        return $merged;
     }
 
     /**
@@ -286,6 +327,9 @@ trait StringTrait
 
     /**
      * Gzip 压缩 (建议使用)
+     * 1快速压缩，压缩比低
+     * 6默认压缩级别，平衡较好
+     * 9最高压缩比，但速度较慢
      * @param $obj
      * @return string
      */

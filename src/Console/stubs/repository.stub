@@ -60,10 +60,10 @@ class {{ class }} extends BaseRepository
         ),$get,$model,$cache);
     }
 
-    public function get{{ table }}Count($data)
+    public function get{{ table }}Count($data,$model= null)
     {
         return $this->getCount($this->selectArray(
             $data
-        ));
+        ),$model);
     }
 }

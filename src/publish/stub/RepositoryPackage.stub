@@ -452,6 +452,9 @@ abstract class RepositoryPackage
                         $object = $object->$k(...$vv);
                     }
                 break;
+                default:
+                    $object = $object->$k($val);
+                break;
             }
         }
 

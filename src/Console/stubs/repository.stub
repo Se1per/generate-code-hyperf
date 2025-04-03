@@ -59,7 +59,7 @@ class {{ class }} extends BaseRepository
             $data
         ),$get,$model,$cache);
     }
-
+    
     public function get{{ table }}Count($data,$model= null)
     {
         return $this->getCount($this->selectArray(

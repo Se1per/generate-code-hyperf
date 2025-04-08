@@ -73,7 +73,11 @@ abstract class RepositoryPackage
             $createData = $this->model->create($data);
 
         } catch (\Throwable $e) {
-            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
+            $error = [
+                'message'=>$e->getMessage(),
+            ];
+            $this->logMonMain->error('saveData',$this->model->getTable(),$error);
+            throw new ApiException(CodeConstants::ERROR, $error);
         }
 
         return $createData;
@@ -159,7 +163,11 @@ abstract class RepositoryPackage
             }
 
         } catch (\Throwable $e) {
-            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
+            $error = [
+                'message'=>$e->getMessage(),
+            ];
+            $this->logMonMain->error('updateData',$this->model->getTable(),$error);
+            throw new ApiException(CodeConstants::ERROR, $error);
         }
 
         return $object;

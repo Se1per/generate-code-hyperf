@@ -88,7 +88,12 @@ class XlsWriteMain
         return $file;
     }
 
-    //
+    /**
+     * 打开文件
+     * @param $path
+     * @param $fileName
+     * @return $this
+     */
     public function openFile($path, $fileName)
     {
         $excel = new \Vtiful\Kernel\Excel(['path' => $path]);
@@ -101,14 +106,11 @@ class XlsWriteMain
     /**
      * 打开工作表
      * @param $name
+     * @param $configType \Vtiful\Kernel\Excel::SKIP_EMPTY_CELLS 忽略空白单元格 \Vtiful\Kernel\Excel::SKIP_EMPTY_ROW 忽略空白行
      * @return $this
      */
     public function openSheet($name, $configType = null)
-    {
-        if ($configType) {
-            $configType = \Vtiful\Kernel\Excel::SKIP_EMPTY_CELLS;
-        }
-
+    {   
         $this->excel = $this->excel->openSheet($name, $configType);
 
         return $this->excel;
@@ -136,6 +138,33 @@ class XlsWriteMain
         return $this;
     }
 
+    /**
+     * 单元格回调模式读取
+     * 该模式可满足 xlsx 大文件读取
+     * cell:0, row:0, value:Item
+     * cell:1, row:0, value:Cost
+     * cell:1, row:0, value:XLSX_ROW_END  // 结束标识
+     * @return $this
+     */
+    public function nextCellCallback($callback)
+    {
+        $this->excel = $this->excel->nextCellCallback($callback);
+
+        return $this;
+    }
+
+    /**
+     * 设置跳过行
+     * @param $skipRows
+     * @return $this
+     */
+    public function setSkipRows($skipRows)
+    {
+        $this->excel = $this->excel->setSkipRows($skipRows);
+
+        return $this;
+    }
+    
     /**
      * 配置转换类型
      * [ //配置转换格式

@@ -10,7 +10,7 @@ use Hyperf\Context\Context;
 class LogMonMain
 {
     //$this->logMonMain->info('login', 'hahaha', [1234, 123444]);
-    public function info($channel,$msg,$context)
+    public function info($channel,$msg,$context = null)
     {
         // 定义一个 channel，monolog 为 channel 名字
         $log        = new Logger($channel);
@@ -26,17 +26,25 @@ class LogMonMain
         $log->pushHandler($stream);
         
         $getRequest = Context::get('request_info');
+        
+        if(!$context){
+            $context = [];
+        }else{
+            if(!is_array($context)){
+                $context = [$context];
+            }
+        }
 
         if(!empty($getRequest)){
             $context['request_info'] = $getRequest;
         }
-
+        
         $log->info($msg,$context);
 
         return true;
     }
 
-    public function error($channel,$msg,$context = [])
+    public function error($channel,$msg,$context = null)
     {
         // 定义一个 channel，monolog 为 channel 名字
         $log        = new Logger($channel);
@@ -52,6 +60,14 @@ class LogMonMain
         $log->pushHandler($stream);
 
         $getRequest = Context::get('request_info');
+        
+        if(!$context){
+            $context = [];
+        }else{
+            if(!is_array($context)){
+                $context = [$context];
+            }
+        }
 
         if(!empty($getRequest)){
             $context['request_info'] = $getRequest;
@@ -63,7 +79,7 @@ class LogMonMain
         return true;
     }
 
-    public function warning($channel,$msg,$context)
+    public function warning($channel,$msg,$context = null)
     {
         // 定义一个 channel，monolog 为 channel 名字
         $log        = new Logger($channel);
@@ -78,6 +94,14 @@ class LogMonMain
         $log->pushHandler($stream);
 
         $getRequest = Context::get('request_info');
+        
+        if(!$context){
+            $context = [];
+        }else{
+            if(!is_array($context)){
+                $context = [$context];
+            }
+        }
 
         if(!empty($getRequest)){
             $context['request_info'] = $getRequest;

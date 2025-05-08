@@ -3699,10 +3699,10 @@ class IdCardHelp
      */
     public function getBirth($delimiter = '-')
     {
-        if (!$this->isValidate || !$this->isValidate()) {
+        if (!$this->isValidate && !$this->isValidate()) {
             return false;
         }
-
+        
         $birth = [
             'year' => substr($this->idNumber, 6, 4),
             'month' => substr($this->idNumber, 10, 2),
@@ -3720,7 +3720,7 @@ class IdCardHelp
      */
     public function getGender($lang = self::GENDER_EN)
     {
-        if (!$this->isValidate || !$this->isValidate()) {
+        if (!$this->isValidate && !$this->isValidate()) {
             return false;
         }
 

@@ -151,6 +151,11 @@ abstract class RepositoryPackage
      */
     public function updateData($data, string $key = 'id'): mixed
     {
+        if(is_array($data[$key])){
+            $data = $this->transformArray($data,$key);
+            return $this->updateAllData($data,$key);
+        }
+
         $object = $this->getDataFindBy($key, $data[$key]);
 
         try {
@@ -171,6 +176,25 @@ abstract class RepositoryPackage
         }
 
         return $object;
+    }
+
+    /**
+     * 单一数组批量更新转化成二维批量更新数组数据格式
+     * @param $input
+     * @param string $key
+     * @return array
+     */
+    public function transformArray($input,$key) {
+        $result = [];
+        
+        // 获取id数组的长度作为循环次数
+        foreach($input[$key] as $val){
+            $arr = $input;
+            $arr[$key] = $val;
+            $result[] = $arr;
+        }
+        
+        return $result;
     }
 
     /**

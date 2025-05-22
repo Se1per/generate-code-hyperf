@@ -9,7 +9,7 @@ trait DateTimeTrait
      * @param $time
      * @return false|string
      */
-    public static function pretty($time)
+    public function pretty($time)
     {
         $return = '';
 
@@ -62,7 +62,7 @@ trait DateTimeTrait
      * @param int $level 默认0,获得秒级时间戳. 1.毫秒级时间戳; 2.微秒级时间戳; 3.纳米级时间戳
      * @return int 时间戳
      */
-    public static function getTimestamp(int $level = 0): int
+    public function getTimestamp(int $level = 0): int
     {
         if ($level === 0)
             return time();
@@ -108,7 +108,7 @@ trait DateTimeTrait
      * @param int $mouth
      * @return array
      */
-    public static function getYearMouth(int $year = 0, int $mouth = 0): array
+    public function getYearMouth(int $year = 0, int $mouth = 0): array
     {
 
         if (empty($year) || empty($mouth)) {
@@ -128,7 +128,7 @@ trait DateTimeTrait
      * @param string $type
      * @return mixed
      */
-    public static function getTypeTime(string $type = 'today'): array
+    public function getTypeTime(string $type = 'today'): array
     {
         switch ($type) {
             case 'yesterday';
@@ -178,7 +178,7 @@ trait DateTimeTrait
      * @param $year //初始年份
      * @param $num //循环生成年份
      */
-    public static function getMonthTimes(string $year): array
+    public function getMonthTimes(string $year): array
     {
         $new = [];
 
@@ -250,7 +250,7 @@ trait DateTimeTrait
      * @param string $endDate 结束时间
      * @return array
      */
-    public static function getDateRange(string $startDate, string $endDate): array
+    public function getDateRange(string $startDate, string $endDate): array
     {
         $sTime = strtotime($startDate);
         $eTime = strtotime($endDate);
@@ -265,7 +265,7 @@ trait DateTimeTrait
         return $dateArr;
     }
 
-    public static function isValidDateFull($date, $format = 'Y-m-d')
+    public function isValidDateFull($date, $format = 'Y-m-d')
     {
         // 使用 DateTime 和格式检查
         $d = DateTime::createFromFormat($format, $date);
@@ -281,7 +281,7 @@ trait DateTimeTrait
 
     }
 
-     /**
+    /**
      * 计算两个时间的口语化差异
      *
      * @param string|int $time1 起始时间
@@ -300,19 +300,19 @@ trait DateTimeTrait
         }
 
         // 拆分每部分
-        $y1 = (int)date('Y', $ts1);
-        $m1 = (int)date('n', $ts1);
-        $d1 = (int)date('j', $ts1);
-        $h1 = (int)date('G', $ts1);
-        $i1 = (int)date('i', $ts1);
-        $s1 = (int)date('s', $ts1);
+        $y1 = (int) date('Y', $ts1);
+        $m1 = (int) date('n', $ts1);
+        $d1 = (int) date('j', $ts1);
+        $h1 = (int) date('G', $ts1);
+        $i1 = (int) date('i', $ts1);
+        $s1 = (int) date('s', $ts1);
 
-        $y2 = (int)date('Y', $ts2);
-        $m2 = (int)date('n', $ts2);
-        $d2 = (int)date('j', $ts2);
-        $h2 = (int)date('G', $ts2);
-        $i2 = (int)date('i', $ts2);
-        $s2 = (int)date('s', $ts2);
+        $y2 = (int) date('Y', $ts2);
+        $m2 = (int) date('n', $ts2);
+        $d2 = (int) date('j', $ts2);
+        $h2 = (int) date('G', $ts2);
+        $i2 = (int) date('i', $ts2);
+        $s2 = (int) date('s', $ts2);
 
         $year = $y2 - $y1;
         $month = $m2 - $m1;
@@ -370,14 +370,14 @@ trait DateTimeTrait
 
         return $result ? implode('', $result) : '0秒';
     }
-    
+
     /**
      * 解析任意格式时间为时间戳（含时分秒）
      */
     private function normalizeToTimestamp($input): int
     {
         if (is_int($input) || ctype_digit($input)) {
-            return (int)$input;
+            return (int) $input;
         }
 
         $timestamp = strtotime($input);
@@ -396,7 +396,7 @@ trait DateTimeTrait
      * @return number
      */
     public
-        static function diffBetweenTwoDays(
+        function diffBetweenTwoDays(
         string $day1,
         string $day2
     ): int {
@@ -418,7 +418,7 @@ trait DateTimeTrait
      * @return array
      */
     public
-        static function diffDate(
+        function diffDate(
         string $date1,
         string $date2
     ): array {
@@ -453,7 +453,7 @@ trait DateTimeTrait
      * @return false|float|int|string
      */
     public
-        static function getAgeByID(
+        function getAgeByID(
         string $id
     ) {
         //过了这年的生日才算多了1周岁

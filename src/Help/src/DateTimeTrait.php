@@ -64,7 +64,8 @@ trait DateTimeTrait
      */
     public static function getTimestamp(int $level = 0): int
     {
-        if ($level === 0) return time();
+        if ($level === 0)
+            return time();
         list($msc, $sec) = explode(' ', microtime());
         if ($level === 1) {
             return intval(sprintf('%.0f', (floatval($msc) + floatval($sec)) * 1000));
@@ -80,9 +81,10 @@ trait DateTimeTrait
      * @param $timestamp
      * @return bool
      */
-    public function isDateFormatValid($timestamp) {
+    public function isDateFormatValid($timestamp)
+    {
 
-        if(!is_integer($timestamp)){
+        if (!is_integer($timestamp)) {
             $timestamp = strtotime($timestamp);
         }
 
@@ -191,7 +193,7 @@ trait DateTimeTrait
 
             $new[] = $arr;
 
-//            array_push($new,$arr);
+            //            array_push($new,$arr);
         }
 
         return $new;
@@ -221,27 +223,28 @@ trait DateTimeTrait
      * @param array $dateArray 包含开始日期和结束日期的数组
      * @return bool 如果给定日期在范围内则返回true，否则返回false
      */
-    public function isDateInRange($dateTime, $dateArray) {
+    public function isDateInRange($dateTime, $dateArray)
+    {
         // 将传入的日期时间字符串转为时间戳
         $dateTimeStamp = strtotime($dateTime);
-    
+
         // 确保数组有两个元素
         if (count($dateArray) < 2) {
             return false; // 如果数组元素不足，返回 false
         }
-    
+
         // 构建开始时间和结束时间的时间戳
         $startDate = $dateArray[0] . ' 00:00:00';
         $endDate = $dateArray[1] . ' 23:59:59';
-    
+
         $startTimestamp = strtotime($startDate);
         $endTimestamp = strtotime($endDate);
-    
+
         // 检查日期是否在范围内
         return $dateTimeStamp >= $startTimestamp && $dateTimeStamp <= $endTimestamp;
     }
 
-    
+
     /**  获取时间周期段内所有时间
      * @param string $startDate 开始时间
      * @param string $endDate 结束时间
@@ -275,7 +278,114 @@ trait DateTimeTrait
             return false;
         }
         return true;
-        
+
+    }
+
+     /**
+     * 计算两个时间的口语化差异
+     *
+     * @param string|int $time1 起始时间
+     * @param string|int $time2 结束时间
+     * @param array $parts ['year','month','day','hour','minute','second']
+     * @return string
+     * @throws \Exception
+     */
+    public function diffHumanBetweenTwoTimes($time1, $time2, array $parts = ['year', 'month', 'day', 'hour', 'minute', 'second']): string
+    {
+        $ts1 = $this->normalizeToTimestamp($time1);
+        $ts2 = $this->normalizeToTimestamp($time2);
+
+        if ($ts1 > $ts2) {
+            [$ts1, $ts2] = [$ts2, $ts1];
+        }
+
+        // 拆分每部分
+        $y1 = (int)date('Y', $ts1);
+        $m1 = (int)date('n', $ts1);
+        $d1 = (int)date('j', $ts1);
+        $h1 = (int)date('G', $ts1);
+        $i1 = (int)date('i', $ts1);
+        $s1 = (int)date('s', $ts1);
+
+        $y2 = (int)date('Y', $ts2);
+        $m2 = (int)date('n', $ts2);
+        $d2 = (int)date('j', $ts2);
+        $h2 = (int)date('G', $ts2);
+        $i2 = (int)date('i', $ts2);
+        $s2 = (int)date('s', $ts2);
+
+        $year = $y2 - $y1;
+        $month = $m2 - $m1;
+        $day = $d2 - $d1;
+        $hour = $h2 - $h1;
+        $minute = $i2 - $i1;
+        $second = $s2 - $s1;
+
+        // 修正进位
+        if ($second < 0) {
+            $second += 60;
+            $minute--;
+        }
+        if ($minute < 0) {
+            $minute += 60;
+            $hour--;
+        }
+        if ($hour < 0) {
+            $hour += 24;
+            $day--;
+        }
+        if ($day < 0) {
+            $m2--; // 借一个月
+            if ($m2 < 1) {
+                $m2 += 12;
+                $y2--;
+            }
+            $day += cal_days_in_month(CAL_GREGORIAN, $m2, $y2);
+            $month--;
+        }
+        if ($month < 0) {
+            $month += 12;
+            $year--;
+        }
+
+        $result = [];
+        if (in_array('year', $parts) && $year > 0) {
+            $result[] = "{$year}年";
+        }
+        if (in_array('month', $parts) && $month > 0) {
+            $result[] = "{$month}个月";
+        }
+        if (in_array('day', $parts) && $day > 0) {
+            $result[] = "{$day}天";
+        }
+        if (in_array('hour', $parts) && $hour > 0) {
+            $result[] = "{$hour}小时";
+        }
+        if (in_array('minute', $parts) && $minute > 0) {
+            $result[] = "{$minute}分钟";
+        }
+        if (in_array('second', $parts) && $second > 0) {
+            $result[] = "{$second}秒";
+        }
+
+        return $result ? implode('', $result) : '0秒';
+    }
+    
+    /**
+     * 解析任意格式时间为时间戳（含时分秒）
+     */
+    private function normalizeToTimestamp($input): int
+    {
+        if (is_int($input) || ctype_digit($input)) {
+            return (int)$input;
+        }
+
+        $timestamp = strtotime($input);
+        if ($timestamp === false) {
+            throw new \Exception("非法时间格式: {$input}");
+        }
+
+        return $timestamp;
     }
 
     /**
@@ -286,8 +396,10 @@ trait DateTimeTrait
      * @return number
      */
     public
-    static function diffBetweenTwoDays(string $day1, string $day2): int
-    {
+        static function diffBetweenTwoDays(
+        string $day1,
+        string $day2
+    ): int {
         $second1 = strtotime($day1);
 
         $second2 = strtotime($day2);
@@ -306,8 +418,10 @@ trait DateTimeTrait
      * @return array
      */
     public
-    static function diffDate(string $date1, string $date2): array
-    {
+        static function diffDate(
+        string $date1,
+        string $date2
+    ): array {
 
         if (strtotime($date1) > strtotime($date2)) {
             $tmp = $date2;
@@ -323,7 +437,7 @@ trait DateTimeTrait
         $d = $d2 - $d1;
 
         if ($d < 0) {
-            $d += (int)date('t', strtotime("-1 month $date2"));
+            $d += (int) date('t', strtotime("-1 month $date2"));
             $m--;
         }
 
@@ -339,10 +453,12 @@ trait DateTimeTrait
      * @return false|float|int|string
      */
     public
-    static function getAgeByID(string $id)
-    {
+        static function getAgeByID(
+        string $id
+    ) {
         //过了这年的生日才算多了1周岁
-        if (empty($id)) return '';
+        if (empty($id))
+            return '';
         $date = strtotime(substr($id, 6, 8));
         //获得出生年月日的时间戳
         $today = strtotime('today');

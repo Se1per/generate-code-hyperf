@@ -3841,4 +3841,124 @@ class IdCardHelp
         }
         return $this->idNumber;
     }
+
+         /**
+     * 获取用户退休信息，根据性别自动判断默认退休年龄（男性60岁，女性55岁）
+     * 
+     * @param array|int $retireAge 退休年龄，可以是一个整数或包含'm'和'f'键的数组，默认男60岁，女55岁
+     * @param string $format 返回格式，可选 'full'(完整信息),'year'(年数),'date'(退休日期),'countdown'(倒计时)
+     * @return array|string|false 根据format返回相应格式的退休信息
+     */
+    public function getRetireInfo($retireAge = null, $format = 'full')
+    {
+        // 确保身份证有效
+        if (!$this->isValidate && !$this->isValidate()) {
+            return false;
+        }
+
+        // 设置默认退休年龄
+        $defaultRetireAges = [
+            'm' => 60, // 男性默认60岁退休
+            'f' => 55  // 女性默认55岁退休
+        ];
+
+        // 处理自定义退休年龄参数
+        if (is_array($retireAge)) {
+            // 如果提供了自定义的男女退休年龄
+            if (isset($retireAge['m'])) {
+                $defaultRetireAges['m'] = $retireAge['m'];
+            }
+            if (isset($retireAge['f'])) {
+                $defaultRetireAges['f'] = $retireAge['f'];
+            }
+        } elseif (is_int($retireAge) || is_numeric($retireAge)) {
+            // 如果提供了单一的退休年龄，则男女一样
+            $defaultRetireAges['m'] = $defaultRetireAges['f'] = intval($retireAge);
+        }
+
+        // 获取性别
+        $gender = $this->getGender();
+
+        // 根据性别确定退休年龄
+        $actualRetireAge = $defaultRetireAges[$gender];
+
+        // 获取出生年月日
+        $birthYear = intval(substr($this->idNumber, 6, 4));
+        $birthMonth = intval(substr($this->idNumber, 10, 2));
+        $birthDay = intval(substr($this->idNumber, 12, 2));
+
+        // 计算退休日期（出生日期 + 退休年龄）
+        $retireDate = new \DateTime("$birthYear-$birthMonth-$birthDay");
+        $retireDate->modify("+$actualRetireAge years");
+
+        // 获取当前日期
+        $currentDate = new \DateTime();
+
+        // 计算时间差
+        $interval = $currentDate->diff($retireDate);
+
+        // 确定是否已退休
+        $hasRetired = $interval->invert === 1;
+
+        // 根据format返回不同格式的结果
+        switch ($format) {
+            case 'year':
+                // 返回距离退休的年数（负数表示已退休的年数）
+                return $hasRetired ? -$interval->y : $interval->y;
+
+            case 'date':
+                // 返回退休具体日期
+                return $retireDate->format('Y-m-d');
+
+            case 'countdown':
+                // 返回倒计时格式（xx年xx月xx日）
+                if ($hasRetired) {
+                    return "已退休";
+                }
+
+                $countdown = "";
+                if ($interval->y > 0) {
+                    $countdown .= $interval->y . "年";
+                }
+                if ($interval->m > 0) {
+                    $countdown .= $interval->m . "个月";
+                }
+                if ($interval->d > 0) {
+                    $countdown .= $interval->d . "天";
+                }
+
+                return $countdown ?: "今天退休";
+
+            case 'full':
+            default:
+                // 返回完整退休信息
+                $timeRemaining = "";
+                if (!$hasRetired) {
+                    $parts = [];
+                    if ($interval->y > 0) {
+                        $parts[] = $interval->y . "年";
+                    }
+                    if ($interval->m > 0) {
+                        $parts[] = $interval->m . "个月";
+                    }
+                    if ($interval->d > 0) {
+                        $parts[] = $interval->d . "天";
+                    }
+                    $timeRemaining = implode("", $parts) ?: "今天退休";
+                }
+
+                return [
+                    'retire_date' => $retireDate->format('Y-m-d'),
+                    'has_retired' => $hasRetired,
+                    'years_until_retire' => $hasRetired ? 0 : $interval->y,
+                    'months_until_retire' => $hasRetired ? 0 : $interval->m,
+                    'days_until_retire' => $hasRetired ? 0 : $interval->d,
+                    'total_days' => $hasRetired ? 0 : $interval->days,
+                    'age_at_calculation' => $this->calculateAge(),
+                    'retire_age' => $actualRetireAge,
+                    'gender' => $gender == 'm' ? '男' : '女',
+                    'time_remaining' => $hasRetired ? "已退休" : $timeRemaining,
+                ];
+        }
+    }
 }

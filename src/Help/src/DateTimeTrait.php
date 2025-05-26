@@ -379,7 +379,7 @@ trait DateTimeTrait
         if (is_int($input) || ctype_digit($input)) {
             return (int) $input;
         }
-
+        
         $timestamp = strtotime($input);
         if ($timestamp === false) {
             throw new \Exception("非法时间格式: {$input}");
@@ -400,16 +400,53 @@ trait DateTimeTrait
         string $day1,
         string $day2
     ): int {
-        $second1 = strtotime($day1);
+        // 将时间转换为时间戳
+        $nowTimestamp = strtotime($day1);
+        $outTimestamp = strtotime($day2);
 
-        $second2 = strtotime($day2);
+        // 计算时间差（秒）
+        $diffTime = $outTimestamp - $nowTimestamp;
 
-        if ($second1 < $second2) {
-            $tmp = $second2;
-            $second2 = $second1;
-            $second1 = $tmp;
+        // 转换为天数并返回
+        return (int) ($diffTime / 86400); // 直接返回整数天数
+    }
+
+    /**
+     * 计算两个时间的差距，并根据方向返回不同的结果
+     *
+     * @param string $nowTime 当前时间 (格式: Y-m-d H:i:s)
+     * @param string $outTime 目标时间 (格式: Y-m-d H:i:s)
+     * @return array 包含时间差信息的数组
+     */
+    public function calculateTimeDifference($nowTime, $outTime)
+    {
+        // 将时间转换为时间戳
+        $nowTimestamp = strtotime($nowTime);
+        $outTimestamp = strtotime($outTime);
+
+        // 计算时间差（秒）
+        $diffTime = $outTimestamp - $nowTimestamp;
+
+        // 判断时间差的方向并计算天数
+        if ($diffTime < 0) {
+            // 如果目标时间已过去，返回复数形式的时间差
+            $diffDays = abs(bcdiv($diffTime, 86400, 2)); // 精确到小数点后两位
+            $result = [
+                'status' => 'past',
+                'days' => -$diffDays, // 使用负数表示过去的时间
+                'is_within_30_days' => abs($diffTime) <= 30 * 86400
+            ];
+        } else {
+            // 如果目标时间还未到来，返回正整数形式的时间差
+            $diffDays = bcdiv($diffTime, 86400, 0); // 取整
+            $result = [
+                'status' => 'future',
+                'days' => (int) $diffDays, // 使用正整数表示未来的时间
+                'is_within_30_days' => abs($diffTime) <= 30 * 86400
+            ];
         }
-        return ($second1 - $second2) / 86400;
+
+        return $result;
     }
 
     /** 计算两个日期相隔多少年，多少月，多少天

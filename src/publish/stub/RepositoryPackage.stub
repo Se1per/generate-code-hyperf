@@ -351,6 +351,30 @@ abstract class RepositoryPackage
         }
         return true;
     }
+    
+    /**
+     * 批量删除数据(不能触发监听事件)
+     * @param $data
+     * @param string $key
+     * @return bool
+     */
+    public function deleteAllData($data, string $key = 'id'): bool
+    {
+
+        try {
+
+            $this->model->query(true)->where($key, $data[$key])->delete();
+
+        } catch (\Throwable $e) {
+            $error = [
+                'message'=>$e->getMessage(),
+            ];
+            $this->logMonMain->error('deleteAllData',$this->model->getTable(),$error);
+            throw new ApiException(CodeConstants::ERROR, $error);
+        }
+
+        return true;
+    }
 
     /**
      * 获取单条数据

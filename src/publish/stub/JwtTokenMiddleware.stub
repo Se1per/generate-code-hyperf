@@ -23,9 +23,13 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Japool\Genconsole\ReturnCall\JsonCallBackInterface;
 
 class JwtTokenMiddleware implements MiddlewareInterface
 {
+    #[Inject]
+    protected JsonCallBackInterface $JsonCallBack;
+
     #[Inject]
     protected JwtHelp $jwtHelp;
 

@@ -13,6 +13,9 @@ composer require hyperf/testing --dev
 # 安装生成器代码 generate-code-hyperf
 composer require japool/generate-code-hyperf
 
+# 更新生成器代码 generate-code-hyperf
+composer update japool/generate-code-hyperf 
+
 # 生成配置依赖
 php bin/hyperf.php vendor:publish japool/generate-code-hyperf
 

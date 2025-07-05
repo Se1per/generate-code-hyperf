@@ -22,6 +22,7 @@ php bin/hyperf.php vendor:publish japool/generate-code-hyperf
 
 # 添加中间件 config/autoload/middlewares.php
 Hyperf\Validation\Middleware\ValidationMiddleware::class,
+
 # 添加请求日志记录中间件 config/autoload/middlewares.php
 Japool\Genconsole\RequestLog\RequestMiddleware::class,
 

@@ -55,11 +55,11 @@ class JwtTokenMiddleware implements MiddlewareInterface
 
         if (!$status) throw new ApiException($decoded);
 
-        $userToken = $this->redisService->get('hlerprest_database_single_point:'.$userId);
+        //$userToken = $this->redisService->get('hlerprest_database_single_point:'.$userId);
 
-        if (!$userToken) {
-            throw new ApiException(CodeConstants::TOKEN_TIME_OUT);
-        }
+        //if (!$userToken) {
+        //    throw new ApiException(CodeConstants::TOKEN_TIME_OUT);
+        //}
 
         return $handler->handle($request);
 

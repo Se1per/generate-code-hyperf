@@ -1,0 +1,52 @@
+<?php
+namespace App\Listener;
+
+use Hyperf\Event\Contract\ListenerInterface;
+use Hyperf\Di\Annotation\Inject;
+use App\Base\src\LogMonMain;
+use App\Event\LogsEvent;
+use Hyperf\Event\Annotation\Listener;
+
+#[Listener]
+class LogsListener implements ListenerInterface
+{
+    #[Inject]
+    protected LogMonMain $logMonMain;
+
+    public function listen(): array
+    {
+        // 返回一个该监听器要监听的事件数组，可以同时监听多个事件
+        return [
+            LogsEvent::class,
+        ];
+    }
+
+    /**
+     * @param LogsEvent $event
+     */
+    public function process(object $event): void
+    {
+        // 事件触发后该监听器要执行的代码写在这里，比如该示例下的发送用户注册成功短信等
+        // 直接访问 $event 的 user 属性获得事件触发时传递的参数值
+        // $event->user;              
+
+        $requestLog = $event->requestLog;
+
+        $status = $event->status;
+        $title = $event->title;
+        
+        switch($status){
+            case 'info':
+                $this->logMonMain->info('request_log',$title, $requestLog);
+            break;
+            case 'warning':
+                $this->logMonMain->warning('request_log',$title, $requestLog);
+            break;
+            case 'error':
+                $this->logMonMain->error('request_log',$title, $requestLog);
+            break;
+        }
+
+        return;
+    }
+}

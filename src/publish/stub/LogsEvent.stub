@@ -1,0 +1,22 @@
+<?php
+
+namespace App\Event;
+
+class LogsEvent
+{
+    // 建议这里定义成 public 属性，以便监听器对该属性的直接使用，或者你提供该属性的 Getter
+
+    public $status;
+    public $title;
+
+    public $requestLog;
+    
+    //$this->eventDispatcher->dispatch(new RequestLogEvent('error',$errorMessage));
+
+    public function __construct($status,$title,$requestLog)
+    {
+        $this->status = $status;
+        $this->title = $title;
+        $this->requestLog = $requestLog;   
+    }
+}

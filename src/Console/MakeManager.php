@@ -73,13 +73,22 @@ class MakeManager extends GeneratorCommand
         $tableName['name'] = $this->unCamelCase($tableName['name']);
 //        $dbPrefix = env('DB_PREFIX');
         $dbPrefix = \Hyperf\Support\env('DB_PREFIX');
+        $dbDriver = \Hyperf\Support\env('DB_DRIVER');
+
         $result = $this->getTableColumnsComment($dbPrefix.$tableName['name']);
 
         $key = null;
 
         foreach ($result as $column) {
-            if($column->Key == 'PRI' && !$key){
-                $key = '\''.$column->Field.'\'';
+
+            if($dbDriver == 'pgsql'){
+                if($column->is_primary_key == 'YES' && !$key){
+                    $key = '\''.$column->column_name.'\'';
+                }
+            }else{
+                if($column->Key == 'PRI' && !$key){
+                    $key = '\''.$column->Field.'\'';
+                }
             }
         }
 

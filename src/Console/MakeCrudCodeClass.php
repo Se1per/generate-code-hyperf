@@ -9,6 +9,7 @@ use Hyperf\DbConnection\Db;
 use Psr\Container\ContainerInterface;
 use Hyperf\Command\Command as HyperfCommand;
 use Symfony\Component\Console\Input\InputArgument;
+use function Hyperf\Support\env;
 
 #[Command]
 class MakeCrudCodeClass extends HyperfCommand
@@ -37,14 +38,20 @@ class MakeCrudCodeClass extends HyperfCommand
     {
         $argument = $this->input->getArgument('tableName') ?? '';
 
-        $tables = DB::select('SHOW TABLES');
- 
-        foreach ($tables as $val) {
+        $dbDriver = env('DB_DRIVER');
 
+        if($dbDriver == 'pgsql'){
+            $tables = DB::select('SELECT table_name FROM information_schema.tables WHERE table_schema = \'public\'');
+        }else{
+            $tables = DB::select('SHOW TABLES');
+        }
+   
+        foreach ($tables as $val) {
+     
             $val = array_values(json_decode(json_encode($val), true));
             $tableName = array_shift($val);
             $tableName = str_replace(\Hyperf\Support\env('DB_PREFIX'), '', $tableName);
-
+   
             if($argument){
                 if($tableName != $argument){
                     continue;

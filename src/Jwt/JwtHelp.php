@@ -26,12 +26,17 @@ use Hyperf\Config\Annotation\Value;
 use InvalidArgumentException;
 use UnexpectedValueException;
 use function Hyperf\Support\env;
+use Hyperf\Contract\ConfigInterface;
 
 class JwtHelp
 {
-    #[Value('generator.jwt')]
     private $config;
 
+    public function __construct(ConfigInterface $config)
+    {
+        $this->config = $config->get('generator.jwt');
+    }
+    
     public function make(array $userInfo, &$expiresIn = null,$audUrl = null,$XForwarded = null): array
     {
         if ($expiresIn) {

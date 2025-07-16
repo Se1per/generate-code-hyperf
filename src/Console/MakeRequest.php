@@ -41,7 +41,7 @@ class MakeRequest extends GeneratorCommand
     {
         $name = $this->input->getArguments();
 
-        $name = $name['name'].'Request';
+        $name = $name['name'] . 'Request';
 
         $namespace = $this->input->getOption('namespace');
         if (empty($namespace)) {
@@ -66,6 +66,7 @@ class MakeRequest extends GeneratorCommand
     public function replaceName($stub)
     {
         $tableName = $this->input->getArguments();
+ 
         $tableName['name'] = $this->unCamelCase($tableName['name']);
         $saveRules = '';
         $getRules = '';
@@ -73,55 +74,81 @@ class MakeRequest extends GeneratorCommand
 
         $rules = '';
         $messages = '';
-        $saveApi = '\''.'api/'.$this->lcfirst($tableName['name']).'/'.'save'.$this->camelCase($tableName['name']).'Data'.'\'';
-        $delApi = '\''.'api/'.$this->lcfirst($tableName['name']).'/'.'del'.$this->camelCase($tableName['name']).'Data'.'\'';
-        $getApi = '\''.'api/'.$this->lcfirst($tableName['name']).'/'.'del'.$this->camelCase($tableName['name']).'Data'.'\'';
+        $saveApi = '\'' . 'api/' . $this->lcfirst($tableName['name']) . '/' . 'save' . $this->camelCase($tableName['name']) . 'Data' . '\'';
+        $delApi = '\'' . 'api/' . $this->lcfirst($tableName['name']) . '/' . 'del' . $this->camelCase($tableName['name']) . 'Data' . '\'';
+        $getApi = '\'' . 'api/' . $this->lcfirst($tableName['name']) . '/' . 'del' . $this->camelCase($tableName['name']) . 'Data' . '\'';
 
         $priType = null;
         $priTypeDefault = null;
-//        $dbPrefix = env('DB_PREFIX');
+        //        $dbPrefix = env('DB_PREFIX');
         $dbPrefix = \Hyperf\Support\env('DB_PREFIX');
-        $result = $this->getTableColumnsComment($dbPrefix.$tableName['name']);
+        $dbDriver = \Hyperf\Support\env('DB_DRIVER');
+
+        $result = $this->getTableColumnsComment($dbPrefix . $tableName['name']);
         $key = null;
         $keyCount = 0;
         foreach ($result as $column) {
-            if ($column->Key == 'PRI') {
-                $pri = $this->convertDbTypeToPhpType($column->Type);
-                if(!$key) {
-                    $key = $column->Field;
+            if ($dbDriver == 'pgsql') {
+                if ($column->is_primary_key == 'YES') {
+                    $pri =  $this->convertDbTypeToPhpType($column->data_type);
+                    if (!$key) {
+                        $key = $column->column_name;
+                    }
+                    switch ($pri) {
+                        case 'integer':
+                            $priType = 'integer';
+                            $priTypeDefault = '\'integer\'';
+                        break;
+                        default:
+                        case 'string':
+                            $priType = 'string';
+                            $priTypeDefault = '\'string\'';
+                            break;
+                    }
+                    $keyCount++;
                 }
-                
-                switch ($pri)
-                {
-                    case 'integer':
-                        $priType = 'integer';
-                        $priTypeDefault = '\'integer\'';
-                    break;
-                    default:
-                    case 'string':
-                        $priType = 'string';
-                        $priTypeDefault = '\'string\'';
-                    break;
+            } else {
+                if ($column->Key == 'PRI') {
+                    $pri = $this->convertDbTypeToPhpType($column->Type);
+                    if (!$key) {
+                        $key = $column->Field;
+                    }
+
+                    switch ($pri) {
+                        case 'integer':
+                            $priType = 'integer';
+                            $priTypeDefault = '\'integer\'';
+                            break;
+                        default:
+                        case 'string':
+                            $priType = 'string';
+                            $priTypeDefault = '\'string\'';
+                        break;
+                    }
+
+                    $keyCount++;
                 }
-                
-                $keyCount++;
             }
 
-            $this->makeRulesArray($column,$tableName['name'],$rules,$messages,$keyCount);
-            $this->makeScenesRules($column,$saveRules,$getRules,$delRules,$keyCount);
+            $this->makeRulesArray($column, $tableName['name'], $rules, $messages, $keyCount);
+
+            $this->makeScenesRules($column, $saveRules, $getRules, $delRules, $keyCount);
         }
-
-        $this->makeGetArrayPaginate($rules,$messages,$getRules);
-
+        
+        $this->makeGetArrayPaginate($rules, $messages, $getRules);
+     
         $stub = str_replace('{{ saveRules }}', $saveRules, $stub);
         $stub = str_replace('{{ delRules }}', $delRules, $stub);
         $stub = str_replace('{{ getRules }}', $getRules, $stub);
-
+ 
         $stub = str_replace('{{ saveApi }}', $saveApi, $stub);
         $stub = str_replace('{{ delApi }}', $delApi, $stub);
         $stub = str_replace('{{ getApi }}', $getApi, $stub);
+   
         $stub = str_replace('{{ table }}', $tableName['name'], $stub);
+
         $stub = str_replace('{{ priType }}', $priType, $stub);
+
         $stub = str_replace('{{ key }}', $key, $stub);
         $stub = str_replace('{{ priTypeDefault }}', $priTypeDefault, $stub);
 
@@ -129,7 +156,7 @@ class MakeRequest extends GeneratorCommand
         $stub = str_replace('{{ messages }}', $messages, $stub);
 
         $stub = str_replace('{{ namespace }}', $this->config['general']['request'], $stub);
-
+ 
         $stub = str_replace('{{ class }}', $this->camelCase($tableName['name']), $stub);
 
         return $stub;

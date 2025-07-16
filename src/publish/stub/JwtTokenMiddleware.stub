@@ -27,16 +27,20 @@ use Japool\Genconsole\ReturnCall\JsonCallBackInterface;
 
 class JwtTokenMiddleware implements MiddlewareInterface
 {
-    #[Inject]
-    protected JsonCallBackInterface $JsonCallBack;
+    private JsonCallBackInterface $JsonCallBack;
 
-    #[Inject]
-    protected JwtHelp $jwtHelp;
+    private JwtHelp $jwtHelp;
+
+    public function __construct(JwtHelp $jwtHelp,JsonCallBackInterface $JsonCallBack)
+    {
+        $this->jwtHelp = $jwtHelp;
+        $this->JsonCallBack = $JsonCallBack;
+    }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $white = $this->jwtHelp->whiteRouteList($request->getUri()->getPath());
-
+        
         if ($white) {
             return $handler->handle($request);
         }
@@ -49,17 +53,21 @@ class JwtTokenMiddleware implements MiddlewareInterface
         }
 
         $authorization = substr($authorization, 7);
- 
+  
         // 验证 JWT 是否合法
         [$status, $decoded] = $this->jwtHelp->decodeJwtToken($authorization);
 
         if (!$status) throw new ApiException($decoded);
 
-        //$userToken = $this->redisService->get('hlerprest_database_single_point:'.$userId);
+        // $info = $decoded['info'];
+        
+        // Context::set('user_info',$info);
+        
+        // $userToken = $this->redisService->get('hlerprest_database_single_point:'.$userId);
 
-        //if (!$userToken) {
-        //    throw new ApiException(CodeConstants::TOKEN_TIME_OUT);
-        //}
+        // if (!$userToken) {
+        //     throw new ApiException(CodeConstants::TOKEN_TIME_OUT);
+        // }
 
         return $handler->handle($request);
 

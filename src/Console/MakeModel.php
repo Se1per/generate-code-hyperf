@@ -70,15 +70,62 @@ class MakeModel extends GeneratorCommand
         $tableName['name'] = $this->unCamelCase($tableName['name']);
 //        $dbPrefix = env('DB_PREFIX');
         $dbPrefix = \Hyperf\Support\env('DB_PREFIX');
-        $sql = 'SHOW COLUMNS FROM `'.$dbPrefix.$tableName['name'].'`;';
+        $dbDriver = \Hyperf\Support\env('DB_DRIVER');
+
+        if($dbDriver == 'pgsql'){
+            $sql = "
+                SELECT 
+                    c.column_name,
+                    c.data_type,
+                    c.is_nullable,
+                    c.column_default,
+                    col_description(t.oid, a.attnum) AS column_comment,
+                    CASE 
+                        WHEN pk.column_name IS NOT NULL THEN 'YES'
+                        ELSE 'NO'
+                    END AS is_primary_key
+                FROM 
+                    information_schema.columns c
+                JOIN 
+                    pg_class t ON c.table_name = t.relname
+                JOIN 
+                    pg_namespace n ON t.relnamespace = n.oid AND n.nspname = c.table_schema
+                JOIN 
+                    pg_attribute a ON a.attrelid = t.oid AND a.attname = c.column_name
+                LEFT JOIN (
+                    SELECT 
+                        cu.column_name
+                    FROM 
+                        information_schema.constraint_column_usage cu
+                    JOIN 
+                        information_schema.table_constraints tc 
+                        ON cu.constraint_name = tc.constraint_name
+                    WHERE 
+                        tc.constraint_type = 'PRIMARY KEY'
+                        AND cu.table_name = '".$dbPrefix.$tableName['name']."'
+                ) pk ON c.column_name = pk.column_name
+                WHERE 
+                    c.table_name = '".$dbPrefix.$tableName['name']."'
+            ";
+        }else{
+            $sql = 'SHOW COLUMNS FROM `'.$dbPrefix.$tableName['name'].'`;';
+        }
+
         $result = DB::select($sql);
+
+
         $primaryKey = null;
         $fillAble = '';
 
         $softDeletes = false;
         $keyGet = false;
         foreach ($result as $column) {
-            $this->makeModelData($column,$primaryKey,$fillAble,$softDeletes,$keyGet);
+            if($dbDriver == 'pgsql'){
+                $this->makeModelDataPgsql($column,$primaryKey,$fillAble,$softDeletes,$keyGet);
+            }else{
+                $this->makeModelData($column,$primaryKey,$fillAble,$softDeletes,$keyGet);
+            }
+
         }
 
         if($this->isSnowflakeExtensionInstalled()){

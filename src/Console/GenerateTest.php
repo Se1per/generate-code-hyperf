@@ -76,26 +76,42 @@ class GenerateTest extends GeneratorCommand
 
         $tableName['name'] = $this->unCamelCase($tableName['name']);
         $dbPrefix = \Hyperf\Support\env('DB_PREFIX');
+        $dbDriver = \Hyperf\Support\env('DB_DRIVER');
+
         $result = $this->getTableColumnsComment($dbPrefix.$tableName['name']);
 
         $key = null;
         $one = '';
         foreach ($result as $k => $column) {
-            if($column->Key == 'PRI' && !$key){
-                $key = '\''.$column->Field.'\'';
-            }
-            $pri = $this->convertDbTypeToPhpType($column->Type);
-      
-            if($column->Key != 'PRI' && $column->Null == 'NO'){
-                if($pri == 'integer' || $pri == 'string'){
-                    $one .= '\''.$column->Field.'\''.'=>1,';
-                }else if ($pri == 'float'){
-                    $one .= '\''.$column->Field.'\''.'=>'.'\'1.0\',';
-                }else{
-                    $one .= '\''.$column->Field.'\''.'=>1,';
+            
+            if ($dbDriver == 'pgsql') {
+                if ($column->is_primary_key == 'YES' && !$key) {
+                    $key = '\'' . $column->column_name . '\'';
+                }
+                $pri = $this->convertDbTypeToPhpType($column->data_type);
+                if($column->is_primary_key == 'YES' && $pri == 'integer'){
+                    $one .= '\''.$column->column_name.'\''.'=>1,';
+                }else if($column->is_primary_key == 'YES' && $pri == 'string'){
+                    $one .= '\''.$column->column_name.'\''.'=>\'1\',';
+                }
+            } else {
+                if ($column->Key == 'PRI' && !$key) {
+                    $key = '\'' . $column->Field . '\'';
+                }
+                $pri = $this->convertDbTypeToPhpType($column->Type);
+
+                if($column->Key != 'PRI' && $column->Null == 'NO'){
+                    if($pri == 'integer' || $pri == 'string'){
+                        $one .= '\''.$column->Field.'\''.'=>1,';
+                    }else if ($pri == 'float'){
+                        $one .= '\''.$column->Field.'\''.'=>'.'\'1.0\',';
+                    }else{
+                        $one .= '\''.$column->Field.'\''.'=>1,';
+                    }
                 }
             }
         }
+        
         $smollTableName = $this->lcfirst( $tableName['name']);
         $stub = str_replace('{{smollTableName}}', $smollTableName, $stub);
         $tableN = $this->camelCase($tableName['name']);

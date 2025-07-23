@@ -95,58 +95,68 @@ class ConfigProvider
                 [
                     'id' => 'LogMonMain',
                     'description' => 'LogMonMain generate', // 描述
-                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
                     'source' => __DIR__ . '/publish/stub/LogMonMain.stub',  // 对应的配置文件路径
                     'destination' => BASE_PATH . '/app/Base/src/LogMonMain.php', // 复制为这个路径下的该文件
                 ],
                 [
                     'id' => 'RepositoryPackage',
                     'description' => 'RepositoryPackage generate', // 描述
-                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
                     'source' => __DIR__ . '/publish/stub/RepositoryPackage.stub',  // 对应的配置文件路径
                     'destination' => BASE_PATH . '/app/Base/src/RepositoryPackage.php', // 复制为这个路径下的该文件
                 ],
                 [
                     'id' => 'BaseService',
                     'description' => 'BaseService generate', // 描述
-                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
                     'source' => __DIR__ . '/publish/stub/BaseService.stub',  // 对应的配置文件路径
                     'destination' => BASE_PATH . '/app/Base/BaseService.php', // 复制为这个路径下的该文件
                 ],
                 [
                     'id' => 'BaseRepository',
                     'description' => 'BaseRepository generate', // 描述
-                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
                     'source' => __DIR__ . '/publish/stub/BaseRepository.stub',  // 对应的配置文件路径
                     'destination' => BASE_PATH . '/app/Base/BaseRepository.php', // 复制为这个路径下的该文件
                 ],
                 [
                     'id' => 'BaseModel',
                     'description' => 'BaseModel generate', // 描述
-                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
                     'source' => __DIR__ . '/publish/stub/BaseModel.stub',  // 对应的配置文件路径
                     'destination' => BASE_PATH . '/app/Base/BaseModel.php', // 复制为这个路径下的该文件
                 ],
                 [
                     'id' => 'BaseRedis',
                     'description' => 'BaseRedis generate', // 描述
-                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
                     'source' => __DIR__ . '/publish/stub/BaseRedis.stub',  // 对应的配置文件路径
                     'destination' => BASE_PATH . '/app/Base/BaseRedis.php', // 复制为这个路径下的该文件
                 ],
                 [
                     'id' => 'BaseController',
                     'description' => 'BaseController generate', // 描述
-                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
                     'source' => __DIR__ . '/publish/stub/BaseController.stub',  // 对应的配置文件路径
                     'destination' => BASE_PATH . '/app/Base/BaseController.php', // 复制为这个路径下的该文件
                 ],
                 [
                     'id' => 'JwtTokenMiddleware',
                     'description' => 'JwtTokenMiddleware generate', // 描述
-                    // 建议默认配置放在 publish 文件夹中，文件命名和组件名称相同
                     'source' => __DIR__ . '/publish/stub/JwtTokenMiddleware.stub',  // 对应的配置文件路径
                     'destination' => BASE_PATH . '/app/Middleware/JwtTokenMiddleware.php', // 复制为这个路径下的该文件
+                ],
+                [
+                    'id' => 'RequestMiddleware',
+                    'description' => 'RequestMiddleware generate',
+                    'source' => __DIR__ . '/publish/stub/RequestMiddleware.stub',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/app/Middleware/RequestMiddleware.php', // 复制为这个路径下的该文件
+                ],
+                [
+                    'id' => 'LogEvent',
+                    'description' => 'LogEvent generate',
+                    'source' => __DIR__ . '/publish/stub/LogEvent.stub',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/app/Event/LogEvent.php', // 复制为这个路径下的该文件
+                ],
+                [
+                    'id' => 'LogsListener',
+                    'description' => 'LogsListener generate',
+                    'source' => __DIR__ . '/publish/stub/LogsListener.stub',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/app/Listener/LogsListener.php', // 复制为这个路径下的该文件
                 ],
             ],
             // 亦可继续定义其它配置，最终都会合并到与 ConfigInterface 对应的配置储存器中

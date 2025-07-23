@@ -13,17 +13,20 @@ composer require hyperf/testing --dev
 # 安装生成器代码 generate-code-hyperf
 composer require japool/generate-code-hyperf
 
+# 更新生成器代码 generate-code-hyperf
+composer update japool/generate-code-hyperf 
+
 # 生成配置依赖
 php bin/hyperf.php vendor:publish japool/generate-code-hyperf
 
-
-# 添加中间件 config/autoload/middlewares.php
-Hyperf\Validation\Middleware\ValidationMiddleware::class,
-# 添加请求日志记录中间件 config/autoload/middlewares.php
-Japool\Genconsole\RequestLog\RequestMiddleware::class,
+# 添加请求日志中间件 config/autoload/middlewares.php
+App\Middleware\RequestMiddleware::class,
 
 # 添加jwt中间件(可选) config/autoload/middlewares.php
 App\Middleware\JwtTokenMiddleware::class,
+
+# 添加中间件 config/autoload/middlewares.php
+Hyperf\Validation\Middleware\ValidationMiddleware::class,
 
 # 添加验证器异常处理器
 App\Exception\Handler\ValidationExceptionHandler::class

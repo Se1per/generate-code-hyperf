@@ -78,17 +78,27 @@ class MakeController extends GeneratorCommand
         $tableName['name'] = $this->unCamelCase($tableName['name']);
 //        $dbPrefix = env('DB_PREFIX');
         $dbPrefix = \Hyperf\Support\env('DB_PREFIX');
-        $result = $this->getTableColumnsComment($dbPrefix.$tableName['name']);
+        $dbDriver = \Hyperf\Support\env('DB_DRIVER');
 
+        $result = $this->getTableColumnsComment($dbPrefix.$tableName['name']);
+ 
         $key = null;
 
         foreach ($result as $column) {
-            if($column->Key == 'PRI' && !$key){
-                $key = '\''.$column->Field.'\'';
+     
+            if($dbDriver == 'pgsql'){
+                if($column->is_primary_key == 'YES' && !$key){
+                    $key = '\''.$column->column_name.'\'';
+                }
+            }else{
+                if($column->Key == 'PRI' && !$key){
+                    $key = '\''.$column->Field.'\'';
+                }
             }
         }
-        
-        if($this->sw){
+ 
+        if($this->sw)
+        {
             $saveApi = '\''.'api/'.$this->lcfirst($tableName['name']).'/'.'save'.$this->camelCase($tableName['name']).'Data'.'\'';
             $delApi = '\''.'api/'.$this->lcfirst($tableName['name']).'/'.'del'.$this->camelCase($tableName['name']).'Data'.'\'';
             $getApi = '\''.'api/'.$this->lcfirst($tableName['name']).'/'.'get'.$this->camelCase($tableName['name']).'Data'.'\'';
@@ -101,6 +111,7 @@ class MakeController extends GeneratorCommand
 //            $dbPrefix = env('DB_PREFIX');
             $dbPrefix = \Hyperf\Support\env('DB_PREFIX');
             $tableComment = $this->getTableComment($dbPrefix.$tableName['name']);
+
             if(!empty($tableComment->Comment)){
                 $stub = str_replace('{{ comment }}', $tableComment->Comment, $stub);
 

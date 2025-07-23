@@ -288,6 +288,40 @@ trait StringTrait
     }
 
     /**
+     * 读取并解析本地 JSON 文件
+     *
+     * @param string $filePath JSON 文件路径
+     * @param bool   $assoc    是否返回关联数组（true）或对象（false）
+     * @return array|object|null 成功返回数据，失败返回 null
+     */
+    public function readJsonFile(string $filePath, bool $assoc = true)
+    {
+        // 检查文件是否存在
+        if (!file_exists($filePath)) {
+            trigger_error("JSON 文件不存在: {$filePath}", E_USER_WARNING);
+            return null;
+        }
+
+        // 读取文件内容
+        $jsonContent = file_get_contents($filePath);
+
+        if ($jsonContent === false) {
+            trigger_error("无法读取 JSON 文件: {$filePath}", E_USER_WARNING);
+            return null;
+        }
+
+        // 解析 JSON 内容
+        $data = json_decode($jsonContent, $assoc, 512, JSON_UNESCAPED_UNICODE);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            trigger_error("JSON 解析错误: " . json_last_error_msg(), E_USER_WARNING);
+            return null;
+        }
+
+        return $data;
+    }
+
+    /**
      * bzip2 压缩
      * @param $string
      * @return string

@@ -1,22 +1,33 @@
 <?php
 
 
-namespace Japool\Genconsole\RequestLog;
+namespace App\Middleware;
 
+use App\Base\src\LogMonMain;
 use Hyperf\Context\Context;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Hyperf\Di\Annotation\Inject;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use App\Event\LogsEvent;
 
 class RequestMiddleware implements MiddlewareInterface
 {
+    #[Inject]
+    private EventDispatcherInterface $eventDispatcher;
+
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $startTime = microtime(true);
-
-        $requestId = uniqid('', true);
-        $requestId = str_replace('.', '-', $requestId);
+        
+        if(!empty($request->getHeaders()['x-kong-request-id'])){
+            $requestId = array_shift($request->getHeaders()['x-kong-request-id']);
+        }else{
+            $requestId = uniqid('', true);
+            $requestId = str_replace('.', '-', $requestId);
+        }
 
         $heardArr = [
             'request_id'=>$requestId,//TODO 此处可以利用redis生成
@@ -25,7 +36,7 @@ class RequestMiddleware implements MiddlewareInterface
             'headers' => $request->getHeaders(),
             'api_start'=>$startTime,
         ];
-         
+        
         Context::set('request_log', $heardArr);
 
         $result = $handler->handle($request);
@@ -40,22 +51,28 @@ class RequestMiddleware implements MiddlewareInterface
 //        }else{
 //            $userId = null;
 //        }
-
+ 
         //记录返回值
         $jsonContent = json_decode($result->getBody()->getContents(),true);
         
-        if($jsonContent['code'] == '200000'){
+        if(!isset($jsonContent['code'])){
             $status = 1;
         }else{
-            $status = 0;
+            if($jsonContent['code'] == '200000'){
+                $status = 1;
+            }else{
+                $status = 0;
+            }
         }
-
+        
         $endTime = microtime(true);
         $requestTime = bcsub((string)$endTime, (string)$startTime, 2);
         $getRequest['api_end'] = $endTime;
         $getRequest['request_time'] = $requestTime;
         $getRequest['result_status'] = $status;
         $getRequest['result_body'] = $jsonContent;
+
+        $this->eventDispatcher->dispatch(new LogsEvent('info','request_log',$getRequest));
 
         return $result;
     }

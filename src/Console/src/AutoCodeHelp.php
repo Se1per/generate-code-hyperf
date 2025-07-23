@@ -95,103 +95,75 @@ trait AutoCodeHelp
      */
     public function makeRulesArray($column, $tableName, &$store, &$messages,$keyCount)
     {
-        if ($column->Field == 'deleted_at' || $column->Field == 'created_at' || $column->Field == 'updated_at') {
+        $dbDriver = \Hyperf\Support\env('DB_DRIVER');
+
+        if($dbDriver == 'pgsql'){
+            $column_name = $column->column_name;
+            $column_type = $column->data_type;
+            $column_comment = $column->column_comment;
+            $is_primary_key = $column->is_primary_key;
+        }else{
+            $column_name = $column->Field;
+            $column_type = $column->Type;
+            $column_comment = $column->Comment;
+            $is_primary_key = $column->Key;
+        }
+        if ($column_name == 'deleted_at' || $column_name == 'created_at' || $column_name == 'updated_at') {
+            return true;
+        }
+ 
+        if ($is_primary_key == 'PRI' && $keyCount == 1) {
+            $store .= '\'' . $column_name . '\'' . '=>' . '$this->getKeyRule(),'. "\r";
+            $messages .= '\'' . $column_name . '.required' . '\'' . '=>' . '\'' . $column_comment . '不能为空' . '\'' . ',' . "\r";
+            $messages .= '\'' . $column_name . '.exists' . '\'' . '=>' . '\'' . $column_comment . '必须存在' . '\'' . ','. "\r";
             return true;
         }
 
-        $column_name = $column->Field;
-        $column_type = $column->Type;
-
-        if (!empty(isset($column->Comment))) {
-            $column_default = $column->Comment;
-        } else {
-            $column_default = $column_name;
-        }
-
-        if ($column->Key == 'PRI' && $keyCount == 1) {
-            $store .= '\'' . $column->Field . '\'' . '=>' . '$this->getKeyRule(),'. "\r";
-            $messages .= '\'' . $column->Field . '.required' . '\'' . '=>' . '\'' . $column_default . '不能为空' . '\'' . ',' . "\r";
-            $messages .= '\'' . $column->Field . '.exists' . '\'' . '=>' . '\'' . $column_default . '必须存在' . '\'' . ','. "\r";
+        if (strstr($column_name, "phone") || strstr($column_name, "mobile")) {
+            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'integer|max:22|unique:' . $tableName . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.integer' . '\'' . '=>' . '\'' . $column_comment . '必须是数字' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.max' . '\'' . '=>' . '\'' . $column_comment . '长度最大22个字符内' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.unique' . '\'' . '=>' . '\'' . $column_comment . '已存在手机号,请及时检查' . '\'' . ','. "\r";
             return true;
         }
 
-        if (strstr($column->Field, "phone") || strstr($column->Field, "mobile")) {
-            $store .= '\'' . $column->Field . '\'' . '=>' . '\'' . 'integer|max:22|unique:' . $tableName . '\'' . ','. "\r";
-            $messages .= '\'' . $column->Field . '.integer' . '\'' . '=>' . '\'' . $column_default . '必须是数字' . '\'' . ','. "\r";
-            $messages .= '\'' . $column->Field . '.max' . '\'' . '=>' . '\'' . $column_default . '长度最大22个字符内' . '\'' . ','. "\r";
-            $messages .= '\'' . $column->Field . '.unique' . '\'' . '=>' . '\'' . $column_default . '已存在手机号,请及时检查' . '\'' . ','. "\r";
+        if (strstr($column_name, "id_card")) {
+            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string|id_card|unique:' . $tableName . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_comment . '必须是字符串' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.id_card' . '\'' . '=>' . '\'' . $column_comment . '身份证格式不正确' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.unique' . '\'' . '=>' . '\'' . $column_comment . '已存在身份证号,请及时检查' . '\'' . ','. "\r";
             return true;
         }
-
-        if (strstr($column->Field, "id_card")) {
-            $store .= '\'' . $column->Field . '\'' . '=>' . '\'' . 'string|id_card|unique:' . $tableName . '\'' . ','. "\r";
-            $messages .= '\'' . $column->Field . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是字符串' . '\'' . ','. "\r";
-            $messages .= '\'' . $column->Field . '.id_card' . '\'' . '=>' . '\'' . $column_default . '身份证格式不正确' . '\'' . ','. "\r";
-            $messages .= '\'' . $column->Field . '.unique' . '\'' . '=>' . '\'' . $column_default . '已存在身份证号,请及时检查' . '\'' . ','. "\r";
-            return true;
-        }
-
+        
         // 判断字段类型
-        if (strpos($column_type, 'int') !== false) {
-
+        if (in_array($column_type, ['int', 'integer', 'tinyint', 'smallint', 'mediumint', 'bigint', 'serial', 'bigserial'])) {
             $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'integer' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.integer' . '\'' . '=>' . '\'' . $column_default . '必须是数字' . '\'' . ','. "\r";
-
+            $messages .= '\'' . $column_name . '.integer' . '\'' . '=>' . '\'' . $column_comment . '必须是数字' . '\'' . ','. "\r";
             return true;
-
-        } elseif (strpos($column_type, 'decimal') !== false) {
+        } elseif (in_array($column_type, ['float', 'double', 'real', 'double precision','decimal', 'numeric'])) {
             $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'numeric|decimal:2' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.numeric' . '\'' . '=>' . '\'' . $column_default . '必须是数字参数' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.decimal' . '\'' . '=>' . '\'' . $column_default . '必须是浮点型保留两位小数' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.numeric' . '\'' . '=>' . '\'' . $column_comment . '必须是数字参数' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.decimal' . '\'' . '=>' . '\'' . $column_comment . '必须是浮点型保留小数' . '\'' . ','. "\r";
             return true;
-        } elseif (strpos($column_type, 'float') !== false) {
-            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'numeric|decimal:2' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.numeric' . '\'' . '=>' . '\'' . $column_default . '必须是数字参数' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.decimal' . '\'' . '=>' . '\'' . $column_default . '必须是浮点型保留两位小数' . '\'' . ','. "\r";
-            return true;
-        } elseif (strpos($column_type, 'double') !== false) {
-            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'numeric|decimal:2' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.numeric' . '\'' . '=>' . '\'' . $column_default . '必须是数字参数' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.decimal' . '\'' . '=>' . '\'' . $column_default . '必须是浮点型保留两位小数' . '\'' . ','. "\r";
-            return true;
-        } elseif (strpos($column_type, 'string') !== false) {
+        } elseif (in_array($column_type, ['char', 'varchar','character varying', 'text', 'longtext', 'longvarchar', 'longtext'])) {
             $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须字符串' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_comment . '必须字符串' . '\'' . ','. "\r";
             return true;
-        } elseif (strpos($column_type, 'varchar') !== false) {
-            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string|max:32' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是字符串' . '\'' . ','. "\r";
-            return true;
-        } elseif (strpos($column_type, 'text') !== false) {
-            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string|max:32' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是字符串' . '\'' . ','. "\r";
         } elseif (strpos($column_type, 'blob') !== false) {
             // 二进制数据类型
             // 你的逻辑代码
             return true;
-        } elseif (strpos($column_type, 'date') !== false) {
+        } elseif (in_array($column_type, ['date', 'datetime', 'timestamp', 'time', 'year'])) {
             $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'date' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.date' . '\'' . '=>' . '\'' . $column_default . '必须是日期格式' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.date' . '\'' . '=>' . '\'' . $column_comment . '必须是日期格式' . '\'' . ','. "\r";
             return true;
-        } elseif (strpos($column_type, 'datetime') !== false) {
-            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'date' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.date' . '\'' . '=>' . '\'' . $column_default . '必须是日期格式' . '\'' . ','. "\r";
-            return true;
-        } elseif (strpos($column_type, 'timestamp') !== false) {
-            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'date' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.date' . '\'' . '=>' . '\'' . $column_default . '必须是日期格式' . '\'' . ','. "\r";
-            return true;
-        }elseif (strpos($column_type, 'json') !== false) {
+        } elseif (in_array($column_type, ['json', 'jsonb'])) {
             $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'json|nullable ' . '\'' . ','. "\r";
-            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_default . '必须是json格式' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_comment . '必须是json格式' . '\'' . ','. "\r";
             return true;
-        } elseif (strpos($column_type, 'enum') !== false) {
-            // 枚举类型
-            // 你的逻辑代码
-            return true;
-        } elseif (strpos($column_type, 'set') !== false) {
-            // 集合类型
-            // 你的逻辑代码
+        } elseif (in_array($column_type, ['enum', 'set'])) {
+            $store .= '\'' . $column_name . '\'' . '=>' . '\'' . 'string' . '\'' . ','. "\r";
+            $messages .= '\'' . $column_name . '.string' . '\'' . '=>' . '\'' . $column_comment . '必须是字符串' . '\'' . ','. "\r";
             return true;
         }
 
@@ -208,12 +180,21 @@ trait AutoCodeHelp
      */
     public function makeScenesRules($column, &$saveRules, &$getRules, &$delRules,$keyCount)
     {
-        if ($column->Field == 'deleted_at' || $column->Field == 'created_at' || $column->Field == 'updated_at') {
+        $dbDriver = \Hyperf\Support\env('DB_DRIVER');
+
+        if($dbDriver == 'pgsql'){
+            $column_name = $column->column_name;
+            $is_primary_key = $column->is_primary_key;
+        }else{
+            $column_name = $column->Field;
+            $is_primary_key = $column->Key;
+        }
+
+        if ($column_name == 'deleted_at' || $column_name == 'created_at' || $column_name == 'updated_at') {
             return true;
         }
-        $column_name = $column->Field;
-
-        if ($column->Key == 'PRI') {
+ 
+        if ($is_primary_key == 'PRI' || $is_primary_key == 'YES') {
             $saveRules .= '\'' . $column_name . '\'' . ','. "\r";
             $getRules .= '\'' . $column_name . '\'' . ','. "\r";
             if($keyCount == 1){
@@ -261,6 +242,42 @@ trait AutoCodeHelp
             }
         }
 
+        $fillAble .= '\'' . $column_name . '\'' . ',';
+
+        return true;
+    }
+
+    /**
+     * 生成Model可编辑数据 pgsql
+     * @param mixed $column
+     * @param mixed $primaryKey
+     * @param mixed $fillAble
+     * @param mixed $softDeletes
+     * @param mixed $keyGet
+     * @return bool
+     */
+    public function makeModelDataPgsql($column, &$primaryKey, &$fillAble,&$softDeletes,&$keyGet)
+    {
+        $column_name = $column->column_name;
+
+        if($column->column_name == 'deleted_at'){
+            $softDeletes = true;
+        }
+
+        if ($column->column_name == 'deleted_at' || $column->column_name == 'created_at' || $column->column_name == 'updated_at') {
+            return true;
+        }
+
+        if(!$keyGet){
+            if ($column->is_primary_key == 'YES') {
+                $keyGet = true;
+                if($primaryKey == null){
+                    $primaryKey = '\'' . $column_name . '\'';
+                }
+                return true;
+            }
+        }
+        
         $fillAble .= '\'' . $column_name . '\'' . ',';
 
         return true;
@@ -382,7 +399,47 @@ trait AutoCodeHelp
      */
     public function getTableColumnsComment($tableName)
     {
-        $tableDetails = 'SHOW FULL COLUMNS FROM ' . $tableName;
+        $dbDriver = \Hyperf\Support\env('DB_DRIVER');
+
+        if($dbDriver == 'pgsql'){
+            $tableDetails = "
+                SELECT 
+                    c.column_name,
+                    c.column_default,
+                    c.is_nullable,
+                    c.data_type,
+                    col_description(t.oid, a.attnum) AS column_comment,
+                    CASE 
+                        WHEN pk.column_name IS NOT NULL THEN 'YES'
+                        ELSE 'NO'
+                    END AS is_primary_key
+                FROM 
+                    information_schema.columns c
+                JOIN 
+                    pg_class t ON c.table_name = t.relname
+                JOIN 
+                    pg_namespace n ON t.relnamespace = n.oid AND n.nspname = c.table_schema
+                JOIN 
+                    pg_attribute a ON a.attrelid = t.oid AND a.attname = c.column_name
+                LEFT JOIN (
+                    SELECT 
+                        cu.column_name
+                    FROM 
+                        information_schema.constraint_column_usage cu
+                    JOIN 
+                        information_schema.table_constraints tc 
+                        ON cu.constraint_name = tc.constraint_name
+                    WHERE 
+                        tc.constraint_type = 'PRIMARY KEY'
+                        AND cu.table_name = '{$tableName}'
+                ) pk ON c.column_name = pk.column_name
+                WHERE 
+                    c.table_name = '{$tableName}'
+            ";
+        }else{
+            $tableDetails = 'SHOW FULL COLUMNS FROM ' . $tableName;
+        }
+
         return DB::select($tableDetails);
     }
 

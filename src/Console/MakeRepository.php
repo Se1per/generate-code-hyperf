@@ -69,16 +69,24 @@ class MakeRepository extends GeneratorCommand
         $table = $this->unCamelCase($tableName['name']);
 //        $dbPrefix = env('DB_PREFIX');
         $dbPrefix = \Hyperf\Support\env('DB_PREFIX');
+        $dbDriver = \Hyperf\Support\env('DB_DRIVER');
+
         $result = $this->getTableColumnsComment($dbPrefix.$table);
 
         $key = null;
 
         foreach ($result as $column) {
-            if($column->Key == 'PRI' && !$key){
-                $key = '\''.$column->Field.'\'';
+            if($dbDriver == 'pgsql'){
+                if($column->is_primary_key == 'YES' && !$key){
+                    $key = '\''.$column->column_name.'\'';
+                }
+            }else{
+                if($column->Key == 'PRI' && !$key){
+                    $key = '\''.$column->Field.'\'';
+                }
             }
         }
-
+ 
         $stub = str_replace('{{ primaryKey }}', $key, $stub);
 
         $stub = str_replace('{{ class }}', $this->camelCase($tableName['name']).'Repository', $stub);

@@ -445,7 +445,7 @@ abstract class RepositoryPackage
      */
     public function getData(array $data = [], string|array $get = 'get', $model = null, bool $cache = false, bool $needToArray = false): mixed
     {
-        if ($cache) {
+        if ($cache && !is_object($model) && !$model instanceof $this->model) {
             $key = $this->model->getKeyName();
             switch ($get) {
                 case 'find':

@@ -12,7 +12,7 @@ use Hyperf\Di\Aop\ProceedingJoinPoint;
 use Japool\Genconsole\Cache\Annotation\CacheAnnotation;
 use Japool\Genconsole\Cache\src\BufferDrive;
 use Japool\Genconsole\JsonCall\Annotation\ReturnAnnotation;
-
+use Hyperf\Config\Annotation\Value;
 
 #[Aspect]
 class CacheAspect extends AbstractAspect
@@ -22,6 +22,9 @@ class CacheAspect extends AbstractAspect
 
     #[Inject]
     private ?BufferDrive $bufferDrive;
+
+    #[Value("generator.cache.enable")]
+    private $cache;
 
     public array $classes = [
     ];
@@ -42,7 +45,7 @@ class CacheAspect extends AbstractAspect
 
         $cache = $this->bufferDrive->getCache($annotation,$arguments['data']);
 
-        if($cache){
+        if($cache && $this->cache){
             return $cache;
         }
 

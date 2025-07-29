@@ -36,6 +36,9 @@ enum CodeConstants: int
     #[Message("身份信息无效")]
     case TOKEN_INVALID = 300002;
 
+    #[Message("身份信息不匹配")]
+    case TOKEN_MATCH = 300003;
+
     #[Message("系统维护中")]
     case MAINTENANCE = 504000;
 

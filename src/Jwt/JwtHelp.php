@@ -110,16 +110,16 @@ class JwtHelp
 
         } catch (ExpiredException $e) {
             // 前提是JWT试图在“exp”索赔后使用。
-            return [false,CodeConstants::TOKEN_ILLICIT];
+            return [false,CodeConstants::TOKEN_TIME_OUT];
         } catch (UnexpectedValueException $e) {
             // 前提是JWT格式错误或
             // 假设JWT缺少算法/使用了不受支持的算法OR
             // 提供的JWT算法与提供的密钥OR不匹配
             // 在密钥/密钥数组中提供的密钥ID为空或无效。
-            return [false,CodeConstants::TOKEN_ILLICIT];
+            return [false,CodeConstants::TOKEN_MATCH];
         } catch (Exception $e) {  // 其他错误
 //            throw new ExpiredException($e->getMessage());
-            return [false,CodeConstants::TOKEN_ILLICIT];
+            return [false,CodeConstants::TOKEN_MATCH];
         }
 
         return [true,(array) $decoded];

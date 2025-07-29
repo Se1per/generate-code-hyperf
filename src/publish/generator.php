@@ -35,6 +35,10 @@ return [
             '127.0.0.1'
         ]
     ],
+    
+    'cache'=>[
+        'enable' => \Hyperf\Support\env('APP_ENV','false')  == 'dev' ? false : true ,
+    ],
 
     'code' => [
         200000 => '请求成功',

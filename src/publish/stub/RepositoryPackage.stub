@@ -20,6 +20,8 @@ abstract class RepositoryPackage
 {
     protected $model;
 
+    protected $cache;
+
     #[Value('generator')]
     protected array $config;
     
@@ -37,6 +39,8 @@ abstract class RepositoryPackage
     {
         $this->makeModel();
 
+        $this->cache = $this->config['cache']['enable'] ?? false ;
+        
         return $this;
     }
 
@@ -421,7 +425,7 @@ abstract class RepositoryPackage
      */
     public function getData(array $data = [], string|array $get = 'get', $model = null, bool $cache = false, bool $needToArray = false): mixed
     {
-        if ($cache) {
+        if ($cache && !is_object($model) && $this->cache) {
             $key = $this->model->getKeyName();
             switch ($get) {
                 case 'find':

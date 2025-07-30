@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Base\src;
 
-
 use App\Constants\CodeConstants;
 
 use App\Exception\ApiException;
-use Hyperf\Config\Annotation\Value;
 
 use Hyperf\Coroutine\Exception\ParallelExecutionException;
 use Hyperf\Coroutine\Parallel;
 use Hyperf\DbConnection\Db;
 use Hyperf\Di\Annotation\Inject;
+use Hyperf\Contract\ConfigInterface;
+use Psr\Container\ContainerInterface;
 use SplQueue;
 
 abstract class RepositoryPackage
@@ -22,40 +22,50 @@ abstract class RepositoryPackage
 
     protected $cache;
 
-    #[Value('generator')]
+    // #[Value('generator')]
     protected array $config;
     
     #[Inject]
     private ?LogMonMain $logMonMain;
 
-    protected $user;
+    #[Inject]
+    protected ConfigInterface $configInterface;
 
-    public function model(): string
-    {
-        return $this->config['general']['model'] . '\\' . str_replace('Repository', '', $this->class_basename(get_class($this)));
-    }
+    #[Inject]
+    protected ContainerInterface $container; 
+
+    protected $user;
 
     public function __construct()
     {
-        $this->makeModel();
-
-        $this->cache = $this->config['cache']['enable'] ?? false ;
-        
-        return $this;
+        $this->config = $this->configInterface->get('generator');
+        $this->cache = $this->config['cache']['enable'] ?? false;
+        $this->getModel();
+        // return $this;
     }
 
-    public function makeModel()
-    {
-        return $this->setModel($this->model());
-    }
+    // public function model(): string 
+    // {
+    //     return $this->config['general']['model'] . '\\' . str_replace('Repository', '', $this->class_basename(get_class($this)));
+    // }
 
-    public function setModel($eloquentModel)
+    // public function getModel()
+    // {
+    //     return $this->setModel();
+    // }
+
+    public function getModel()
     {
+        $eloquentModel = $this->config['general']['model'] . '\\' . str_replace('Repository', '', $this->class_basename(get_class($this)));
         if (!class_exists($eloquentModel)) {
             throw new ApiException(CodeConstants::ERROR, '模型不存在');
         }
 
-        return $this->model = new $eloquentModel();
+        if (!$this->model) {
+            $this->model = $this->container->get($eloquentModel);
+        }
+
+        return $this->model;
     }
 
     public function class_basename($class)
@@ -74,19 +84,19 @@ abstract class RepositoryPackage
     {
         try {
 
-            $createData = $this->model->create($data);
+            $createData = $this->getModel()->create($data);
 
         } catch (\Throwable $e) {
             $error = [
                 'message'=>$e->getMessage(),
             ];
-            $this->logMonMain->error('saveData',$this->model->getTable(),$error);
+            $this->logMonMain->error('saveData',$this->getModel()->getTable(),$error);
             throw new ApiException(CodeConstants::ERROR, $error);
         }
 
         return $createData;
     }
-
+    
     /**
      * 批量插入数据 协程
      * @param $data
@@ -104,17 +114,23 @@ abstract class RepositoryPackage
                 $val['created_at'] = date('Y-m-d H:i:s');
                 $val['updated_at'] = date('Y-m-d H:i:s');
             }
+        }else{
+            $unpack = $dataNum - 1;
+        }
+
+        if($dataNum < 1){
+            return [false,'单个数据不能使用协程批量插入'];
         }
 
         $data = array_chunk($data, $unpack);
 
         $num = $this->divideByTwo(count($data));
-
+ 
         $parallel = new Parallel($num);
-
+ 
         foreach ($data as $value) {
             $parallel->add(function () use ($value) {
-                return $this->model->insert($value);
+                return $this->getModel()->insert($value);
             });
         }
 
@@ -135,13 +151,14 @@ abstract class RepositoryPackage
             $results = $e->getResults();
             $endTime = microtime(true);
             $executionTime = $endTime - $startTime;
-            $this->logMonMain->error('db_log', 'saveAllData', [
+            $error = [
                 'count' => count($data),
                 'executionTime' => $executionTime,
                 'error' => $e->getResults(),
                 'Throwables' => $e->getThrowables(),
-            ]);
-            throw new ApiException(CodeConstants::ERROR, json_encode($results));
+            ];
+            $this->logMonMain->error('db_log', 'saveAllData', $error);
+            throw new ApiException(CodeConstants::ERROR, json_encode($error));
         }
 
         return $results;
@@ -175,7 +192,7 @@ abstract class RepositoryPackage
             $error = [
                 'message'=>$e->getMessage(),
             ];
-            $this->logMonMain->error('updateData',$this->model->getTable(),$error);
+            $this->logMonMain->error('updateData',$this->getModel()->getTable(),$error);
             throw new ApiException(CodeConstants::ERROR, $error);
         }
 
@@ -302,7 +319,7 @@ abstract class RepositoryPackage
             $item = DB::raw('case ' . implode(' ', $item) . ' end ');
         }
 
-        return $this->model->whereIn($where_field, $where)->update($when_arr);
+        return $this->getModel()->whereIn($where_field, $where)->update($when_arr);
     }
 
     /**
@@ -315,7 +332,7 @@ abstract class RepositoryPackage
     {
 
         try {
-            return  $this->model->increment($field,$value);
+            return  $this->getModel()->increment($field,$value);
         } catch (\Throwable $e) {
             throw new ApiException(CodeConstants::ERROR, $e->getMessage());
         }
@@ -331,7 +348,7 @@ abstract class RepositoryPackage
     {
         try {
 
-            return $this->model->decrement($field,$value);
+            return $this->getModel()->decrement($field,$value);
 
         } catch (\Throwable $e) {
             throw new ApiException(CodeConstants::ERROR, $e->getMessage());
@@ -348,7 +365,7 @@ abstract class RepositoryPackage
     {
         try {
 
-            $this->model->where($key, $data[$key])->delete();
+            $this->getModel()->where($key, $data[$key])->delete();
 
         } catch (\Throwable $e) {
             throw new ApiException(CodeConstants::ERROR, $e->getMessage());
@@ -366,7 +383,7 @@ abstract class RepositoryPackage
      */
     public function getDataFindBy($attribute, $value, string $symbol = '=', array $columns = array('*')): mixed
     {
-        return $this->model->where($attribute, $symbol, $value)->first($columns);
+        return $this->getModel()->where($attribute, $symbol, $value)->first($columns);
     }
 
     /**
@@ -379,7 +396,7 @@ abstract class RepositoryPackage
      */
     public function getDataAllBy($attribute, $value, string $symbol = '=', array $columns = array('*')): mixed
     {
-        return $this->model->where($attribute, $symbol, $value)->get($columns);
+        return $this->getModel()->where($attribute, $symbol, $value)->get($columns);
     }
 
     /**
@@ -388,7 +405,7 @@ abstract class RepositoryPackage
      */
     public function getCursorDataAll(): mixed
     {
-        return $this->model->cursor();
+        return $this->getModel()->cursor();
     }
 
     /**
@@ -400,7 +417,7 @@ abstract class RepositoryPackage
      */
     public function getDataInBy($attribute, array $value, array $columns = array('*')): mixed
     {
-        return $this->model->whereIn($attribute, $value)->get($columns);
+        return $this->getModel()->whereIn($attribute, $value)->get($columns);
     }
 
     /**
@@ -425,8 +442,8 @@ abstract class RepositoryPackage
      */
     public function getData(array $data = [], string|array $get = 'get', $model = null, bool $cache = false, bool $needToArray = false): mixed
     {
-        if ($cache && !is_object($model) && !$model instanceof $this->model) {
-            $key = $this->model->getKeyName();
+        if ($cache && !is_object($model) && $this->cache) {
+            $key = $this->getModel()->getKeyName();
             switch ($get) {
                 case 'find':
                 case 'first':
@@ -435,7 +452,7 @@ abstract class RepositoryPackage
                 default:
                 case 'get':
                     $ids = $this->runningSql($data, true, ['pluck' => $key], $model);
-                    return $this->findManyFromCache($ids);
+                return $this->findManyFromCache($ids);
             }
         }
 
@@ -453,7 +470,7 @@ abstract class RepositoryPackage
     public function runningSql($data, bool $needToArray = false, string|array $get = 'get', $object = null): mixed
     {
         if (!$object) {
-            $object = $this->model;
+            $object = $this->getModel();
         }
 
         foreach ($data as $k => $val) {
@@ -528,7 +545,7 @@ abstract class RepositoryPackage
      */
     public function findManyFromCache($ids)
     {
-        return $this->model->findManyFromCache($ids);
+        return $this->getModel()->findManyFromCache($ids);
     }
 
     /**
@@ -538,7 +555,7 @@ abstract class RepositoryPackage
      */
     public function findFromCache($ids)
     {
-        return $this->model->findFromCache($ids);
+        return $this->getModel()->findFromCache($ids);
     }
 
     /**

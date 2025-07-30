@@ -8,31 +8,23 @@ use App\Base\src\RepositoryPackage;
 use Hyperf\Cache\Listener\DeleteListenerEvent;
 use Hyperf\Context\Context;
 use Carbon\Carbon;
-use Hyperf\Di\Annotation\Inject;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Hyperf\Di\Annotation\Inject;
 
 abstract class BaseRepository extends RepositoryPackage
 {
     protected $model;
     protected $user;
 
-    #[Inject]
-    protected EventDispatcherInterface $dispatcher;
+    // #[Inject]
+    // protected EventDispatcherInterface $dispatcher;
 
     #[Inject]
     protected BaseRedis $redis;
 
-    public function getUserToken(): bool
+    public function getUserToken()
     {
-        $user = Context::get('userToken');
-
-        if ($user) {
-            $user = json_decode($user, true);
-        }
-
-        $this->user = $user;
-
-        return true;
+        return Context::get('user_info');
     }
 
     /**
@@ -153,8 +145,8 @@ abstract class BaseRepository extends RepositoryPackage
     {
         $userNameAll = $this->redis->hGetAll('cache:'.$listener);
         $key = array_values($userNameAll);
-
-        $this->dispatcher->dispatch(new DeleteListenerEvent($listener, $key));
+        $dispatcher = $this->container->get(EventDispatcherInterface::class);
+        $dispatcher->dispatch(new DeleteListenerEvent($listener, $key));
 
         return true;
     }

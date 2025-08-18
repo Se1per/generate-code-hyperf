@@ -37,7 +37,7 @@ class {{ class }} extends BaseRepository
                         } else {
                             $sql['whereDate'] = $this->convertToWhereQuery($k, '=', $val);
                         }
-                        break;
+                    break;
                 }
             }
         }

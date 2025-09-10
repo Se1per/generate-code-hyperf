@@ -3776,24 +3776,20 @@ class IdCardHelp
     }
 
     public function calculateAge(){
+        $this->id15To18();
+
         // 获取出生年月日
-        $year = intval(substr($this->idNumber, 6, 4));
-        $month = intval(substr($this->idNumber, 10, 2));
-        $day = intval(substr($this->idNumber, 12, 2));
+        $birthYear = intval(substr($this->idNumber, 6, 4));
+        $birthMonth = intval(substr($this->idNumber, 10, 2));
+        $birthDay = intval(substr($this->idNumber, 12, 2));
 
-        // 获取当前年月日
-        $currentYear = intval(date('Y'));
-        $currentMonth = intval(date('m'));
-        $currentDay = intval(date('d'));
-
-        // 计算年龄
-        $age = $currentYear - $year;
-
-        // 判断出生日期是否大于当前日期
-        if ($month > $currentMonth || ($month == $currentMonth && $day > $currentDay)) {
-            $age--;
-        }
-
+        // 使用DateTime确保准确性，避免时区问题
+        $birthDate = new \DateTime(sprintf('%04d-%02d-%02d', $birthYear, $birthMonth, $birthDay));
+        $today = new \DateTime();
+        
+        // 计算年龄差，DateTime::diff()会自动处理所有边界情况
+        $age = $today->diff($birthDate)->y;
+        
         return $age;
     }
 
@@ -3842,7 +3838,7 @@ class IdCardHelp
         return $this->idNumber;
     }
 
-         /**
+    /**
      * 获取用户退休信息，根据性别自动判断默认退休年龄（男性60岁，女性55岁）
      * 
      * @param array|int $retireAge 退休年龄，可以是一个整数或包含'm'和'f'键的数组，默认男60岁，女55岁
@@ -3960,5 +3956,40 @@ class IdCardHelp
                     'time_remaining' => $hasRetired ? "已退休" : $timeRemaining,
                 ];
         }
+    }
+
+    /**
+     * 计算实数年龄（按天精确，再按给定年长基准换算成年数）
+     *
+     * @param int $precision 小数位精度（默认2位）
+     * @param float $yearBasis 年度天数基准，默认365.2425（回归年，更贴近实际）
+     * @param string $timezone 时区（默认Asia/Shanghai），用于避免服务器时区导致的偏差
+     * @return float|false 实数年龄；身份证无效时返回false
+     */
+    public function calculateAgeFloat($precision = 2, $yearBasis = 365.2425, $timezone = 'Asia/Shanghai')
+    {
+        // 兼容15位号码，转换为可解析出生日期的结构
+        $this->id15To18();
+
+        // 确保身份证有效（格式、生日、校验位）
+        if (!$this->isValidate && !$this->isValidate()) {
+            return false;
+        }
+
+        $birthYear = intval(substr($this->idNumber, 6, 4));
+        $birthMonth = intval(substr($this->idNumber, 10, 2));
+        $birthDay = intval(substr($this->idNumber, 12, 2));
+
+        $tz = new \DateTimeZone($timezone);
+        $birthDate = new \DateTime(sprintf('%04d-%02d-%02d', $birthYear, $birthMonth, $birthDay), $tz);
+        $today = new \DateTime('now', $tz);
+        $diff = $today->diff($birthDate);
+
+        // 按天计算总差值，并按yearBasis换算成年数
+        $totalDays = isset($diff->days) ? $diff->days : ($diff->y * 365 + $diff->m * 30 + $diff->d);
+        $basis = (is_numeric($yearBasis) && $yearBasis > 0) ? floatval($yearBasis) : 365.2425;
+        $age = $totalDays / $basis;
+
+        return round($age, intval($precision));
     }
 }

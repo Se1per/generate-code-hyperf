@@ -27,9 +27,9 @@ class {{ class }} extends BaseRepository
                         if (!is_array($val)) {
                             $sql['where'][] = $this->convertToWhereQuery($k, '=', $val);
                         } else {
-                            $sql['whereIn'] = $this->convertToWhereQuery($k, 'in', $val);
+                            $sql['whereIn'][] = $this->convertToWhereQuery($k, 'in', $val);
                         }
-                        break;
+                    break;
                     case 'created_at':
                     case 'updated_at':
                         if (is_array($val)) {

@@ -307,19 +307,28 @@ abstract class RepositoryPackage
             throw new \InvalidArgumentException('Missing update condition');
         }
         $when_arr = [];
+        // foreach ($inputs as $k => $input) {
+        //     $when_val = $input[$when_field] ?? '';
+        //     foreach ($input as $key => $value) {
+        //         if ($key == $when_field) continue;
+        //         $when_arr[$key][] = "when {$when_field} = '{$when_val}' then '{$value}'";
+        //     }
+        // }
         foreach ($inputs as $k => $input) {
             $when_val = $input[$when_field] ?? '';
             foreach ($input as $key => $value) {
                 if ($key == $when_field) continue;
+                if (is_array($value) || is_object($value)) {
+                    $value = json_encode($value, JSON_UNESCAPED_UNICODE);
+                }
                 $when_arr[$key][] = "when {$when_field} = '{$when_val}' then '{$value}'";
             }
         }
-
         foreach ($when_arr as $key => &$item) {
             $item = DB::raw('case ' . implode(' ', $item) . ' end ');
         }
 
-        return $this->getModel()->whereIn($where_field, $where)->update($when_arr);
+        return $this->model->query(true)->whereIn($where_field, $where)->update($when_arr);
     }
 
     /**

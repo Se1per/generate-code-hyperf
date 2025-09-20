@@ -62,6 +62,20 @@ class XlsWriteMain
         return $this;
     }
 
+    public function addSheet($sheetName = 'sheet1')
+    {
+        $this->excel = $this->excel->addSheet($sheetName);
+
+        return $this;
+    }
+
+    public function header(array $header)
+    {
+        $this->excel = $this->excel->header($header);
+
+        return $this;
+    }
+
     public function insertText($row,$column, $data,$format=null)
     {
         $this->excel = $this->excel->insertText($row,$column, $data,$format);

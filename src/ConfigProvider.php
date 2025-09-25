@@ -149,8 +149,8 @@ class ConfigProvider
                 [
                     'id' => 'LogEvent',
                     'description' => 'LogEvent generate',
-                    'source' => __DIR__ . '/publish/stub/LogEvent.stub',  // 对应的配置文件路径
-                    'destination' => BASE_PATH . '/app/Event/LogEvent.php', // 复制为这个路径下的该文件
+                    'source' => __DIR__ . '/publish/stub/LogsEvent.stub',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/app/Event/LogsEvent.php', // 复制为这个路径下的该文件
                 ],
                 [
                     'id' => 'LogsListener',

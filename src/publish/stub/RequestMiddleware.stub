@@ -71,8 +71,9 @@ class RequestMiddleware implements MiddlewareInterface
         $getRequest['request_time'] = $requestTime;
         $getRequest['result_status'] = $status;
         $getRequest['result_body'] = $jsonContent;
-
-        $this->eventDispatcher->dispatch(new LogsEvent('info','request_log',$getRequest));
+        
+        //如果启动了事件可以打开进行记录日志 或者进行入库
+        //$this->eventDispatcher->dispatch(new LogsEvent('info','request_log',$getRequest));
 
         return $result;
     }

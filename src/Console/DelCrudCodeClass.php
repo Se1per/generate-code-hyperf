@@ -51,7 +51,7 @@ class DelCrudCodeClass extends HyperfCommand
     public function __construct(ContainerInterface $container)
     {
         $this->container = $container;
-        parent::__construct('del:crud-code');
+        parent::__construct('generate:del-crud-code');
     }
 
     public function configure()

@@ -120,7 +120,6 @@ return [
 ```bash
 php bin/hyperf.php generate:crud-code
 ```
-
 该命令会：
 1. 扫描数据库中所有表
 2. 显示可选择的表列表
@@ -131,38 +130,12 @@ php bin/hyperf.php generate:crud-code
 ```bash
 php bin/hyperf.php generate:crud-code user
 ```
-
-#### 单独生成某一层
-
-```bash
-# 仅生成 Controller
-php bin/hyperf.php generate:crud-controller user
-
-# 仅生成 Service
-php bin/hyperf.php generate:crud-service user
-
-# 仅生成 Repository
-php bin/hyperf.php generate:crud-repository user
-
-# 仅生成 Manager（业务层）
-php bin/hyperf.php generate:crud-manager user
-
-# 仅生成 Request（验证层）
-php bin/hyperf.php generate:crud-request user
-
-# 仅生成 Model
-php bin/hyperf.php generate:crud-model user
-```
-
 #### 删除已生成的代码
-
 ```bash
-php bin/hyperf.php delete:crud-code user
+php bin/hyperf.php generate:del-crud-code user
 ```
 
 ### 生成的代码结构
-php bin/hyperf.php vendor:publish japool/generate-code-hyperftation]` 注解监控方法执行时间：
-
 ```php
 use Japool\Genconsole\Logger\Annotation\MonitorExecutionAnnotation;
 
@@ -429,7 +402,6 @@ class UserController extends BaseController
         "list": [],
         "total": 10
     },
-    "timestamp": 1696948800
 }
 ```
 

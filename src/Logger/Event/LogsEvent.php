@@ -1,6 +1,6 @@
 <?php
 
-namespace Japool\Genconsole\Event;
+namespace Japool\Genconsole\Logger\Event;
 
 class LogsEvent
 {

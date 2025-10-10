@@ -2,7 +2,7 @@
 
 namespace Japool\Genconsole\Cache\Aspect;
 
-use App\Base\src\LogMonMain;
+use Japool\Genconsole\Logger\LoggerFactory;
 use Hyperf\Di\Annotation\Aspect;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\Di\Aop\AbstractAspect;
@@ -16,7 +16,7 @@ use Psr\Log\LoggerInterface;
 class CacheAspect extends AbstractAspect
 {
     #[Inject]
-    private ?LogMonMain $logMonMain;
+    private ?LoggerFactory $loggerFactory;
 
     #[Inject]
     private ?BufferDrive $bufferDrive;

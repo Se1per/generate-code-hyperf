@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Japool\Genconsole\Listener;
+namespace Japool\Genconsole\Logger\Listener;
 
 use Japool\Genconsole\Logger\LoggerFactory as SrcLoggerFactory;
 use Hyperf\Collection\Arr;
@@ -11,7 +11,7 @@ use Hyperf\Event\Annotation\Listener;
 use Hyperf\Event\Contract\ListenerInterface;
 use Hyperf\Context\Context;
 use Psr\Container\ContainerInterface;
-use App\Event\SlowExecutionEvent;
+use Japool\Genconsole\Logger\Event\SlowExecutionEvent;
 
 #[Listener]
 class DbSlowQueryExecutedListener implements ListenerInterface

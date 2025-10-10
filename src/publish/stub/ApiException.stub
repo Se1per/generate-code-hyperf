@@ -8,24 +8,20 @@ use App\Constants\CodeConstants;
 
 class ApiException extends ServerException
 {
-    public function __construct(CodeConstants|int $code = 0, string|array|null|bool $message = null, ?Throwable $previous = null)
+    public function __construct(CodeConstants|int $code = 0, string|array|null $message = null, ?Throwable $previous = null)
     {
-        if (is_array($message)) {
+        if(is_array($message)){
             $message = json_encode(
                 $message
             );
         }
-
+        
         if (is_null($message)) {
             if ($code instanceof CodeConstants) {
                 $message = $code->getMessage();
             } else {
                 $message = CodeConstants::CODE_ERROR;
             }
-        }
-
-        if (is_bool($message)) {
-            $message = CodeConstants::ERROR;
         }
 
         $code = $code instanceof CodeConstants ? $code->value : $code;

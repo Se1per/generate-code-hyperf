@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Japool\Genconsole\Aspect;
+namespace Japool\Genconsole\Logger\Aspect;
 
-use Japool\Genconsole\Logger\MonitorExecutionAnnotation;
-use App\Event\SlowExecutionEvent;
+use Japool\Genconsole\Logger\Annotation\MonitorExecutionAnnotation;
+use Japool\Genconsole\Logger\Event\SlowExecutionEvent;
 use Hyperf\Context\Context;
 use Hyperf\Di\Aop\AbstractAspect;
 use Hyperf\Di\Aop\ProceedingJoinPoint;

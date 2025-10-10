@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-namespace Japool\Genconsole\Event;
+namespace Japool\Genconsole\Logger\Event;
 
 /**
  * 慢执行事件类

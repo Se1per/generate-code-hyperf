@@ -4,7 +4,7 @@ namespace Japool\Genconsole\Cache\src;
 
 use Hyperf\Redis\RedisFactory;
 use Hyperf\Context\ApplicationContext;
-use App\Base\src\LoggerFactory;
+use Japool\Genconsole\Logger\LoggerFactory;
 use Hyperf\Contract\ConfigInterface;
 
 class BufferDrive

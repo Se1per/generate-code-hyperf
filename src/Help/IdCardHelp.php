@@ -4,8 +4,7 @@
  * User: Se1per
  * Date: 2023/8/23 11:29
  */
-
- namespace Japool\Genconsole\Help;
+namespace Japool\Genconsole\Help;
 
 class IdCardHelp
 {

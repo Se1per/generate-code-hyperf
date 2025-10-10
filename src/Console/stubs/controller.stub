@@ -31,7 +31,7 @@ class {{ class }} extends BaseController
         if($object){
             return [CodeConstants::Success];
         }
-        throw new ApiException(CodeConstants::WARNING);
+        throw new ApiException(CodeConstants::WARNING,$object);
     }
 
     #[RequestMapping(path: 'del{{ table }}Data', methods: 'put')]
@@ -44,7 +44,7 @@ class {{ class }} extends BaseController
         if($object){
             return [CodeConstants::Success];
         }
-        throw new ApiException(CodeConstants::WARNING);
+        throw new ApiException(CodeConstants::WARNING,$object);
     }
 
     #[RequestMapping(path: 'get{{ table }}Data', methods: 'GET')]

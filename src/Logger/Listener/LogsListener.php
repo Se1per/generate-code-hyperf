@@ -1,9 +1,9 @@
 <?php
 
-namespace Japool\Genconsole\Listener;
+namespace Japool\Genconsole\Logger\Listener;
 
 use Hyperf\Event\Contract\ListenerInterface;
-use Japool\Genconsole\Event\LogsEvent;
+use Japool\Genconsole\Logger\Event\LogsEvent;
 use Hyperf\Event\Annotation\Listener;
 use Japool\Genconsole\Logger\LoggerFactory as SrcLoggerFactory;
 use Hyperf\Context\Context;

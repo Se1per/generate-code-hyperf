@@ -3,7 +3,6 @@
 
 namespace App\Middleware;
 
-use App\Base\src\LogMonMain;
 use Hyperf\Context\Context;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -11,7 +10,7 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Hyperf\Di\Annotation\Inject;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Japool\Genconsole\Event\LogsEvent;
+use Japool\Genconsole\Logger\Event\LogsEvent;
 
 class RequestMiddleware implements MiddlewareInterface
 {

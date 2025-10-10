@@ -130,6 +130,27 @@ php bin/hyperf.php generate:crud-code
 ```bash
 php bin/hyperf.php generate:crud-code user
 ```
+#### 单独生成某一层
+
+```bash
+# 仅生成 Controller
+php bin/hyperf.php generate:crud-controller user
+
+# 仅生成 Service
+php bin/hyperf.php generate:crud-service user
+
+# 仅生成 Repository
+php bin/hyperf.php generate:crud-repository user
+
+# 仅生成 Manager（业务层）
+php bin/hyperf.php generate:crud-manager user
+
+# 仅生成 Request（验证层）
+php bin/hyperf.php generate:crud-request user
+
+# 仅生成 Model
+php bin/hyperf.php generate:crud-model user
+```
 #### 删除已生成的代码
 ```bash
 php bin/hyperf.php generate:del-crud-code user

@@ -3,18 +3,10 @@
 namespace Japool\Genconsole\Console;
 
 use Hyperf\Command\Annotation\Command;
-use Hyperf\Config\Annotation\Value;
-use Hyperf\Devtool\Generator\GeneratorCommand;
-use Japool\Genconsole\Console\src\AutoCodeHelp;
 
 #[Command]
-class GenerateTest extends GeneratorCommand
+class GenerateTest extends AbstractCrudGenerator
 {
-    #[Value('generator')]
-    protected $config;
-    
-    use AutoCodeHelp;
-    
     public function __construct()
     {
         parent::__construct('generate:generateTest');
@@ -31,97 +23,92 @@ class GenerateTest extends GeneratorCommand
         return __DIR__ . '/stubs/Test.stub';
     }
 
-    protected function getDefaultNamespace(): string
+    protected function getClassSuffix(): string
     {
-        return $this->config['general']['test'];
+        return 'ControllerTest';
     }
 
-    protected function qualifyClass(string $name): string
+    protected function getConfigKey(): string
     {
-        $name = $this->input->getArguments();
-
-        $name = $name['name'].'ControllerTest';
-
-        $namespace = $this->input->getOption('namespace');
-
-        if (empty($namespace)) {
-            $namespace = $this->getDefaultNamespace();
-        }
-
-        return $namespace . '\\' . $name;
+        return 'test';
     }
 
-    /**
-     * 设置类名和自定义替换内容
-     * @param string $stub
-     * @param string $name
-     * @return string
-     */
-    protected function replaceClass(string $stub, $name): string
+    protected function buildReplacements(array $context): array
     {
-        $stub = $this->replaceName($stub);
-        return parent::replaceClass($stub, $name);
-        //BaseRepository
+        $primaryKeyValue = $this->buildPrimaryKeyValue($context);
+        $requiredFields = $this->buildRequiredFields($context);
+
+        return [
+            '{{ class }}' => $context['camelTableName'] . 'ControllerTest',
+            '{{tableName}}' => $context['camelTableName'],
+            '{{smollTableName}}' => $context['lcfirstTableName'],
+            '{{primaryKey}}' => "'{$context['primaryKey']}'",
+            '{{one}}' => $requiredFields,
+        ];
     }
 
     /**
-     * 替换自定义内容
-     * @param $stub
-     * @return string|string[]
+     * 构建主键值（用于测试数据）
      */
-    public function replaceName($stub)
+    protected function buildPrimaryKeyValue(array $context): string
     {
-        $stub = str_replace('{{ namespace }}', $this->config['general']['test'], $stub);
-        $tableName = $this->input->getArguments();
-
-        $tableName['name'] = $this->unCamelCase($tableName['name']);
-        $dbPrefix = \Hyperf\Support\env('DB_PREFIX');
-        $dbDriver = \Hyperf\Support\env('DB_DRIVER');
-
-        $result = $this->getTableColumnsComment($dbPrefix.$tableName['name']);
-
-        $key = null;
-        $one = '';
-        foreach ($result as $k => $column) {
-            
-            if ($dbDriver == 'pgsql') {
-                if ($column->is_primary_key == 'YES' && !$key) {
-                    $key = '\'' . $column->column_name . '\'';
+        foreach ($context['columns'] as $column) {
+            if ($this->isPrimaryKey($column, $context['dbDriver'])) {
+                $dataType = $context['dbDriver'] == 'pgsql' 
+                    ? $column->data_type 
+                    : $column->Type;
+                    
+                $phpType = $this->convertDbTypeToPhpType($dataType);
+                $columnName = $context['dbDriver'] == 'pgsql' 
+                    ? $column->column_name 
+                    : $column->Field;
+                
+                if ($phpType == 'integer') {
+                    return "'{$columnName}' => 1";
                 }
-                $pri = $this->convertDbTypeToPhpType($column->data_type);
-                if($column->is_primary_key == 'YES' && $pri == 'integer'){
-                    $one .= '\''.$column->column_name.'\''.'=>1,';
-                }else if($column->is_primary_key == 'YES' && $pri == 'string'){
-                    $one .= '\''.$column->column_name.'\''.'=>\'1\',';
+                return "'{$columnName}' => '1'";
+            }
+        }
+        return '';
+    }
+
+    /**
+     * 构建必填字段（用于测试数据）
+     */
+    protected function buildRequiredFields(array $context): string
+    {
+        $fields = '';
+        
+        foreach ($context['columns'] as $column) {
+            if ($context['dbDriver'] == 'pgsql') {
+                // PostgreSQL
+                if ($column->is_primary_key == 'YES') {
+                    $phpType = $this->convertDbTypeToPhpType($column->data_type);
+                    if ($phpType == 'integer') {
+                        $fields .= "'{$column->column_name}' => 1,";
+                    } else {
+                        $fields .= "'{$column->column_name}' => '1',";
+                    }
                 }
             } else {
-                if ($column->Key == 'PRI' && !$key) {
-                    $key = '\'' . $column->Field . '\'';
-                }
-                $pri = $this->convertDbTypeToPhpType($column->Type);
-
-                if($column->Key != 'PRI' && $column->Null == 'NO'){
-                    if($pri == 'integer' || $pri == 'string'){
-                        $one .= '\''.$column->Field.'\''.'=>1,';
-                    }else if ($pri == 'float'){
-                        $one .= '\''.$column->Field.'\''.'=>'.'\'1.0\',';
-                    }else{
-                        $one .= '\''.$column->Field.'\''.'=>1,';
+                // MySQL
+                if ($column->Key != 'PRI' && $column->Null == 'NO') {
+                    $phpType = $this->convertDbTypeToPhpType($column->Type);
+                    
+                    if ($phpType == 'integer') {
+                        $fields .= "'{$column->Field}' => 1,";
+                    } else if ($phpType == 'float') {
+                        $fields .= "'{$column->Field}' => '1.0',";
+                    } else if ($phpType == 'string') {
+                        $fields .= "'{$column->Field}' => 1,";
+                    } else {
+                        $fields .= "'{$column->Field}' => 1,";
                     }
                 }
             }
         }
         
-        $smollTableName = $this->lcfirst( $tableName['name']);
-        $stub = str_replace('{{smollTableName}}', $smollTableName, $stub);
-        $tableN = $this->camelCase($tableName['name']);
-
-        $stub = str_replace('{{tableName}}', $tableN, $stub);
-        
-        $stub = str_replace('{{primaryKey}}', $key, $stub);
-        $stub = str_replace('{{one}}', $one, $stub);
-
-        return $stub;
+        return $fields;
     }
 
 }

@@ -105,6 +105,12 @@ class ConfigProvider
                     'destination' => BASE_PATH . '/app/Base/src/RepositoryPackage.php', // 复制为这个路径下的该文件
                 ],
                 [
+                    'id' => 'RepositoryPackageInterface',
+                    'description' => 'RepositoryPackageInterface generate', // 描述
+                    'source' => __DIR__ . '/publish/stub/RepositoryPackageInterface.stub',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/app/Base/src/RepositoryPackageInterface.php', // 复制为这个路径下的该文件
+                ],
+                [
                     'id' => 'BaseService',
                     'description' => 'BaseService generate', // 描述
                     'source' => __DIR__ . '/publish/stub/BaseService.stub',  // 对应的配置文件路径
@@ -146,18 +152,18 @@ class ConfigProvider
                     'source' => __DIR__ . '/publish/stub/RequestMiddleware.stub',  // 对应的配置文件路径
                     'destination' => BASE_PATH . '/app/Middleware/RequestMiddleware.php', // 复制为这个路径下的该文件
                 ],
-                [
-                    'id' => 'LogEvent',
-                    'description' => 'LogEvent generate',
-                    'source' => __DIR__ . '/publish/stub/LogsEvent.stub',  // 对应的配置文件路径
-                    'destination' => BASE_PATH . '/app/Event/LogsEvent.php', // 复制为这个路径下的该文件
-                ],
-                [
-                    'id' => 'LogsListener',
-                    'description' => 'LogsListener generate',
-                    'source' => __DIR__ . '/publish/stub/LogsListener.stub',  // 对应的配置文件路径
-                    'destination' => BASE_PATH . '/app/Listener/LogsListener.php', // 复制为这个路径下的该文件
-                ],
+                // [
+                //     'id' => 'LogEvent',
+                //     'description' => 'LogEvent generate',
+                //     'source' => __DIR__ . '/publish/stub/LogsEvent.stub',  // 对应的配置文件路径
+                //     'destination' => BASE_PATH . '/app/Event/LogsEvent.php', // 复制为这个路径下的该文件
+                // ],
+                // [
+                //     'id' => 'LogsListener',
+                //     'description' => 'LogsListener generate',
+                //     'source' => __DIR__ . '/publish/stub/LogsListener.stub',  // 对应的配置文件路径
+                //     'destination' => BASE_PATH . '/app/Listener/LogsListener.php', // 复制为这个路径下的该文件
+                // ],
             ],
             // 亦可继续定义其它配置，最终都会合并到与 ConfigInterface 对应的配置储存器中
         ];

@@ -2,20 +2,11 @@
 
 namespace Japool\Genconsole\Console;
 
-use Japool\Genconsole\Console\src\AutoCodeHelp;
 use Hyperf\Command\Annotation\Command;
-use Hyperf\Config\Annotation\Value;
-use Hyperf\Devtool\Generator\GeneratorCommand;
-
 
 #[Command]
-class MakeService extends GeneratorCommand
+class MakeService extends AbstractCrudGenerator
 {
-    #[Value('generator')]
-    protected $config;
-
-    use AutoCodeHelp;
-
     public function __construct()
     {
         parent::__construct('generate:crud-service');
@@ -32,56 +23,24 @@ class MakeService extends GeneratorCommand
         return __DIR__ . '/stubs/service.stub';
     }
 
-    protected function getDefaultNamespace(): string
+    protected function getClassSuffix(): string
     {
-        return $this->config['general']['service'];
+        return 'Service';
     }
 
-    protected function qualifyClass(string $name): string
+    protected function getConfigKey(): string
     {
-        $name = $this->input->getArguments();
-
-        $name = $name['name'].'Service';
-
-        $namespace = $this->input->getOption('namespace');
-        if (empty($namespace)) {
-            $namespace = $this->getDefaultNamespace();
-        }
-
-        return $namespace . '\\' . $name;
+        return 'service';
     }
 
-    /**
-     * 设置类名和自定义替换内容
-     * @param string $stub
-     * @param string $name
-     * @return string
-     */
-    protected function replaceClass(string $stub, $name): string
+    protected function buildReplacements(array $context): array
     {
-        $stub = $this->replaceName($stub); //替换自定义内容
-        return parent::replaceClass($stub, $name);
-    }
-
-    public function replaceName($stub)
-    {
-        $tableName = $this->input->getArguments();
-
-        $stub = str_replace('{{ class }}', $this->camelCase($tableName['name']).'Service', $stub);
-
-        $stub = str_replace('{{ smallTable }}', $tableName['name'],$stub);
-
-        $stub = str_replace('{{ table }}', $this->camelCase($tableName['name']),$stub);
-
-        $stub = str_replace('{{ namespace }}', $this->config['general']['service'], $stub);
-
-        $stub = str_replace('{{ repository }}',$this->config['general']['repository'],$stub);
-        
-        $stub = str_replace('{{ manager }}',$this->config['general']['manager'],$stub);
-
-//        $stub = str_replace('{{ app }}',$this->config['general']['app'] , $stub);
-
-        $stub = str_replace('{{ base }}', $this->config['general']['base'],$stub);
-        return $stub;
+        return [
+            '{{ class }}' => $context['camelTableName'] . 'Service',
+            '{{ smallTable }}' => $context['tableName'],
+            '{{ table }}' => $context['camelTableName'],
+            '{{ repository }}' => $this->config['general']['repository'],
+            '{{ manager }}' => $this->config['general']['manager'],
+        ];
     }
 }

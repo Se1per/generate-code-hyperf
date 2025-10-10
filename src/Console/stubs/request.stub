@@ -5,7 +5,7 @@ namespace {{ namespace }};
 use Hyperf\Validation\Request\FormRequest;
 use Hyperf\Validation\Rule;
 
-class {{ class }}Request extends FormRequest
+class {{ class }} extends FormRequest
 {
      protected array $scenes = [
          'save' => [{{ saveRules }}],

@@ -104,7 +104,8 @@ trait AutoCodeHelp
             $is_primary_key = $column->is_primary_key;
         }else{
             $column_name = $column->Field;
-            $column_type = $column->Type;
+            // MySQL: 提取括号前的类型名，例如 int(11) -> int
+            $column_type = preg_replace('/\(.*\)/', '', $column->Type);
             $column_comment = $column->Comment;
             $is_primary_key = $column->Key;
         }
@@ -112,7 +113,7 @@ trait AutoCodeHelp
             return true;
         }
  
-        if ($is_primary_key == 'PRI' && $keyCount == 1) {
+        if (($is_primary_key == 'PRI' || $is_primary_key == 'YES') && $keyCount == 1) {
             $store .= '\'' . $column_name . '\'' . '=>' . '$this->getKeyRule(),'. "\r";
             $messages .= '\'' . $column_name . '.required' . '\'' . '=>' . '\'' . $column_comment . '不能为空' . '\'' . ',' . "\r";
             $messages .= '\'' . $column_name . '.exists' . '\'' . '=>' . '\'' . $column_comment . '必须存在' . '\'' . ','. "\r";

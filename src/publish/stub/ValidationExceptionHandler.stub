@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Exception\Handler;
 
-use Hyperf\Di\Annotation\Inject;
 use Hyperf\ExceptionHandler\ExceptionHandler;
 use Hyperf\Validation\ValidationException;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 use Hyperf\HttpMessage\Stream\SwooleStream;
+use App\Constants\CodeConstants;
 
 class ValidationExceptionHandler extends ExceptionHandler
 {
@@ -22,7 +22,7 @@ class ValidationExceptionHandler extends ExceptionHandler
         }
 
         $data = json_encode([
-            'code' => 200001,
+            'code' => CodeConstants::ARGUMENTS,
             'status' => 'warning',
             'message' => '数据验证失败:'.$throwable->validator->errors()->first(),
         ], JSON_UNESCAPED_UNICODE);

@@ -13,6 +13,7 @@ use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\RequestMapping;
 use Hyperf\Validation\Annotation\Scene;
 use Japool\Genconsole\ReturnCall\Annotation\ReturnAnnotation;
+use Japool\Genconsole\Logger\Annotation\MonitorExecutionAnnotation;
 
 #[Controller(prefix: '/api/{{ prefix }}', server: '{{ server }}')]
 class {{ class }} extends BaseController
@@ -47,6 +48,7 @@ class {{ class }} extends BaseController
     }
 
     #[RequestMapping(path: 'get{{ table }}Data', methods: 'GET')]
+    #[MonitorExecutionAnnotation(threshold: 100, name: "{{ table }}查询")]
     #[Scene(scene: 'get')]
     #[ReturnAnnotation]
     public function get{{ table }}Data({{ table }}Request $request): string|array|\Psr\Http\Message\ResponseInterface

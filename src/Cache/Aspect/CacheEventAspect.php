@@ -19,9 +19,6 @@ use Japool\Genconsole\JsonCall\Annotation\ReturnAnnotation;
 class CacheEventAspect extends AbstractAspect
 {
     #[Inject]
-    private ?LogMonMain $logMonMain;
-
-    #[Inject]
     private ?BufferDrive $bufferDrive;
 
     public array $classes = [

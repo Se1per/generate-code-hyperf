@@ -2,23 +2,11 @@
 
 namespace Japool\Genconsole\Console;
 
-use Japool\Genconsole\Console\src\AutoCodeHelp;
 use Hyperf\Command\Annotation\Command;
-use Hyperf\Config\Annotation\Value;
-
-use Hyperf\Devtool\Generator\GeneratorCommand;
-
 
 #[Command]
-class MakeManager extends GeneratorCommand
+class MakeManager extends AbstractCrudGenerator
 {
-    #[Value('generator')]
-    protected $config;
-
-    use AutoCodeHelp;
-
-    protected $sw = false;
-
     public function __construct()
     {
         parent::__construct('generate:crud-manager');
@@ -35,68 +23,20 @@ class MakeManager extends GeneratorCommand
         return __DIR__ . '/stubs/manager.stub';
     }
 
-    protected function getDefaultNamespace(): string
+    protected function getClassSuffix(): string
     {
-        return $this->config['general']['manager'];
+        return 'Manager';
     }
 
-    protected function qualifyClass(string $name): string
+    protected function getConfigKey(): string
     {
-        $name = $this->input->getArguments();
-
-        $name = $name['name'].'Manager';
-
-        $namespace = $this->input->getOption('namespace');
-
-        if (empty($namespace)) {
-            $namespace = $this->getDefaultNamespace();
-        }
-
-        return $namespace . '\\' . $name;
+        return 'manager';
     }
 
-    /**
-     * 设置类名和自定义替换内容
-     * @param string $stub
-     * @param string $name
-     * @return string
-     */
-    protected function replaceClass(string $stub, $name): string
+    protected function buildReplacements(array $context): array
     {
-        $stub = $this->replaceName($stub); //替换自定义内容
-        return parent::replaceClass($stub, $name);
+        return [
+            '{{ class }}' => $context['camelTableName'] . 'Manager',
+        ];
     }
-
-    public function replaceName($stub)
-    {
-        $tableName = $this->input->getArguments();
-        $tableName['name'] = $this->unCamelCase($tableName['name']);
-//        $dbPrefix = env('DB_PREFIX');
-        $dbPrefix = \Hyperf\Support\env('DB_PREFIX');
-        $dbDriver = \Hyperf\Support\env('DB_DRIVER');
-
-        $result = $this->getTableColumnsComment($dbPrefix.$tableName['name']);
-
-        $key = null;
-
-        foreach ($result as $column) {
-
-            if($dbDriver == 'pgsql'){
-                if($column->is_primary_key == 'YES' && !$key){
-                    $key = '\''.$column->column_name.'\'';
-                }
-            }else{
-                if($column->Key == 'PRI' && !$key){
-                    $key = '\''.$column->Field.'\'';
-                }
-            }
-        }
-
-        $stub = str_replace('{{ class }}', $this->camelCase($tableName['name']).'Manager', $stub);
-
-        $stub = str_replace('{{ namespace }}', $this->config['general']['manager'], $stub);
-
-        return $stub;
-    }
-
 }

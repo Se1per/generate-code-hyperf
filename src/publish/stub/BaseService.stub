@@ -8,11 +8,15 @@ use Carbon\Carbon;
 use Hyperf\Context\Context;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;
+use Japool\Genconsole\Logger\LoggerFactory;
 
 abstract class BaseService
 {
     #[Inject]
     protected RequestInterface $request;
+
+    #[Inject]
+    protected LoggerFactory $loggerFactory;
 
     protected $user;
     

@@ -2,22 +2,12 @@
 
 namespace Japool\Genconsole\Console;
 
-use Japool\Genconsole\Console\src\AutoCodeHelp;
 use Hyperf\Command\Annotation\Command;
-use Hyperf\Config\Annotation\Value;
-
-use Hyperf\Devtool\Generator\GeneratorCommand;
-
 
 #[Command]
-class MakeController extends GeneratorCommand
+class MakeController extends AbstractCrudGenerator
 {
-    #[Value('generator')]
-    protected $config;
-
-    use AutoCodeHelp;
-
-    protected $sw = false;
+    protected bool $sw = false;
 
     public function __construct()
     {
@@ -32,163 +22,130 @@ class MakeController extends GeneratorCommand
 
     protected function getStub(): string
     {
-        if($this->isSwaggerExtensionInstalled()){
+        if ($this->isSwaggerExtensionInstalled()) {
             $this->sw = true;
             return __DIR__ . '/stubs/controllerSwagger.stub';
-        }else{
-            return __DIR__ . '/stubs/controller.stub';
         }
+        return __DIR__ . '/stubs/controller.stub';
+    }
+
+    protected function getClassSuffix(): string
+    {
+        return 'Controller';
+    }
+
+    protected function getConfigKey(): string
+    {
+        return 'controller';
     }
 
     protected function getDefaultNamespace(): string
     {
-        return $this->config['general']['controller'].'\\'.$this->config['general']['app'];
+        return $this->config['general']['controller'] . '\\' . $this->config['general']['app'];
     }
 
-    protected function qualifyClass(string $name): string
+    protected function buildReplacements(array $context): array
     {
-        $name = $this->input->getArguments();
+        $replacements = [
+            '{{ class }}' => $context['camelTableName'] . 'Controller',
+            '{{ table }}' => $context['camelTableName'],
+            '{{ prefix }}' => $context['lcfirstTableName'],
+            '{{ request }}' => $this->config['general']['request'],
+            '{{ service }}' => $this->config['general']['service'],
+            '{{ server }}' => $this->lcfirst($this->config['general']['app']),
+            '{{ namespace }}' => $this->config['general']['controller'] . '\\' . $this->config['general']['app'],
+        ];
 
-        $name = $name['name'].'Controller';
-
-        $namespace = $this->input->getOption('namespace');
-
-        if (empty($namespace)) {
-            $namespace = $this->getDefaultNamespace();
+        // 如果启用了 Swagger，添加 Swagger 相关替换
+        if ($this->sw) {
+            $swaggerReplacements = $this->buildSwaggerReplacements($context);
+            $replacements = array_merge($replacements, $swaggerReplacements);
         }
 
-        return $namespace . '\\' . $name;
+        return $replacements;
     }
 
     /**
-     * 设置类名和自定义替换内容
-     * @param string $stub
-     * @param string $name
-     * @return string
+     * 构建 Swagger 相关的替换内容
      */
-    protected function replaceClass(string $stub, $name): string
+    protected function buildSwaggerReplacements(array $context): array
     {
-        $stub = $this->replaceName($stub); //替换自定义内容
-        return parent::replaceClass($stub, $name);
-    }
-
-    public function replaceName($stub)
-    {
-        $tableName = $this->input->getArguments();
-        $tableName['name'] = $this->unCamelCase($tableName['name']);
-//        $dbPrefix = env('DB_PREFIX');
-        $dbPrefix = \Hyperf\Support\env('DB_PREFIX');
-        $dbDriver = \Hyperf\Support\env('DB_DRIVER');
-
-        $result = $this->getTableColumnsComment($dbPrefix.$tableName['name']);
- 
-        $key = null;
-
-        foreach ($result as $column) {
-     
-            if($dbDriver == 'pgsql'){
-                if($column->is_primary_key == 'YES' && !$key){
-                    $key = '\''.$column->column_name.'\'';
-                }
-            }else{
-                if($column->Key == 'PRI' && !$key){
-                    $key = '\''.$column->Field.'\'';
-                }
-            }
-        }
- 
-        if($this->sw)
-        {
-            $saveApi = '\''.'api/'.$this->lcfirst($tableName['name']).'/'.'save'.$this->camelCase($tableName['name']).'Data'.'\'';
-            $delApi = '\''.'api/'.$this->lcfirst($tableName['name']).'/'.'del'.$this->camelCase($tableName['name']).'Data'.'\'';
-            $getApi = '\''.'api/'.$this->lcfirst($tableName['name']).'/'.'get'.$this->camelCase($tableName['name']).'Data'.'\'';
-
-            $stub = str_replace('{{ saveApi }}', $saveApi, $stub);
-            $stub = str_replace('{{ delApi }}', $delApi, $stub);
-            $stub = str_replace('{{ getApi }}', $getApi, $stub);
-
-            # saveComment
-//            $dbPrefix = env('DB_PREFIX');
-            $dbPrefix = \Hyperf\Support\env('DB_PREFIX');
-            $tableComment = $this->getTableComment($dbPrefix.$tableName['name']);
-
-            if(!empty($tableComment->Comment)){
-                $stub = str_replace('{{ comment }}', $tableComment->Comment, $stub);
-
-                $saveTags = '\''.$tableComment->Comment.'\'';
-                $delTags = '\''.$tableComment->Comment.'\'';
-                $getTags = '\''.$tableComment->Comment.'\'';
-
-            }else{
-                $stub = str_replace('{{ comment }}', $tableName['name'], $stub);
-                $saveTags = '\''.$tableName['name'].'\'';
-                $delTags = '\''.$tableName['name'].'\'';
-                $getTags = '\''.$tableName['name'].'\'';
-            }
-            $stub = str_replace('{{ saveTags }}', $saveTags, $stub);
-            $stub = str_replace('{{ getTags }}', $getTags, $stub);
-            $stub = str_replace('{{ delTags }}', $delTags, $stub);
-
-            # RequestBody
-            $getResponse = '';
-            $saveProperties = '';
-            $delProperties = '';
-            $getProperties = '';
-            foreach ($result as $column) {
-                if ($column->Field == 'deleted_at' || $column->Field == 'created_at' || $column->Field == 'updated_at') {
-                    continue;
-                }
-
-                if (!empty(isset($column->Comment))) {
-                    $column_default = $column->Comment;
-                } else {
-                    $column_default = $column->Field;
-                }
-
-                $pri = $this->convertDbTypeToPhpType($column->Type);
-
-                if($column->Key == 'PRI'){
-                    $delProperties .= "new SA\Property(property: '".$column->Field."', description: '".$column_default."', type: '".$pri."'),\r";
-                }
-
-                $getProperties .= "#[SA\QueryParameter(name: '".$column->Field."', description: '".$column_default."', schema: new SA\Schema(type: '".$pri."'))]\r";
-
-                $saveProperties .= "new SA\Property(property: '".$column->Field."', description: '".$column_default."', type: '".$pri."'),\r";
-
-                $getResponse .= '"'.$column->Field.'"'.':'.'"'.$column_default.'"'.",";
-
-            }
-
-            $stub = str_replace('{{ saveProperties }}', $saveProperties, $stub);
-            $stub = str_replace('{{ delProperties }}', $delProperties, $stub);
-
-            $getProperties .= "#[SA\QueryParameter(name: '".'pageSize'."', description: '".'分页参数'."',required: true,schema: new SA\Schema(type: '".'integer'."'))]\r";
-            $getProperties .= "#[SA\QueryParameter(name: '".'page'."', description: '".'分页参数'."',required: true,schema: new SA\Schema(type: '".'integer'."'))]\r";
-
-            $stub = str_replace('{{ getProperties }}', $getProperties, $stub);
-            $stub = str_replace('{{ response }}', $getResponse, $stub);
-        }
-
-        $stub = str_replace('{{ primaryKey }}', $key, $stub);
-
-        $stub = str_replace('{{ request }}',$this->config['general']['request'] , $stub);
-        $stub = str_replace('{{ service }}',$this->config['general']['service'] , $stub);
-
-//        $stub = str_replace('{{ app }}',$this->config['general']['app'] , $stub);
-
-        $stub = str_replace('{{ server }}',$this->lcfirst($this->config['general']['app']) , $stub);
-
-        $stub = str_replace('{{ class }}', $this->camelCase($tableName['name']).'Controller', $stub);
-
-        $stub = str_replace('{{ table }}', $this->camelCase($tableName['name']), $stub);
-
-        $stub = str_replace('{{ prefix }}', $this->lcfirst($tableName['name']), $stub);
-
-        $stub = str_replace('{{ namespace }}', $this->config['general']['controller'].'\\'.$this->config['general']['app'], $stub);
+        $tableName = $context['tableName'];
+        $tableComment = $context['tableComment'];
         
-        $stub = str_replace('{{ base }}', $this->config['general']['base'],$stub);
-
-        return $stub;
+        // 获取表注释，如果没有则使用表名
+        $comment = !empty($tableComment->Comment) ? $tableComment->Comment : $tableName;
+        
+        return [
+            '{{ saveApi }}' => $this->buildApiPath($tableName, 'save'),
+            '{{ delApi }}' => $this->buildApiPath($tableName, 'del'),
+            '{{ getApi }}' => $this->buildApiPath($tableName, 'get'),
+            '{{ comment }}' => $comment,
+            '{{ saveTags }}' => "'{$comment}'",
+            '{{ delTags }}' => "'{$comment}'",
+            '{{ getTags }}' => "'{$comment}'",
+            '{{ saveProperties }}' => $this->buildSwaggerProperties($context['columns'], 'save'),
+            '{{ delProperties }}' => $this->buildSwaggerProperties($context['columns'], 'del'),
+            '{{ getProperties }}' => $this->buildSwaggerProperties($context['columns'], 'get'),
+            '{{ response }}' => $this->buildSwaggerResponse($context['columns']),
+        ];
     }
 
+    /**
+     * 构建 Swagger Properties
+     */
+    protected function buildSwaggerProperties($columns, string $type): string
+    {
+        $properties = '';
+        
+        foreach ($columns as $column) {
+            // 跳过时间戳字段
+            if (in_array($column->Field, ['deleted_at', 'created_at', 'updated_at'])) {
+                continue;
+            }
+
+            $columnDefault = !empty($column->Comment) ? $column->Comment : $column->Field;
+            $phpType = $this->convertDbTypeToPhpType($column->Type);
+
+            if ($type === 'del') {
+                // 删除操作只需要主键
+                if ($column->Key == 'PRI') {
+                    $properties .= "new SA\Property(property: '{$column->Field}', description: '{$columnDefault}', type: '{$phpType}'),\r";
+                }
+            } elseif ($type === 'get') {
+                // 查询操作使用 QueryParameter
+                $properties .= "#[SA\QueryParameter(name: '{$column->Field}', description: '{$columnDefault}', schema: new SA\Schema(type: '{$phpType}'))]\r";
+            } else {
+                // 保存操作包含所有字段
+                $properties .= "new SA\Property(property: '{$column->Field}', description: '{$columnDefault}', type: '{$phpType}'),\r";
+            }
+        }
+
+        // 查询操作需要添加分页参数
+        if ($type === 'get') {
+            $properties .= "#[SA\QueryParameter(name: 'pageSize', description: '分页参数', required: true, schema: new SA\Schema(type: 'integer'))]\r";
+            $properties .= "#[SA\QueryParameter(name: 'page', description: '分页参数', required: true, schema: new SA\Schema(type: 'integer'))]\r";
+        }
+
+        return $properties;
+    }
+
+    /**
+     * 构建 Swagger Response
+     */
+    protected function buildSwaggerResponse($columns): string
+    {
+        $response = '';
+        
+        foreach ($columns as $column) {
+            if (in_array($column->Field, ['deleted_at', 'created_at', 'updated_at'])) {
+                continue;
+            }
+            
+            $columnDefault = !empty($column->Comment) ? $column->Comment : $column->Field;
+            $response .= '"' . $column->Field . '":"' . $columnDefault . '",';
+        }
+
+        return $response;
+    }
 }

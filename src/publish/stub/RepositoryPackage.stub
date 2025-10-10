@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace App\Base\src;
 
 use App\Constants\CodeConstants;
-
 use App\Exception\ApiException;
-
 use Hyperf\Coroutine\Exception\ParallelExecutionException;
 use Hyperf\Coroutine\Parallel;
 use Hyperf\DbConnection\Db;
@@ -15,26 +13,24 @@ use Hyperf\Di\Annotation\Inject;
 use Hyperf\Contract\ConfigInterface;
 use Psr\Container\ContainerInterface;
 use SplQueue;
+use App\Base\src\RepositoryPackageInterface;
+use Japool\Genconsole\Logger\LoggerFactory;
 
-abstract class RepositoryPackage
+abstract class RepositoryPackage implements RepositoryPackageInterface
 {
     protected $model;
-
     protected $cache;
-
-    // #[Value('generator')]
     protected array $config;
-    
+    protected $user;
+
     #[Inject]
-    private ?LogMonMain $logMonMain;
+    protected ?LoggerFactory $loggerFactory;
 
     #[Inject]
     protected ConfigInterface $configInterface;
 
     #[Inject]
-    protected ContainerInterface $container; 
-
-    protected $user;
+    protected ContainerInterface $container;
 
     public function __construct()
     {
@@ -43,16 +39,6 @@ abstract class RepositoryPackage
         $this->getModel();
         // return $this;
     }
-
-    // public function model(): string 
-    // {
-    //     return $this->config['general']['model'] . '\\' . str_replace('Repository', '', $this->class_basename(get_class($this)));
-    // }
-
-    // public function getModel()
-    // {
-    //     return $this->setModel();
-    // }
 
     public function getModel()
     {
@@ -68,11 +54,63 @@ abstract class RepositoryPackage
         return $this->model;
     }
 
+    /**
+     * 获取类的基础名称
+     */
     public function class_basename($class)
     {
         $class = is_object($class) ? get_class($class) : $class;
 
         return basename(str_replace('\\', '/', $class));
+    }
+
+    /**
+     * 记录错误日志（统一方法）
+     */
+    protected function logError(string $method, \Throwable $e, array $context = []): void
+    {
+        try {
+
+            $logger = $this->loggerFactory->get('sql');
+
+            $logger->error("{$method} 失败", array_merge([
+                'table' => $this->getModel()->getTable(),
+                'method' => $method,
+                'error_message' => $e->getMessage(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+            ], $context));
+        } catch (\Throwable $logError) {
+            error_log("日志记录失败: " . $logError->getMessage());
+        }
+    }
+
+    /**
+     * 记录信息日志（统一方法）
+     */
+    protected function logInfo(string $method, array $context = []): void
+    {
+        try {
+            $logger = $this->loggerFactory->get('sql');
+
+            $logger->info($method, array_merge([
+                'table' => $this->getModel()->getTable(),
+            ], $context));
+        } catch (\Throwable $e) {
+            error_log("日志记录失败: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * 计算协程并发数
+     */
+    protected function calculateParallelCount(
+        int $number,
+        int $divisor = 2,
+        int $max = 50
+    ): int {
+        $count = intdiv($number, $divisor);
+        return min($count, $max);
     }
 
     /**
@@ -85,18 +123,16 @@ abstract class RepositoryPackage
         try {
 
             $createData = $this->getModel()->create($data);
-
         } catch (\Throwable $e) {
-            $error = [
-                'message'=>$e->getMessage(),
-            ];
-            $this->logMonMain->error('saveData',$this->getModel()->getTable(),$error);
-            throw new ApiException(CodeConstants::ERROR, $error);
+
+            $this->logError('saveData', $e, ['data' => $data]);
+
+            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
         }
 
         return $createData;
     }
-    
+
     /**
      * 批量插入数据 协程
      * @param $data
@@ -109,25 +145,26 @@ abstract class RepositoryPackage
 
         $dataNum = count($data);
 
+        if ($dataNum < 1) {
+            return [false, '数据不能为空'];
+        }
+
         if ($dataNum > $unpack) {
+            $now = date('Y-m-d H:i:s');
             foreach ($data as &$val) {
-                $val['created_at'] = date('Y-m-d H:i:s');
-                $val['updated_at'] = date('Y-m-d H:i:s');
+                $val['created_at'] = $val['created_at'] ?? $now;
+                $val['updated_at'] = $val['updated_at'] ?? $now;
             }
-        }else{
+        } else {
             $unpack = $dataNum - 1;
         }
 
-        if($dataNum < 1){
-            return [false,'单个数据不能使用协程批量插入'];
-        }
+        $chunks = array_chunk($data, $unpack);
 
-        $data = array_chunk($data, $unpack);
+        $parallelCount = $this->calculateParallelCount(count($chunks));
 
-        $num = $this->divideByTwo(count($data));
- 
-        $parallel = new Parallel($num);
- 
+        $parallel = new Parallel($parallelCount);
+
         foreach ($data as $value) {
             $parallel->add(function () use ($value) {
                 return $this->getModel()->insert($value);
@@ -142,22 +179,25 @@ abstract class RepositoryPackage
 
             $executionTime = $endTime - $startTime;
 
-            $this->logMonMain->info('db_log', 'saveAllData', [
-                'count' => count($data),
+            $this->logInfo('saveAllData', [
+                'count' => count($chunks),
+                'records' => $dataNum,
                 'executionTime' => $executionTime
             ]);
-
         } catch (ParallelExecutionException $e) {
             $results = $e->getResults();
             $endTime = microtime(true);
             $executionTime = $endTime - $startTime;
+
             $error = [
-                'count' => count($data),
+                'count' => count($chunks),
                 'executionTime' => $executionTime,
                 'error' => $e->getResults(),
                 'Throwables' => $e->getThrowables(),
             ];
-            $this->logMonMain->error('db_log', 'saveAllData', $error);
+
+            $this->logError('saveAllData', $e, ['data' => $data]);
+
             throw new ApiException(CodeConstants::ERROR, json_encode($error));
         }
 
@@ -172,12 +212,20 @@ abstract class RepositoryPackage
      */
     public function updateData($data, string $key = 'id'): mixed
     {
-        if(is_array($data[$key])){
-            $data = $this->transformArray($data,$key);
-            return $this->updateAllData($data,$key);
+        if (!isset($data[$key])) {
+            throw new ApiException(CodeConstants::ERROR, "缺少更新键: {$key}");
+        }
+
+        if (is_array($data[$key])) {
+            $transformedData = $this->transformArray($data, $key);
+            return $this->updateAllData($transformedData, $key);
         }
 
         $object = $this->getDataFindBy($key, $data[$key]);
+
+        if (!$object) {
+            throw new ApiException(CodeConstants::ERROR, '数据不存在');
+        }
 
         try {
 
@@ -185,14 +233,18 @@ abstract class RepositoryPackage
 
             if ($needsUpdate) {
                 unset($data[$key]);
-                $object = $object->update($data);
+                $result = $object->update($data);
+                return $result ? $object : false;
             }
 
+            return $object;
         } catch (\Throwable $e) {
             $error = [
-                'message'=>$e->getMessage(),
+                'message' => $e->getMessage(),
             ];
-            $this->logMonMain->error('updateData',$this->getModel()->getTable(),$error);
+
+            $this->logError('updateData', $e, ['data' => $data]);
+
             throw new ApiException(CodeConstants::ERROR, $error);
         }
 
@@ -205,16 +257,20 @@ abstract class RepositoryPackage
      * @param string $key
      * @return array
      */
-    public function transformArray($input,$key) {
+    public function transformArray($input, $key)
+    {
         $result = [];
-        
-        // 获取id数组的长度作为循环次数
-        foreach($input[$key] as $val){
+
+        if (!isset($input[$key]) || !is_array($input[$key])) {
+            return $result;
+        }
+
+        foreach ($input[$key] as $val) {
             $arr = $input;
             $arr[$key] = $val;
             $result[] = $arr;
         }
-        
+
         return $result;
     }
 
@@ -228,22 +284,22 @@ abstract class RepositoryPackage
     public function updateAllData($data, string $key = 'id', int $unpack = 5): array
     {
         $startTime = microtime(true);
-
-        $num = $this->divideByTwo(count($data));
-
         $dataNum = count($data);
 
-        $parallel = new Parallel($num);
-
-        if ($dataNum > $unpack) {
-            $data = array_chunk($data, $unpack);
-        } else {
-            $data[] = $data;
+        if ($dataNum === 0) {
+            return [false, '数据不能为空'];
         }
 
-        foreach ($data as $val) {
-            $parallel->add(function () use ($key, $val) {
-                return $this->updateBatch($val, $key);
+        $parallelCount = $this->calculateParallelCount($dataNum);
+
+        $parallel = new Parallel($parallelCount);
+
+        // 数据分块
+        $chunks = $dataNum > $unpack ? array_chunk($data, $unpack) : [$data];
+
+        foreach ($chunks as $chunk) {
+            $parallel->add(function () use ($key, $chunk) {
+                return $this->updateBatch($chunk, $key);
             });
         }
 
@@ -252,23 +308,24 @@ abstract class RepositoryPackage
             $endTime = microtime(true);
 
             $executionTime = $endTime - $startTime;
-            $this->logMonMain->info('db_log', 'updateAllData', [
-                'count' => count($data),
+
+            $this->logInfo('updateAllData', [
+                'chunks' => count($chunks),
+                'records' => $dataNum,
                 'executionTime' => $executionTime
             ]);
 
             return [true, $results];
-
         } catch (ParallelExecutionException $e) {
             $results = $e->getResults();
             $endTime = microtime(true);
             $executionTime = $endTime - $startTime;
-            $this->logMonMain->error('db_log', 'updateAllData', [
-                'count' => count($data),
+
+            $this->logError('updateAllData', $e, [
+                'chunks' => count($chunks),
                 'executionTime' => $executionTime,
-                'error' => $e->getResults(),
-                'Throwables' => $e->getThrowables(),
             ]);
+
             return [false, $results];
         }
     }
@@ -341,7 +398,7 @@ abstract class RepositoryPackage
     {
 
         try {
-            return  $this->getModel()->increment($field,$value);
+            return  $this->getModel()->increment($field, $value);
         } catch (\Throwable $e) {
             throw new ApiException(CodeConstants::ERROR, $e->getMessage());
         }
@@ -353,12 +410,11 @@ abstract class RepositoryPackage
      * @param int $value
      * @return mixed
      */
-    public function decrement($field,int $value = 1): mixed
+    public function decrement($field, int $value = 1): mixed
     {
         try {
 
-            return $this->getModel()->decrement($field,$value);
-
+            return $this->getModel()->decrement($field, $value);
         } catch (\Throwable $e) {
             throw new ApiException(CodeConstants::ERROR, $e->getMessage());
         }
@@ -375,7 +431,6 @@ abstract class RepositoryPackage
         try {
 
             $this->getModel()->where($key, $data[$key])->delete();
-
         } catch (\Throwable $e) {
             throw new ApiException(CodeConstants::ERROR, $e->getMessage());
         }
@@ -437,7 +492,7 @@ abstract class RepositoryPackage
      */
     public function getCount(array $data = [], $model = null): mixed
     {
-        return $this->runningSql($data, false, 'count', $model);
+        return $this->runningSql($data,'count', $model);
     }
 
     /**
@@ -449,23 +504,28 @@ abstract class RepositoryPackage
      * @param bool $needToArray
      * @return mixed
      */
-    public function getData(array $data = [], string|array $get = 'get', $model = null, bool $cache = false, bool $needToArray = false): mixed
-    {
+    public function getData(
+        array $data = [],
+        string|array $get = 'get',
+        mixed $model = null,
+        bool $cache = false,
+        bool $needToArray = false
+    ): mixed {
         if ($cache && !is_object($model) && $this->cache) {
             $key = $this->getModel()->getKeyName();
             switch ($get) {
                 case 'find':
                 case 'first':
-                    $ids = $this->runningSql($data, true, ['pluck' => $key], $model);
+                    $ids = $this->runningSql($data, ['pluck' => $key], $model, true);
                     return $this->findFromCache(array_shift($ids));
                 default:
                 case 'get':
-                    $ids = $this->runningSql($data, true, ['pluck' => $key], $model);
-                return $this->findManyFromCache($ids);
+                    $ids = $this->runningSql($data, ['pluck' => $key], $model, true);
+                    return $this->findManyFromCache($ids);
             }
         }
 
-        return $this->runningSql($data, $needToArray, $get, $model);
+        return $this->runningSql($data, $get, $model, $needToArray);
     }
 
     /**
@@ -476,14 +536,19 @@ abstract class RepositoryPackage
      * @param $object
      * @return mixed
      */
-    public function runningSql($data, bool $needToArray = false, string|array $get = 'get', $object = null): mixed
-    {
+    public function runningSql(
+        array $data,
+        string|array $get = 'get',
+        mixed $object = null,
+        bool $needToArray = false,
+    ): mixed {
         if (!$object) {
             $object = $this->getModel();
         }
 
         foreach ($data as $k => $val) {
             if ($get == 'count' && $k == 'skip') continue;
+
             if ($k == 'with') {
                 $object = $object->$k($val);
                 continue;
@@ -513,10 +578,10 @@ abstract class RepositoryPackage
                     foreach ($val as $vv) {
                         $object = $object->$k(...$vv);
                     }
-                break;
+                    break;
                 default:
                     $object = $object->$k($val);
-                break;
+                    break;
             }
         }
 
@@ -602,24 +667,6 @@ abstract class RepositoryPackage
         return $depth;
     }
 
-    /**
-     * 根据数组条数获取/2得协程数,最大限制 50个协程运行
-     * @param $number
-     * @param int $num
-     * @param int $max
-     * @return int
-     */
-    public function divideByTwo($number, int $num = 2, int $max = 50): int
-    {
-        $num = intdiv($number, $num);
-
-        if ($num > $max) {
-            $num = $max;
-        }
-
-        return $num;
-    }
-
     public function array_pluck(array $array, string $key)
     {
         return array_map(function ($item) use ($key) {
@@ -648,5 +695,4 @@ abstract class RepositoryPackage
 
         return $needsUpdate;
     }
-
 }

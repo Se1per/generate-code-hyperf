@@ -117,6 +117,12 @@ class ConfigProvider
                     'destination' => BASE_PATH . '/app/Base/BaseService.php', // 复制为这个路径下的该文件
                 ],
                 [
+                    'id' => 'BaseManager',
+                    'description' => 'BaseManager generate', // 描述
+                    'source' => __DIR__ . '/publish/stub/BaseManager.stub',  // 对应的配置文件路径
+                    'destination' => BASE_PATH . '/app/Base/BaseManager.php', // 复制为这个路径下的该文件
+                ],
+                [
                     'id' => 'BaseRepository',
                     'description' => 'BaseRepository generate', // 描述
                     'source' => __DIR__ . '/publish/stub/BaseRepository.stub',  // 对应的配置文件路径

@@ -8,7 +8,7 @@ namespace Japool\Genconsole\Logger;
 use Hyperf\Contract\ConfigInterface;
 use Psr\Container\ContainerInterface;
 use Monolog\Logger;
-
+use Japool\Genconsole\Logger\src\LogMonMain;
 /**
  * Logger 工厂类
  * 负责创建和缓存 Logger 实例

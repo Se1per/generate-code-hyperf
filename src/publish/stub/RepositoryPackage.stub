@@ -14,7 +14,6 @@ use Hyperf\Contract\ConfigInterface;
 use Psr\Container\ContainerInterface;
 use SplQueue;
 use App\Base\src\RepositoryPackageInterface;
-use Japool\Genconsole\Logger\LoggerFactory;
 
 abstract class RepositoryPackage implements RepositoryPackageInterface
 {
@@ -205,12 +204,13 @@ abstract class RepositoryPackage implements RepositoryPackageInterface
     }
 
     /**
-     * 更新数据(单个更新数据,检测数据是否需要更新)
-     * @param $data
-     * @param string $key
-     * @return mixed
+     * 更新数据
+     * @param array $data 更新的数据
+     * @param string $key 更新的键名
+     * @param bool $returnData 是否返回更新后的数据，默认 false 只返回 true
+     * @return mixed 成功返回 true 或更新后的对象，失败抛出异常
      */
-    public function updateData($data, string $key = 'id'): mixed
+    public function updateData($data, string $key = 'id', bool $returnData = false): mixed
     {
         if (!isset($data[$key])) {
             throw new ApiException(CodeConstants::ERROR, "缺少更新键: {$key}");
@@ -228,27 +228,53 @@ abstract class RepositoryPackage implements RepositoryPackageInterface
         }
 
         try {
-
             $needsUpdate = $this->inspectUpdateData($object, $data);
 
             if ($needsUpdate) {
                 unset($data[$key]);
                 $result = $object->update($data);
-                return $result ? $object : false;
+
+                // 🔧 更新失败时抛出异常，包含详细信息
+                if (!$result) {
+                    throw new ApiException(
+                        CodeConstants::ERROR,
+                        [
+                            'error' => '数据更新失败',
+                            'model' => get_class($object),
+                            'key' => $key,
+                            'value' => $data[$key] ?? null,
+                            'data' => $data
+                        ]
+                    );
+                }
+
+                // 刷新模型数据
+                $object->refresh();
+
+                // 根据参数决定返回内容
+                return $returnData ? $object : true;
             }
 
-            return $object;
+            // 没有需要更新的内容
+            return $returnData ? $object : true;
+        } catch (ApiException $e) {
+            // 重新抛出 ApiException，保持错误信息完整
+            throw $e;
         } catch (\Throwable $e) {
-            $error = [
-                'message' => $e->getMessage(),
-            ];
+            // 记录日志并抛出带详细信息的异常
+            $this->logError('updateData', $e, ['data' => $data, 'key' => $key]);
 
-            $this->logError('updateData', $e, ['data' => $data]);
-
-            throw new ApiException(CodeConstants::ERROR, $error);
+            throw new ApiException(
+                CodeConstants::ERROR,
+                [
+                    'error' => '数据更新异常',
+                    'message' => $e->getMessage(),
+                    'model' => $object ? get_class($object) : 'unknown',
+                    'code' => $e->getCode(),
+                    'data' => $data
+                ]
+            );
         }
-
-        return $object;
     }
 
     /**
@@ -422,19 +448,49 @@ abstract class RepositoryPackage implements RepositoryPackageInterface
 
     /**
      * 删除数据
-     * @param $data
+     * @param array $data
      * @param string $key
      * @return bool
      */
     public function deleteData($data, string $key = 'id'): bool
     {
         try {
+            $object = $this->getDataFindBy($key, $data[$key]);
 
-            $this->getModel()->where($key, $data[$key])->delete();
+            if (!$object) {
+                throw new ApiException(CodeConstants::ERROR, '要删除的数据不存在');
+            }
+
+            $result = $this->getModel()->where($key, $data[$key])->delete();
+
+            if (!$result) {
+                throw new ApiException(
+                    CodeConstants::ERROR,
+                    [
+                        'error' => '数据删除失败',
+                        'model' => get_class($object),
+                        'key' => $key,
+                        'value' => $data[$key],
+                    ]
+                );
+            }
+
+            return true;
+        } catch (ApiException $e) {
+            throw $e;
         } catch (\Throwable $e) {
-            throw new ApiException(CodeConstants::ERROR, $e->getMessage());
+            $this->logError('deleteData', $e, ['data' => $data, 'key' => $key]);
+
+            throw new ApiException(
+                CodeConstants::ERROR,
+                [
+                    'error' => '数据删除异常',
+                    'message' => $e->getMessage(),
+                    'code' => $e->getCode(),
+                    'data' => $data
+                ]
+            );
         }
-        return true;
     }
 
     /**
@@ -492,7 +548,7 @@ abstract class RepositoryPackage implements RepositoryPackageInterface
      */
     public function getCount(array $data = [], $model = null): mixed
     {
-        return $this->runningSql($data,'count', $model);
+        return $this->runningSql($data, 'count', $model);
     }
 
     /**

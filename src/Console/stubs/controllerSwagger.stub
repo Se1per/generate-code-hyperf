@@ -50,7 +50,7 @@ class {{ class }} extends BaseController
         if($object){
             return [CodeConstants::Success];
         }
-        throw new ApiException(CodeConstants::WARNING,$object);
+        throw new ApiException(CodeConstants::WARNING);
     }
 
     #[SA\Put(path: {{ delApi }}, summary: '删除{{ comment }}', tags: [{{ delTags }}])]
@@ -80,7 +80,7 @@ class {{ class }} extends BaseController
         if($object){
             return [CodeConstants::Success];
         }
-        throw new ApiException(CodeConstants::WARNING,$object);
+        throw new ApiException(CodeConstants::WARNING);
     }
 
 

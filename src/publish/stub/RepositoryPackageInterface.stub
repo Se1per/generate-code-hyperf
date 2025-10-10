@@ -1,0 +1,206 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Base\src;
+
+interface RepositoryPackageInterface
+{
+    /**
+     * 获取模型实例
+     * @return mixed
+     */
+    public function getModel();
+
+    /**
+     * 获取类的基础名称
+     * @param string|object $class
+     * @return string
+     */
+    public function class_basename($class);
+
+    /**
+     * 保存数据
+     * @param array $data
+     * @return mixed
+     */
+    public function saveData($data): mixed;
+
+    /**
+     * 批量插入数据 协程
+     * @param array $data
+     * @param int $unpack
+     * @return array
+     */
+    public function saveAllData($data, int $unpack = 5): array;
+
+    /**
+     * 更新数据(单个更新数据,检测数据是否需要更新)
+     * @param array $data
+     * @param string $key
+     * @return mixed
+     */
+    public function updateData($data, string $key = 'id'): mixed;
+
+    /**
+     * 单一数组批量更新转化成二维批量更新数组数据格式
+     * @param array $input
+     * @param string $key
+     * @return array
+     */
+    public function transformArray($input, $key);
+
+    /**
+     * 批量更新数据(不检查是否需要更新直接批量更新)
+     * @param array $data
+     * @param string $key
+     * @param int $unpack
+     * @return array
+     */
+    public function updateAllData($data, string $key = 'id', int $unpack = 5): array;
+
+    /**
+     * 批量更新基类
+     * @param array $inputs
+     * @param string $where_field
+     * @param string $when_field
+     * @return mixed
+     */
+    public function updateBatch(array $inputs, string $where_field = 'id', string $when_field = 'id'): mixed;
+
+    /**
+     * 自增某字段
+     * @param string $field
+     * @param int $value
+     * @return mixed
+     */
+    public function increment($field, int $value = 1): mixed;
+
+    /**
+     * 自减某字段
+     * @param string $field
+     * @param int $value
+     * @return mixed
+     */
+    public function decrement($field, int $value = 1): mixed;
+
+    /**
+     * 删除数据
+     * @param array $data
+     * @param string $key
+     * @return bool
+     */
+    public function deleteData($data, string $key = 'id'): bool;
+
+    /**
+     * 获取单条数据
+     * @param string $attribute
+     * @param mixed $value
+     * @param string $symbol
+     * @param array $columns
+     * @return mixed
+     */
+    public function getDataFindBy($attribute, $value, string $symbol = '=', array $columns = array('*')): mixed;
+
+    /**
+     * 获取数据集
+     * @param string $attribute
+     * @param mixed $value
+     * @param string $symbol
+     * @param array $columns
+     * @return mixed
+     */
+    public function getDataAllBy($attribute, $value, string $symbol = '=', array $columns = array('*')): mixed;
+
+    /**
+     * 获取游标对象
+     * @return mixed
+     */
+    public function getCursorDataAll(): mixed;
+
+    /**
+     * 获取数据集
+     * @param string $attribute
+     * @param array $value
+     * @param array $columns
+     * @return mixed
+     */
+    public function getDataInBy($attribute, array $value, array $columns = array('*')): mixed;
+
+    /**
+     * 执行数据层构造
+     * @param array $data
+     * @param mixed $model
+     * @return mixed
+     */
+    public function getCount(array $data = [], $model = null): mixed;
+
+    /**
+     * 统一执行sql
+     * @param array $data
+     * @param string|array $get
+     * @param mixed $model
+     * @param bool $cache
+     * @param bool $needToArray
+     * @return mixed
+     */
+    public function getData(
+        array $data = [],
+        string|array $get = 'get',
+        mixed $model = null,
+        bool $cache = false,
+        bool $needToArray = false
+    ): mixed;
+
+    /**
+     * 执行底层sql
+     * @param array $data
+     * @param string|array $get
+     * @param mixed $object
+     * @param bool $needToArray
+     * @return mixed
+     */
+    public function runningSql(
+        array $data,
+        string|array $get = 'get',
+        mixed $object = null,
+        bool $needToArray = false,
+    ): mixed;
+
+    /**
+     * 批量查询缓存
+     * @param array|int $ids
+     * @return mixed
+     */
+    public function findManyFromCache($ids);
+
+    /**
+     * 查询单个缓存
+     * @param int $ids
+     * @return mixed
+     */
+    public function findFromCache($ids);
+
+    /**
+     * 判断数据是否二维或者一维数组
+     * @param array $array
+     * @return int
+     */
+    public function array_depth($array): int;
+
+    /**
+     * 从数组中提取指定键的值
+     * @param array $array
+     * @param string $key
+     * @return array
+     */
+    public function array_pluck(array $array, string $key);
+
+    /**
+     * 判断数据是否需要更新
+     * @param object $object
+     * @param array $data
+     * @return bool
+     */
+    public function inspectUpdateData($object, $data): bool;
+}

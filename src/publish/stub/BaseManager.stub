@@ -1,0 +1,46 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Base;
+
+use Carbon\Carbon;
+use Hyperf\Context\Context;
+use Hyperf\Di\Annotation\Inject;
+use Hyperf\HttpServer\Contract\RequestInterface;
+use Japool\Genconsole\Logger\LoggerFactory;
+
+abstract class BaseManager
+{
+    #[Inject]
+    protected RequestInterface $request;
+
+    #[Inject]
+    protected LoggerFactory $loggerFactory;
+
+    protected $user;
+    
+    /**
+     * 获取ip
+     * @return false|string
+     */
+    public function getForwardedIp(): false|string
+    {
+        $getServer = $this->request->getHeaders();
+
+        if (isset($getServer['x-forwarded-for'][0])) {
+            return $getServer['x-forwarded-for'][0];
+        }
+
+        return false;
+    }
+
+    /**
+     * 获取用户token
+     * @return false|string
+     */
+    public function getUserToken()
+    {
+        return Context::get('userToken');
+    }
+}

@@ -52,8 +52,8 @@ class MakeRequest extends AbstractCrudGenerator
                 $keyCount++;
             }
 
-            $this->makeRulesArray($column, $context['tableName'], $rules, $messages, $keyCount);
-            $this->makeScenesRules($column, $saveRules, $getRules, $delRules, $keyCount);
+            $this->makeRulesArray($column, $context['tableName'], $rules, $messages, $keyCount, $context['dbDriver']);
+            $this->makeScenesRules($column, $saveRules, $getRules, $delRules, $keyCount, $context['dbDriver']);
         }
 
         $this->makeGetArrayPaginate($rules, $messages, $getRules);

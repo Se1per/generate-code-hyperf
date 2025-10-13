@@ -119,6 +119,11 @@ return [
 
 ```bash
 php bin/hyperf.php generate:crud-code
+
+# 如果你有多个数据库连接，比如 default_1
+php bin/hyperf.php generate:del-crud-code sass_sub_client --db=default_1
+
+php bin/hyperf.php generate:crud-code sass_sub_client --db=default_1
 ```
 该命令会：
 1. 扫描数据库中所有表
@@ -609,13 +614,9 @@ if (IdCardHelp::validate($idCard)) {
  - 后面再说
 
 ### 社区建议
-
 欢迎提交 Issue 和 Pull Request，你的建议和贡献将帮助项目变得更好！
 
 ## 常见问题
-
-### Q: 如何自定义生成的代码模板？
-A: 模板文件位于 `src/Console/stubs/` 目录，你可以修改 `.stub` 文件来自定义生成的代码格式。
 
 ### Q: 生成的代码是否支持 Swagger 文档？
 A: 是的，在 `controllerSwagger.stub` 模板中已包含 Swagger 注解支持。

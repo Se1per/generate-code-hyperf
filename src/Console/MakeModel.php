@@ -43,6 +43,7 @@ class MakeModel extends AbstractCrudGenerator
         $dbPrefix = $context['dbPrefix'];
         $dbDriver = $context['dbDriver'];
         $tableName = $context['tableName'];
+        $dbConnection = $context['dbConnection'] ?? 'default';
 
         if ($dbDriver == 'pgsql') {
             $sql = "
@@ -83,7 +84,7 @@ class MakeModel extends AbstractCrudGenerator
             $sql = "SHOW COLUMNS FROM `{$dbPrefix}{$tableName}`;";
         }
 
-        $result = DB::select($sql);
+        $result = DB::connection($dbConnection)->select($sql);
 
         $primaryKey = null;
         $fillAble = '';

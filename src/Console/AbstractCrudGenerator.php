@@ -2,27 +2,65 @@
 
 namespace Japool\Genconsole\Console;
 
-use Japool\Genconsole\Console\src\AutoCodeHelp;
+use Japool\Genconsole\Console\Services\DatabaseService;
+use Japool\Genconsole\Console\src\StringHelperTrait;
+use Japool\Genconsole\Console\src\ExtensionCheckerTrait;
+use Japool\Genconsole\Console\src\ValidationRuleBuilderTrait;
+use Japool\Genconsole\Console\src\ModelDataBuilderTrait;
 use Hyperf\Command\Annotation\Command;
 use Hyperf\Config\Annotation\Value;
 use Hyperf\Devtool\Generator\GeneratorCommand;
+use Symfony\Component\Console\Input\InputOption;
+use Psr\Container\ContainerInterface;
 
+/**
+ * CRUD 生成器抽象类
+ * 重构后：职责更清晰，使用服务类和 trait
+ */
 abstract class AbstractCrudGenerator extends GeneratorCommand
 {
-    use AutoCodeHelp;
+    use StringHelperTrait;
+    use ExtensionCheckerTrait;
+    use ValidationRuleBuilderTrait;
+    use ModelDataBuilderTrait;
 
     #[Value('generator')]
     protected $config;
 
+    protected DatabaseService $dbService;
+    protected string $dbConnection = 'default';
+
     // 子类需要实现的抽象方法
-    abstract protected function getClassSuffix(): string;  // 返回类后缀：Controller、Service、Request等
-    abstract protected function getConfigKey(): string;    // 返回配置key：controller、service、request等
-    abstract protected function buildReplacements(array $context): array; // 返回特定的替换规则
+    abstract protected function getClassSuffix(): string;
+    abstract protected function getConfigKey(): string;
+    abstract protected function buildReplacements(array $context): array;
+
+    public function configure()
+    {
+        parent::configure();
+        $this->addOption('db', null, InputOption::VALUE_OPTIONAL, '指定数据库连接配置名称', 'default');
+        $this->addOption('db-driver', null, InputOption::VALUE_OPTIONAL, '数据库驱动类型', null);
+        $this->addOption('db-prefix', null, InputOption::VALUE_OPTIONAL, '数据库表前缀', null);
+    }
+
+    /**
+     * 初始化数据库服务
+     */
+    protected function initializeDatabaseService(): void
+    {
+        if (!isset($this->dbService)) {
+            $container = $this->container ?? \Hyperf\Context\ApplicationContext::getContainer();
+            $this->dbService = new DatabaseService(
+                $container->get(\Hyperf\Contract\ConfigInterface::class)
+            );
+        }
+    }
 
     protected function qualifyClass(string $name): string
     {
         $name = $this->input->getArguments();
-        $name = $name['name'] . $this->getClassSuffix();
+        // 将表名转换为大驼峰格式，然后拼接后缀
+        $name = $this->camelCase($name['name']) . $this->getClassSuffix();
 
         $namespace = $this->input->getOption('namespace');
         if (empty($namespace)) {
@@ -49,7 +87,7 @@ abstract class AbstractCrudGenerator extends GeneratorCommand
      */
     public function replaceName($stub)
     {
-        // 获取通用上下文信息
+        // 构建上下文信息
         $context = $this->buildContext();
 
         // 获取子类特定的替换规则
@@ -71,11 +109,19 @@ abstract class AbstractCrudGenerator extends GeneratorCommand
         $originalTableName = $tableName['name'];
         $tableName['name'] = $this->unCamelCase($tableName['name']);
 
-        $dbPrefix = \Hyperf\Support\env('DB_PREFIX');
-        $dbDriver = \Hyperf\Support\env('DB_DRIVER');
+        // 初始化数据库服务
+        $this->initializeDatabaseService();
+        
+        // 获取数据库配置（优先使用命令行选项）
+        $this->dbConnection = $this->input->getOption('db') ?? 'default';
+        $this->dbService->initialize($this->dbConnection);
+        
+        $dbDriver = $this->input->getOption('db-driver') ?? $this->dbService->getDriver();
+        $dbPrefix = $this->input->getOption('db-prefix') ?? $this->dbService->getPrefix();
 
         $fullTableName = $dbPrefix . $tableName['name'];
-        $columns = $this->getTableColumnsComment($fullTableName);
+        $columns = $this->dbService->getTableColumns($fullTableName);
+        $primaryKey = $this->dbService->getPrimaryKey($columns);
 
         return [
             'originalTableName' => $originalTableName,
@@ -84,30 +130,12 @@ abstract class AbstractCrudGenerator extends GeneratorCommand
             'lcfirstTableName' => $this->lcfirst($tableName['name']),
             'dbPrefix' => $dbPrefix,
             'dbDriver' => $dbDriver,
+            'dbConnection' => $this->dbConnection,
             'fullTableName' => $fullTableName,
             'columns' => $columns,
-            'primaryKey' => $this->extractPrimaryKey($columns, $dbDriver),
-            'tableComment' => $this->getTableComment($fullTableName),
+            'primaryKey' => $primaryKey,
+            'tableComment' => $this->dbService->getTableComment($fullTableName),
         ];
-    }
-
-    /**
-     * 提取主键（统一处理 pgsql 和 mysql）
-     */
-    protected function extractPrimaryKey($columns, string $dbDriver): ?string
-    {
-        foreach ($columns as $column) {
-            if ($dbDriver == 'pgsql') {
-                if ($column->is_primary_key == 'YES') {
-                    return $column->column_name;
-                }
-            } else {
-                if ($column->Key == 'PRI') {
-                    return $column->Field;
-                }
-            }
-        }
-        return null;
     }
 
     /**
@@ -146,23 +174,72 @@ abstract class AbstractCrudGenerator extends GeneratorCommand
     {
         return "'api/" . $this->lcfirst($tableName) . "/" . $action . $this->camelCase($tableName) . "Data'";
     }
-    
+
     /**
-     * 判断是否为主键（统一方法供子类使用）
+     * 判断是否为主键（委托给 DatabaseService）
      */
-    protected function isPrimaryKey($column, string $dbDriver): bool
+    protected function isPrimaryKey($column, ?string $driver = null): bool
     {
-        if ($dbDriver == 'pgsql') {
-            return isset($column->is_primary_key) && $column->is_primary_key == 'YES';
-        }
-        return isset($column->Key) && $column->Key == 'PRI';
+        $this->initializeDatabaseService();
+        $driver = $driver ?? $this->dbService->getDriver();
+        return $this->dbService->isPrimaryKey($column, $driver);
     }
 
     /**
-     * 获取列名（统一处理 pgsql 和 mysql 的差异）
+     * 获取列名（委托给 DatabaseService）
      */
-    protected function getColumnName($column, string $dbDriver): string
+    protected function getColumnName($column, ?string $driver = null): string
     {
-        return $dbDriver == 'pgsql' ? $column->column_name : $column->Field;
+        $this->initializeDatabaseService();
+        $driver = $driver ?? $this->dbService->getDriver();
+        return $this->dbService->getColumnName($column, $driver);
+    }
+
+    /**
+     * 获取列类型（委托给 DatabaseService）
+     */
+    protected function getColumnType($column, ?string $driver = null): string
+    {
+        $this->initializeDatabaseService();
+        $driver = $driver ?? $this->dbService->getDriver();
+        return $this->dbService->getColumnType($column, $driver);
+    }
+
+    /**
+     * 获取列注释（委托给 DatabaseService）
+     */
+    protected function getColumnComment($column, ?string $driver = null): string
+    {
+        $this->initializeDatabaseService();
+        $driver = $driver ?? $this->dbService->getDriver();
+        return $this->dbService->getColumnComment($column, $driver);
+    }
+
+    /**
+     * 获取表列信息（委托给 DatabaseService）
+     */
+    protected function getTableColumnsComment(string $tableName, ?string $connection = null, ?string $dbDriver = null): array
+    {
+        $this->initializeDatabaseService();
+        
+        if ($connection) {
+            $this->dbService->initialize($connection);
+        }
+        
+        return $this->dbService->getTableColumns($tableName);
+    }
+
+    /**
+     * 获取表注释（委托给 DatabaseService）
+     */
+    protected function getTableComment(string $tableName, ?string $connection = null)
+    {
+        $this->initializeDatabaseService();
+        
+        if ($connection) {
+            $this->dbService->initialize($connection);
+        }
+        
+        return $this->dbService->getTableComment($tableName);
     }
 }

@@ -16,7 +16,7 @@ trait GeographyTrait
      * User: Se1per
      * Date: 2023/8/3 19:16
      */
-    public static function getDistance(string $lng1,string $lat1,string $lng2,string $lat2,string $unit ='m')
+    public function getDistance(string $lng1, string $lat1, string $lng2, string $lat2, string $unit = 'm'): float
     {
         // 将角度转为狐度
         $radLat1 = deg2rad($lat1); //deg2rad()函数将角度转换为弧度
@@ -56,9 +56,9 @@ trait GeographyTrait
      * @param string $latitude2   终点纬度
      * @param int $unit  单位 1:米 2:公里
      * @param int $decimal 精度 保留小数位数
-     * @return array|string
+     * @return string
      */
-    function getEarthDistance(string $longitude1,string $latitude1, string $longitude2,string $latitude2,int $unit=1,int$decimal=4):array
+    public function getEarthDistance(string $longitude1, string $latitude1, string $longitude2, string $latitude2, int $unit = 1, int $decimal = 4): string
     {
 
         $EARTH_RADIUS = 6370.996; // 地球半径系数
@@ -69,7 +69,7 @@ trait GeographyTrait
         $radLat2 = $latitude2 * $PI / 180.0;
 
         $radLng1 = $longitude1 * $PI / 180.0;
-        $radLng2 = $longitude2 * $PI /180.0;
+        $radLng2 = $longitude2 * $PI / 180.0;
 
         $a = $radLat1 - $radLat2;
         $b = $radLng1 - $radLng2;
@@ -78,7 +78,7 @@ trait GeographyTrait
 
         $distance = $distance * $EARTH_RADIUS * 1000;
 
-        if($unit==2){
+        if($unit == 2){
             $distance = $distance / 1000;
         }
 

@@ -6,10 +6,10 @@ namespace Japool\Genconsole\Help\src;
 trait DateTimeTrait
 {
     /** 简便转换时间
-     * @param $time
-     * @return false|string
+     * @param mixed $time
+     * @return string
      */
-    public function pretty($time)
+    public function pretty($time): string
     {
         $return = '';
 
@@ -78,10 +78,10 @@ trait DateTimeTrait
 
     /**
      * 判断时间格式
-     * @param $timestamp
+     * @param mixed $timestamp
      * @return bool
      */
-    public function isDateFormatValid($timestamp)
+    public function isDateFormatValid($timestamp): bool
     {
 
         if (!is_integer($timestamp)) {
@@ -95,7 +95,7 @@ trait DateTimeTrait
         $convertedDate = date($format, $timestamp);
 
         // 使用 DateTime::createFromFormat 验证转换后的日期格式
-        $dateTimeObject = DateTime::createFromFormat($format, $convertedDate);
+        $dateTimeObject = \DateTime::createFromFormat($format, $convertedDate);
 
         // 检查转换是否成功
         $isValid = $dateTimeObject && $dateTimeObject->format($format) === $convertedDate;
@@ -201,29 +201,32 @@ trait DateTimeTrait
     }
 
     /** 获取指定日期所在月的开始日期与结束日期
-     * @param $date
+     * @param mixed $date
      * @param bool $returnFirstDay
-     * @return false|string
+     * @return array
      */
-    public function getMonthRange($date, bool $returnFirstDay = true)
+    public function getMonthRange($date, bool $returnFirstDay = true): array
     {
         $timestamp = strtotime($date);
 
+        $mDays = date('t', $timestamp);
+        $startDate = date('Y-m-1 00:00:00', $timestamp);
+        $endDate = date('Y-m-' . $mDays . ' 23:59:59', $timestamp);
+
         if ($returnFirstDay) {
-            return date('Y-m-1 00:00:00', $timestamp);
+            return [$startDate, $endDate];
         }
 
-        $mDays = date('t', $timestamp);
-        return date('Y-m-' . $mDays . ' 23:59:59', $timestamp);
+        return [$startDate, $endDate];
     }
 
     /**
      * 检查给定日期是否在指定范围内
-     * @param string $dateTime 日期时间字符串，表示需要检查的日期
+     * @param mixed $dateTime 日期时间字符串，表示需要检查的日期
      * @param array $dateArray 包含开始日期和结束日期的数组
      * @return bool 如果给定日期在范围内则返回true，否则返回false
      */
-    public function isDateInRange($dateTime, $dateArray)
+    public function isDateInRange($dateTime, $dateArray): bool
     {
         // 将传入的日期时间字符串转为时间戳
         $dateTimeStamp = strtotime($dateTime);
@@ -265,10 +268,10 @@ trait DateTimeTrait
         return $dateArr;
     }
 
-    public function isValidDateFull($date, $format = 'Y-m-d')
+    public function isValidDateFull($date, $format = 'Y-m-d'): bool
     {
         // 使用 DateTime 和格式检查
-        $d = DateTime::createFromFormat($format, $date);
+        $d = \DateTime::createFromFormat($format, $date);
         if (!($d && $d->format($format) === $date)) {
             return false;
         }

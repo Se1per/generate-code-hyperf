@@ -15,23 +15,23 @@ trait XmlTrait
      * </note>
      * XML;
      *  xml 转换 array
-     * @param $xml
+     * @param string $xml
      * @return array
      */
-    public static function xmlToArr($xml): array
+    public function xmlToArr(string $xml): array
     {
         return (array) simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA);
     }
 
     /**  arr 转换 xml
-     * @param $array
+     * @param array $array
      * @return string
-     * @throws \exception
+     * @throws \Exception
      */
-    public static function arrToXml($array): string
+    public function arrToXml(array $array): string
     {
-        if (!is_array($array) || count($array) <= 0) {
-            throw new \exception("无法转为XML");
+        if (count($array) <= 0) {
+            throw new \Exception("无法转为XML");
         }
         $xml = "<xml>";
         foreach ($array as $key => $val) {

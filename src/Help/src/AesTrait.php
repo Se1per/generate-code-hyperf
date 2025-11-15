@@ -9,7 +9,7 @@ trait AesTrait
         return getenv('APP_NAME');
     }
 
-    public function makeKey()
+    public function makeKey(): string
     {
         return bin2hex(random_bytes(16));
     }
@@ -28,10 +28,10 @@ trait AesTrait
      * 加密字符串  原生aes
      * @param $data
      * @param int $expire
-     * @param string $key
-     * @return array|string|string[]
+     * @param string|null $key
+     * @return string
      */
-    public function encrypt($data, $expire = 0, $key = null)
+    public function encrypt($data, int $expire = 0, ?string $key = null): string
     {
 //        if (is_array($data))
         $data = json_encode($data, JSON_NUMERIC_CHECK | JSON_UNESCAPED_UNICODE);
@@ -62,13 +62,13 @@ trait AesTrait
 
     /**
      * 解密字符串  原生aes
-     * @param $data
+     * @param string $data
      * @param string|null $key
-     * @return array|string
+     * @return mixed
      */
-    public function decrypt($data, string $key = null)
+    public function decrypt($data, ?string $key = null)
     {
-        if (!$data) return '';
+        if (!$data) return null;
 
         if (!$key) $key = $this->getKey();
 
@@ -81,6 +81,9 @@ trait AesTrait
         }
 
         $data = base64_decode($data);
+        if ($data === false) {
+            return null;
+        }
 
         $x = 0;
         $len = strlen($data);
@@ -103,25 +106,30 @@ trait AesTrait
         }
 
         $data = base64_decode($str);
+        if ($data === false) {
+            return null;
+        }
 
         //计算时间
         $expire = substr($data, 0, 10);
 
         if ($expire > 0 && $expire < time()) {
-            return [false, '加密时效超时'];
+            return null;
         }
 
         $data = substr($data, 10);
 
         $json = json_decode($data, true);
 
-        if ($json) {
-            return [true, $json];
+        // json_decode 成功返回解码后的数据，失败返回 null
+        // 如果原始数据是字符串（不是 JSON），json_decode 也会返回 null
+        // 所以我们需要检查原始数据是否是有效的 JSON
+        if (json_last_error() === JSON_ERROR_NONE) {
+            return $json;
         }
 
-        return [false, '非法密文码'];
-
-
+        // 如果 JSON 解码失败，可能原始数据就是字符串，返回原始字符串
+        return $data;
     }
 
 

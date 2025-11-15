@@ -8,14 +8,14 @@ trait StringTrait
 {
     /**
      * 判断变量是否中文字
-     * @param $str
-     * @return false|int
+     * @param string $str
+     * @return bool
      * User: Se1per
      * Date: 2023/7/25 9:58
      */
-    public function containsChinese($str)
+    public function containsChinese($str): bool
     {
-        return preg_match("/\p{Han}/u", $str);
+        return (bool) preg_match("/\p{Han}/u", $str);
     }
 
     /**
@@ -30,10 +30,10 @@ trait StringTrait
 
     /**
      * 替换字符串
-     * @param $replaceStr @被替换得字符串或数组
-     * @param $search @搜索被替换得字符串
-     * @param $replace @需要替换值
-     * @return array|mixed
+     * @param mixed $replaceStr 被替换的字符串或数组
+     * @param string $search 搜索被替换的字符串
+     * @param string $replace 需要替换值
+     * @return mixed
      */
     public function replaceStr($replaceStr, $search, $replace)
     {
@@ -44,7 +44,7 @@ trait StringTrait
             });
 
         } else {
-            str_replace($search, $replace, $replaceStr);
+            $replaceStr = str_replace($search, $replace, $replaceStr);
         }
 
         return $replaceStr;
@@ -133,7 +133,7 @@ trait StringTrait
      * @param int $n 分割数量
      * @return array 包含 rank_data_1 ~ rank_data_N 的关联数组
      */
-    public function splitString($str, $n = 20) {
+    public function splitString($str, $n = 20): array {
         if ($n <= 0 || strlen($str) == 0) return [];
 
         $len = strlen($str);
@@ -157,7 +157,7 @@ trait StringTrait
      * @param array $parts 包含 rank_data_1 ~ rank_data_N 的关联数组
      * @return string 合并后的原始字符串
      */
-    public function mergeString($parts) {
+    public function mergeString($parts): string {
         // 使用自然排序确保顺序正确
         $keys = array_keys($parts);
         natsort($keys);
@@ -199,7 +199,7 @@ trait StringTrait
      * User: Se1per
      * Date: 2023/7/5 17:56
      */
-    public function createNonceStr(int $length = 32, int $type = 1, string $confound = null, int $PatchingType = 0, string $Patching = null): string
+    public function createNonceStr(int $length = 32, int $type = 1, ?string $confound = null, int $PatchingType = 0, ?string $Patching = null): string
     {
         static $chars = [
             1 => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
@@ -323,40 +323,56 @@ trait StringTrait
 
     /**
      * bzip2 压缩
-     * @param $string
+     * @param mixed $string
      * @return string
      */
-    public function compressBz2String($string)
+    public function compressBz2String($string): string
     {
         return base64_encode(bzcompress(json_encode($string, JSON_UNESCAPED_UNICODE)));
     }
 
     /**
      * bzip2 解压缩
-     * @param $string
-     * @return mixed
+     * @param string $string
+     * @return string
      */
-    public function decompressBz2String($string){
-        return json_decode(bzdecompress(base64_decode($string)), true);
+    public function decompressBz2String($string): string{
+        $decompressed = bzdecompress(base64_decode($string));
+        if ($decompressed === false) {
+            return '';
+        }
+        $decoded = json_decode($decompressed, true);
+        if ($decoded !== null) {
+            return json_encode($decoded, JSON_UNESCAPED_UNICODE);
+        }
+        return $decompressed;
     }
 
     /**
      * Deflate 压缩
-     * @param $string
+     * @param mixed $string
      * @return string
      */
-    public function compressString($string)
+    public function compressString($string): string
     {
         return base64_encode(gzdeflate(json_encode($string, JSON_UNESCAPED_UNICODE)));
     }
 
     /**
      * Deflate 解压缩
-     * @param $string
-     * @return mixed
+     * @param string $string
+     * @return string
      */
-    public function decompressString($string){
-        return json_decode(gzinflate(base64_decode($string)), true);
+    public function decompressString($string): string{
+        $decompressed = gzinflate(base64_decode($string));
+        if ($decompressed === false) {
+            return '';
+        }
+        $decoded = json_decode($decompressed, true);
+        if ($decoded !== null) {
+            return json_encode($decoded, JSON_UNESCAPED_UNICODE);
+        }
+        return $decompressed;
     }
 
     /**

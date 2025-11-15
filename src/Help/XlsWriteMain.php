@@ -68,6 +68,13 @@ class XlsWriteMain
 
         return $this;
     }
+    
+    public function data(array $data)
+    {
+        $this->excel = $this->excel->data($data);
+
+        return $this;
+    }
 
     public function header(array $header)
     {

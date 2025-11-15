@@ -22,7 +22,7 @@ trait StringTrait
      * 获取当前域名
      * @return string
      */
-    public static function getHttpType(): string
+    public function getHttpType(): string
     {
         $http = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
         return $http . $_SERVER['HTTP_HOST'];
@@ -35,7 +35,7 @@ trait StringTrait
      * @param $replace @需要替换值
      * @return array|mixed
      */
-    public static function replaceStr($replaceStr, $search, $replace)
+    public function replaceStr($replaceStr, $search, $replace)
     {
         if (is_array($replaceStr)) {
 
@@ -58,7 +58,7 @@ trait StringTrait
      * @param bool $onlyFirstOccurrence 是否只移除第一次出现的子字符串，默认为 true
      * @return string 处理后的字符串
      */
-    public static function removeSubstring($str, $substr, $onlyFirstOccurrence = true) {
+    public function removeSubstring($str, $substr, $onlyFirstOccurrence = true) {
         if (!is_string($str) || !is_string($substr)) {
             throw new Exception(get_called_class() . '数据参数类型不支持');
         }
@@ -89,7 +89,7 @@ trait StringTrait
      * @param mixed $replaceChar
      * @return array|string
      */
-    public static function maskString($input, $start, $length, $replaceChar = '*') {
+    public function maskString($input, $start, $length, $replaceChar = '*') {
         // 获取需要替换的部分
         $mask = str_repeat($replaceChar, $length);
         
@@ -105,7 +105,7 @@ trait StringTrait
      * @param $search
      * @return array
      */
-    public static function cropStrToArray($str, $search): array
+    public function cropStrToArray($str, $search): array
     {
         $arr = [];
 
@@ -176,7 +176,7 @@ trait StringTrait
      * @param $str
      * @return false|mixed
      */
-    public static function regularityStr($matches, $rules, $str)
+    public function regularityStr($matches, $rules, $str)
     {
         $isMatched = preg_match($rules, $str, $matches);
 
@@ -241,7 +241,7 @@ trait StringTrait
      * step1.原字符串转小写,原字符串中的分隔符用空格替换,在字符串开头加上分隔符
      * step2.将字符串中每个单词的首字母转换为大写,再去空格,去字符串首部附加的分隔符.
      */
-    public static function camelize($uncamelized_words, $separator = '_')
+    public function camelize($uncamelized_words, $separator = '_')
     {
         $uncamelized_words = $separator . str_replace($separator, " ", strtolower($uncamelized_words));
         return ltrim(str_replace(" ", "", ucwords($uncamelized_words)), $separator);
@@ -252,7 +252,7 @@ trait StringTrait
      * 思路:
      * 小写和大写紧挨一起的地方,加上分隔符,然后全部转小写
      */
-    public static function uncamelize($camelCaps, $separator = '_')
+    public function uncamelize($camelCaps, $separator = '_')
     {
         return strtolower(preg_replace('/([a-z])([A-Z])/', "$1" . $separator . "$2", $camelCaps));
     }
@@ -261,7 +261,7 @@ trait StringTrait
      * 获取控制器方法名称
      * @return bool 返回数组
      */
-    public static function getControllerMethodName()
+    public function getControllerMethodName()
     {
         //获取访问得控制器
         $action = request()->route()->getActionName();
@@ -275,7 +275,7 @@ trait StringTrait
      * 获取控制器类名称
      * @return bool 返回数组
      */
-    public static function getControllerActionName($action = null)
+    public function getControllerActionName($action = null)
     {
         //获取访问得控制器
         if (!$action) {

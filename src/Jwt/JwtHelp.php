@@ -18,33 +18,67 @@ use DomainException;
 use Exception;
 use Firebase\JWT\BeforeValidException;
 use Firebase\JWT\ExpiredException;
-// 引入jwt
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Firebase\JWT\SignatureInvalidException;
-use Hyperf\Config\Annotation\Value;
+use Hyperf\Contract\ConfigInterface;
+use Japool\Genconsole\Logger\LoggerFactory;
 use InvalidArgumentException;
+use Monolog\Logger;
 use UnexpectedValueException;
 use function Hyperf\Support\env;
-use Hyperf\Contract\ConfigInterface;
 
 class JwtHelp
 {
-    private $config;
+    private array $config;
+    private Logger $logger;
 
-    public function __construct(ConfigInterface $config)
+    public function __construct(ConfigInterface $config, LoggerFactory $loggerFactory)
     {
-        $this->config = $config->get('generator.jwt');
+        $this->config = $config->get('generator.jwt', []);
+        $this->logger = $loggerFactory->get('api-error');
+        $this->validateConfig();
+    }
+
+    /**
+     * 验证配置是否完整
+     * @throws InvalidArgumentException
+     */
+    private function validateConfig(): void
+    {
+        if (empty($this->config['secret'])) {
+            throw new InvalidArgumentException('JWT secret is required in config');
+        }
+        if (empty($this->config['algorithm'])) {
+            throw new InvalidArgumentException('JWT algorithm is required in config');
+        }
+        if (!isset($this->config['exp']) || $this->config['exp'] <= 0) {
+            throw new InvalidArgumentException('JWT expiration time must be greater than 0');
+        }
     }
     
-    public function make(array $userInfo, &$expiresIn = null,$audUrl = null,$XForwarded = null): array
+    /**
+     * 生成JWT Token
+     * @param array $userInfo 用户信息，必须包含 'id' 字段
+     * @param int|null $expiresIn 过期时间（秒），如果为null则使用配置中的默认值
+     * @param string|null $audUrl 接收者URL
+     * @param array|null $XForwarded 自定义请求头
+     * @return array [token, expiresIn]
+     * @throws InvalidArgumentException
+     */
+    public function make(array $userInfo, ?int &$expiresIn = null, ?string $audUrl = null, ?array $XForwarded = null): array
     {
-        if ($expiresIn) {
-            $start = time();
+        // 验证用户信息
+        if (empty($userInfo['id'])) {
+            throw new InvalidArgumentException('User info must contain "id" field');
+        }
+
+        $start = time();
+        
+        if ($expiresIn !== null && $expiresIn > 0) {
             $end = $start + $expiresIn;
             $exp = $expiresIn;
         } else {
-            $start = time();
             $end = $start + $this->config['exp'];
             $exp = $this->config['exp'];
         }
@@ -52,84 +86,114 @@ class JwtHelp
         $expiresIn = $end;
 
         $payload = [
-            // 在这个例子中，http://example.org 表示 JWT 是由该 URL 所标识的实体签发的。
-            'iss' => env('APP_NAME','http://example.com'),//发行者 (Issuer)
-            'aud' => $audUrl == null ? env('APP_NAME','http://example.com') : $audUrl,//接收者 (Audience)，例如API服务的URL
-            'iat' => $start,  //签发时间 (Issued At)
-            'nbf' => $start, // 生效时间 (Not Before)
-            'exp' => $end,   // 过期时间 (Expiration Time)
-            'sub' => $userInfo['id'], // 主题 (Subject)，例如用户的唯一标识符
+            'iss' => env('APP_NAME', 'http://example.com'), // 发行者 (Issuer)
+            'aud' => $audUrl ?? env('APP_NAME', 'http://example.com'), // 接收者 (Audience)
+            'iat' => $start,  // 签发时间 (Issued At)
+            'nbf' => $start,  // 生效时间 (Not Before)
+            'exp' => $end,    // 过期时间 (Expiration Time)
+            'sub' => $userInfo['id'], // 主题 (Subject)
             'info' => $userInfo,
         ];
 
-        $headers = [];
-
-        if($XForwarded){
-            $headers = $XForwarded;
-        }
-
-        $token = JWT::encode($payload, $this->config['secret'],$this->config['algorithm'], null, $headers);
-
-        // Encode headers in the JWT string
-        return [$token,$exp];
-    }
-
-    public function decodeJwtToken($token): array
-    {
-//        JWT::$leeway = 60; // 当前时间减去60，把时间留点余地
+        $headers = $XForwarded ?? [];
 
         try {
-            $decoded = JWT::decode($token,new Key($this->config['secret'], 'HS256'));
-
-//            $decoded = JWT::decode($token, new Key($this->config['secret'], $this->config['algorithm'])); // HS256方式，这里要和签发的时候对应
-//
-//            list($headersB64, $payloadB64, $sig) = explode('.', $token);
-//            $decoded = json_decode(base64_decode($headersB64), true);
-
-        } catch (InvalidArgumentException $e) {
-            // 提供的密钥/密钥数组为空或格式不正确。
-//            throw new SignatureInvalidException($e->getMessage());
-            return [false,CodeConstants::TOKEN_INVALID];
-        } catch (DomainException $e) {
-            // 提供的算法不受支持或
-            // 提供的密钥无效或
-            // openSSL或libsodium or中引发未知错误
-            // 需要libsodium，但不可用。
-//            throw new DomainException($e->getMessage());
-            return [false,CodeConstants::TOKEN_INVALID];
-        } catch (SignatureInvalidException $e) {
-            // 提供的JWT签名验证失败。
-//            throw new SignatureInvalidException($e->getMessage());
-            return [false,CodeConstants::TOKEN_INVALID];
-
-        } catch (BeforeValidException $e) {
-            // 前提是JWT试图在“nbf”索赔或
-            // 前提是JWT试图在“iat”索赔之前使用。
-//            throw new BeforeValidException($e->getMessage());
-            return [false,CodeConstants::TOKEN_TIME_OUT];
-
-        } catch (ExpiredException $e) {
-            // 前提是JWT试图在“exp”索赔后使用。
-            return [false,CodeConstants::TOKEN_TIME_OUT];
-        } catch (UnexpectedValueException $e) {
-            // 前提是JWT格式错误或
-            // 假设JWT缺少算法/使用了不受支持的算法OR
-            // 提供的JWT算法与提供的密钥OR不匹配
-            // 在密钥/密钥数组中提供的密钥ID为空或无效。
-            return [false,CodeConstants::TOKEN_MATCH];
-        } catch (Exception $e) {  // 其他错误
-//            throw new ExpiredException($e->getMessage());
-            return [false,CodeConstants::TOKEN_MATCH];
+            $token = JWT::encode($payload, $this->config['secret'], $this->config['algorithm'], null, $headers);
+            return [$token, $exp];
+        } catch (Exception $e) {
+            $this->logger->error('JWT token generation failed', [
+                'error' => $e->getMessage(),
+                'user_id' => $userInfo['id'] ?? null,
+            ]);
+            throw new InvalidArgumentException('Failed to generate JWT token: ' . $e->getMessage());
         }
-
-        return [true,(array) $decoded];
     }
 
-    public function whiteRouteList($routeUrl): bool
+    /**
+     * 解码并验证JWT Token
+     * @param string $token JWT Token字符串
+     * @return array [status, decoded|errorCode] status为true时返回解码后的数据，false时返回错误码
+     */
+    public function decodeJwtToken(string $token): array
     {
-        if (in_array($routeUrl, $this->config['exclude'])) {
-            return true;
+        // 验证token是否为空
+        if (empty($token) || !is_string($token)) {
+            return [false, CodeConstants::TOKEN_INVALID];
         }
-        return false;
+
+        // 验证token格式（JWT应该包含两个点分隔符）
+        if (substr_count($token, '.') !== 2) {
+            return [false, CodeConstants::TOKEN_INVALID];
+        }
+
+        try {
+            $decoded = JWT::decode(
+                $token,
+                new Key($this->config['secret'], $this->config['algorithm'])
+            );
+
+            return [true, (array) $decoded];
+        } catch (InvalidArgumentException $e) {
+            // 提供的密钥/密钥数组为空或格式不正确
+            $this->logger->warning('JWT decode failed: Invalid argument', [
+                'error' => $e->getMessage(),
+                'token_preview' => substr($token, 0, 20) . '...',
+            ]);
+            return [false, CodeConstants::TOKEN_INVALID];
+        } catch (DomainException $e) {
+            // 提供的算法不受支持或密钥无效或OpenSSL/libsodium错误
+            $this->logger->warning('JWT decode failed: Domain exception', [
+                'error' => $e->getMessage(),
+                'algorithm' => $this->config['algorithm'],
+            ]);
+            return [false, CodeConstants::TOKEN_INVALID];
+        } catch (SignatureInvalidException $e) {
+            // JWT签名验证失败
+            $this->logger->warning('JWT decode failed: Invalid signature', [
+                'error' => $e->getMessage(),
+                'token_preview' => substr($token, 0, 20) . '...',
+            ]);
+            return [false, CodeConstants::TOKEN_ILLICIT];
+
+        } catch (BeforeValidException $e) {
+            // JWT在nbf或iat之前使用
+            $this->logger->info('JWT decode failed: Token not yet valid', [
+                'error' => $e->getMessage(),
+            ]);
+            return [false, CodeConstants::TOKEN_TIME_OUT];
+
+        } catch (ExpiredException $e) {
+            // JWT已过期
+            $this->logger->info('JWT decode failed: Token expired', [
+                'error' => $e->getMessage(),
+            ]);
+            return [false, CodeConstants::TOKEN_TIME_OUT];
+        } catch (UnexpectedValueException $e) {
+            // JWT格式错误或算法不匹配
+            $this->logger->warning('JWT decode failed: Unexpected value', [
+                'error' => $e->getMessage(),
+                'token_preview' => substr($token, 0, 20) . '...',
+            ]);
+            return [false, CodeConstants::TOKEN_INVALID];
+        } catch (Exception $e) {
+            // 其他未知错误
+            $this->logger->error('JWT decode failed: Unexpected exception', [
+                'error' => $e->getMessage(),
+                'exception' => get_class($e),
+                'token_preview' => substr($token, 0, 20) . '...',
+            ]);
+            return [false, CodeConstants::TOKEN_INVALID];
+        }
+    }
+
+    /**
+     * 检查路由是否在白名单中
+     * @param string $routeUrl 路由URL
+     * @return bool true表示在白名单中，false表示不在
+     */
+    public function whiteRouteList(string $routeUrl): bool
+    {
+        $excludeList = $this->config['exclude'] ?? [];
+        return in_array($routeUrl, $excludeList, true);
     }
 }

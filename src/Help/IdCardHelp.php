@@ -2983,6 +2983,15 @@ class IdCardHelp
         '530925' => '双江拉祜族佤族布朗族傣族自治县',
         '530926' => '耿马傣族佤族自治县',
         '530927' => '沧源佤族自治县',
+        '533500' => '临沧地区',
+        '533521' => '临沧县',
+        '533522' => '凤庆县',
+        '533523' => '云县',
+        '533524' => '永德县',
+        '533525' => '镇康县',
+        '533526' => '双江拉祜族佤族布朗族傣族自治县',
+        '533527' => '耿马傣族佤族自治县',
+        '533528' => '沧源佤族自治县',
         '532300' => '楚雄彝族自治州',
         '532301' => '楚雄市',
         '532322' => '双柏县',
@@ -3580,35 +3589,83 @@ class IdCardHelp
     ];
 
     /**
-     * 根据身份证ID获取地址
+     * 根据身份证信息获取地址
+     * 使用方式：$idCardHelp->setId($idCard)->getArea()
      *
-     * @param string $id
      * @return bool|array
      */
-    public static function getArea($id)
+    public function getArea()
     {
+        // 确保身份证号码已设置
+        if (empty($this->idNumber)) {
+            return false;
+        }
+
+        // 清理输入：去除所有空格、横线等非数字字符（保留X），转大写
+        $id = strtoupper(trim($this->idNumber));
+        // 移除所有非数字和X的字符（身份证号码只包含数字和X）
+        $id = preg_replace('/[^0-9X]/', '', $id);
+        
         if (strlen($id) < 6) {
             return false;
         }
-        // 获取省级行政区划代码
-        $province = substr($id, 0, 2) . '0000';
-        // 获取市级行政区划代码
-        $city = substr($id, 0, 4) . '00';
-        // 获取县级行政区划代码
+        
+        // 15位身份证的前6位就是区划代码，可以直接使用
+        // 18位身份证的前6位也是区划代码
+        // 所以无论15位还是18位，前6位都是区划代码，不需要转换
+        
+        // 获取县级行政区划代码（前6位，必须是纯数字）
         $county = substr($id, 0, 6);
+        
+        // 确保前6位是纯数字
+        if (!ctype_digit($county)) {
+            return false;
+        }
+        
+        // 获取省级行政区划代码（前2位 + 0000）
+        $province = substr($county, 0, 2) . '0000';
+        // 获取市级行政区划代码（前4位 + 00）
+        $city = substr($county, 0, 4) . '00';
 
         $divisions = static::$divisions;
 
-        // 只验证县级行政区划代码就行
-        if (!array_key_exists($county, $divisions)) {
-            return false;
+        // 获取省、市、县名称，处理空格值（数据表中有些值是单个空格 ' '）
+        $provinceName = isset($divisions[$province]) ? trim($divisions[$province]) : '';
+        $cityName = isset($divisions[$city]) ? trim($divisions[$city]) : '';
+        $countyName = isset($divisions[$county]) ? trim($divisions[$county]) : '';
+
+        // 处理空格值，将单个空格转换为空字符串
+        $provinceName = ($provinceName === '' || $provinceName === ' ') ? '' : $provinceName;
+        $cityName = ($cityName === '' || $cityName === ' ') ? '' : $cityName;
+        $countyName = ($countyName === '' || $countyName === ' ') ? '' : $countyName;
+
+        // 如果县级代码不存在，尝试查找相近的代码（例如查找以相同前4位开头的代码）
+        if ($countyName === '' && !array_key_exists($county, $divisions)) {
+            // 尝试查找前4位相同的市级代码下的县级代码
+            // 例如：533522 找不到，尝试查找 5335 开头的其他代码
+            $prefix = substr($county, 0, 4);
+            foreach ($divisions as $code => $name) {
+                // 查找以相同前4位开头的6位代码
+                if (strlen($code) == 6 && substr($code, 0, 4) === $prefix && $code !== $county) {
+                    $countyName = trim($name);
+                    $countyName = ($countyName === '' || $countyName === ' ') ? '' : $countyName;
+                    break;
+                }
+            }
         }
 
-        return [
-            'province' => $divisions[$province],
-            'city' => $divisions[$city],
-            'county' => $divisions[$county],
-        ];
+        // 如果至少省级信息存在，就返回结果（即使市县级不存在）
+        // 这样可以处理数据表不完整的情况
+        if ($provinceName !== '') {
+            return [
+                'province' => $provinceName,
+                'city' => $cityName,
+                'county' => $countyName,
+            ];
+        }
+
+        // 如果省级信息都不存在，返回 false
+        return false;
     }
 
     // 性别显示方式：英文首字符
